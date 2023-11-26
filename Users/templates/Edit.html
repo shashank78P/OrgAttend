@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{%load static%}
+
+{% block page_title %}
+    {{ text | title }}
+{% endblock %}
+
+{% block content %}
+    <h1>Edit Page</h1>
+    <h2>{{slug}}</h2>
+{% endblock %}

@@ -1,53 +1,71 @@
 from django.db import models
+from django.urls import reverse
+from django.utils.text import slugify
 from django.core.exceptions import ValidationError
+from django.core.validators import EmailValidator
 from datetime import date
 
-# creating a validator function
+# Creating a validator function
 def isPhoneNumber(value):
     if len(value) == 10:
         return value
     else:
-        raise ValidationError("Phone number must have only 10 digit")
-    
+        raise ValidationError("Phone number must have only 10 digits")
+
 def isValidDate(value):
     today = date.today()
-    if(today.year == value.year and today.month == value.month and today.day == value.day):
+    if today == value:
         raise ValidationError("Invalid date")
     else:
         return value
-
-# users class inheriting models.Model
-class Users(models.Model):
-    id = models.AutoField(auto_created=True , primary_key=True)
-    FirstName = models.CharField(max_length=50)
-    MiddleName = models.CharField(max_length=20)
-    LastName = models.CharField(max_length=20)
-    phoneNumber = models.CharField(max_length=10 , 
-                unique = True,
-                null=False,
-                blank=False,
-                default='0',
-                error_messages ={
-                "unique":"User with this number is already exist",
-                "max_length":"Phone number must have only 10 digit",
-                },
-                validators =[isPhoneNumber]
-            )
-    email :  models.EmailField( 
-                unique = True,
-                error_messages ={
-                "unique":"User with this number is already exist",
-                'invalid': 'Please enter a valid email address.'
-                },
-            )
-    DOB : models.DateField(
-        validators =[isValidDate]
-    )
-    createdAt : models.DateTimeField(
-        default=date.today()
-    )
-    updatedAt : models.DateTimeField(
-        default=date.today()
-    )
-
     
+class Address(models.Model):
+    city = models.CharField(max_length=50 , null=True)
+    state = models.CharField(max_length=50 , null=True)
+    country = models.CharField(max_length=50 , null=True)
+    code = models.CharField(max_length=6 , null=True)
+
+# Users class inheriting models.Model
+class Users(models.Model):
+    _id = models.AutoField(auto_created=True, primary_key=True)
+    firstName = models.CharField(max_length=50)
+    middleName = models.CharField(max_length=20)
+    lastName = models.CharField(max_length=20)
+    DOB = models.DateField(
+        validators=[isValidDate]
+    )
+    createdAt = models.DateTimeField(auto_now_add=True)
+    updatedAt = models.DateTimeField(auto_now=True)
+    password = models.CharField(max_length = 20 )
+    passwordReSetId = models.UUIDField(null=True)
+    email = models.EmailField(
+        unique=True,
+        error_messages={
+            "unique": "User with this email is already exist",
+            'invalid': 'Please enter a valid email address.'
+        },
+        validators=[EmailValidator()],
+        db_index=True
+    )
+    phoneNumber = models.CharField(max_length=10,
+                                   unique=True,
+                                   error_messages={
+                                       "unique": "User with this phone number is already exist",
+                                       "max_length": "Phone number must have only 10 digits",
+                                   },
+                                   validators=[isPhoneNumber]
+                                   )
+    slug = models.SlugField(default="" , null=False , blank=True , db_index=True )
+    address = models.ForeignKey(Address , on_delete=models.SET_NULL, null=True)
+
+    def save(self , *args , **kwargs):
+        slug = f"{self.firstName} {self.middleName} {self.lastName} {self._id}"
+        print(slug)
+        self.slug = slugify(slug)
+        super().save(*args , **kwargs)
+
+    def get_absolute_url(self):
+        return reverse("user-detail" , [self.id])
+
+    def __str__(self):
+        return f"{self.firstName} {self.middleName} {self.lastName} ({self.email})"

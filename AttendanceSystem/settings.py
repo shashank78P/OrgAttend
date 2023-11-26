@@ -57,7 +57,9 @@ ROOT_URLCONF = 'AttendanceSystem.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            BASE_DIR / "Users" / "templates" 
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
