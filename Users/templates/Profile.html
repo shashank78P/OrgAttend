@@ -2,10 +2,22 @@
 {%load static%}
 
 {% block page_title %}
-    {{ text | title }}
+{{ text | title }}
 {% endblock %}
 
 {% block content %}
-    <h1>Profile</h1>
-    <h2>{{slug}}</h2>
+<h1>Profile</h1>
+    {% if messages %}
+        {% for message in messages %}
+            {% if 'get_object_or_404' in message %}
+                <p>No user found</p>
+            {% else %}
+                {{ message }}
+            {% endif %}
+        {% endfor %}
+    {% else %}
+{{ user.firstName }} {{ user.middleName }} {{ user.lastName }}
+{{ user.email }}
+{{ user.DOB }}
+{% endif %}
 {% endblock %}

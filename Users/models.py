@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
@@ -32,11 +33,15 @@ class Users(models.Model):
     middleName = models.CharField(max_length=20)
     lastName = models.CharField(max_length=20)
     DOB = models.DateField(
+        null=True,
         validators=[isValidDate]
     )
     createdAt = models.DateTimeField(auto_now_add=True)
     updatedAt = models.DateTimeField(auto_now=True)
-    password = models.CharField(max_length = 20 )
+    password = models.CharField(
+        null=True,
+        max_length = 10000
+    )
     passwordReSetId = models.UUIDField(null=True)
     email = models.EmailField(
         unique=True,
@@ -49,6 +54,7 @@ class Users(models.Model):
     )
     phoneNumber = models.CharField(max_length=10,
                                    unique=True,
+                                   null=True,
                                    error_messages={
                                        "unique": "User with this phone number is already exist",
                                        "max_length": "Phone number must have only 10 digits",
@@ -59,13 +65,13 @@ class Users(models.Model):
     address = models.ForeignKey(Address , on_delete=models.SET_NULL, null=True)
 
     def save(self , *args , **kwargs):
-        slug = f"{self.firstName} {self.middleName} {self.lastName} {self._id}"
+        slug = f"{self.firstName} {self.middleName} {self.lastName} {uuid.uuid4() }"
         print(slug)
         self.slug = slugify(slug)
         super().save(*args , **kwargs)
 
     def get_absolute_url(self):
-        return reverse("user-detail" , [self.id])
+        return reverse("user-detail" , [self._id])
 
     def __str__(self):
-        return f"{self.firstName} {self.middleName} {self.lastName} ({self.email})"
+        return f"{self.firstName} {self.middleName} {self.lastName} ({self.email}) {self._id}"

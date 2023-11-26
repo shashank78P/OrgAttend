@@ -1,6 +1,4 @@
 {% extends "base.html" %}
-{%load static%}
-
 {% block page_title %}
 {{ text | title }}
 {% endblock %}
@@ -8,48 +6,16 @@
 {% block content %}
 <form action="/users/sign-up" method="POST">
     {% csrf_token %}
+   {% for field in form %}
+   <!-- field.errors -->
+        <ul class="">
+            <li>{{ field.label_tag }}</li>
+            <li>{{ field }}</li>
+            <li>{{ field.errors }}</li>
+        </ul>
+   {% endfor %}
     <div>
-        <div>
-            <label for="firstName" for="firstName">First Name</label>
-            <input type="text" name="firstName" id="firstName">
-        </div>
-        <div>
-            <label for="middleName" for="middleName">Middle Name</label>
-            <input type="text" name="middleName" id="middleName">
-        </div>
-        <div>
-            <label for="lastName" for="lastName">Last Name</label>
-            <input type="text" name="lastName" id="lastName">
-        </div>
-    </div>
-
-    <!-- <div>
-            <label for="DOB" for="DOB">DOB</label>
-            <input type="date" name="DOB" id="DOB">
-        </div> -->
-
-    <div>
-        <label for="email" for="email">Email</label>
-        <input type="email" name="email" id="email">
-    </div>
-
-    <!-- <div>
-            <label for="phoneNumber" for="phoneNumber">Phone Number</label>
-            <input type="text" name="phoneNumber" id="phoneNumber">
-        </div> -->
-
-    <div>
-        <label for="password" for="password">Password</label>
-        <input type="password" name="password" id="password">
-    </div>
-
-    <div>
-        <label for="confirmPassword" for="confirmPassword">confirmPassword</label>
-        <input type="password" name="confirmPassword" id="confirmPassword">
-    </div>
-
-    <div>
-        <input type="submit" value="SignUp">
+        <input type="submit" value="Sign Up">
     </div>
 </form>
 {% endblock %}
