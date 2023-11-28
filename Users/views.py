@@ -26,7 +26,7 @@ def index(request , slug):
         print(request.path)
         token = cookie.split(" ")[1]
         decoded_data = jwt.decode(token, os.environ.get('SECRET_KEY'), algorithms='HS256')
-        user = Users.objects.get_object_or_404(slug = slug)
+        user = Users.objects.get(slug = slug)
         return render(request ,"Profile.html" , { 'slug' : slug , 'user' : user })
     except jwt.ExpiredSignatureError:
         return render(request ,"Profile.html" , { 'slug' : slug , messages : messages.error(request, "Token has expired.")})
@@ -108,6 +108,12 @@ def login(request) :
         else:
             form = logInForm()
             return render(request ,"LogIn.html", { 'form' : form })
+    except():
+        HttpResponseServerError("Internal Server error")
+
+def home(request , slug) :
+    try:
+        return render(request ,"Home.html")
     except():
         HttpResponseServerError("Internal Server error")
 

@@ -1,0 +1,123 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300&family=Montserrat:wght@200;400;500;600&family=PT+Sans&family=Philosopher:wght@700&family=Poppins:ital,wght@1,200&display=swap');
+
+:root{
+    --black : #3D4756;
+    --slate-500 : #64748B;
+    --slate-700: #334155;
+    --hover : #f6f8fb;
+    --blue-primary : #017BF6;
+    --purple-primary : #CC6EE3;
+    --pink-primary : #FF6EB4;
+    --orange-primary : #FF9181;
+    --orange_secondary : #FE674C;
+    --yellow-primary : #F9D600;
+    --yellow-secondary : #F9F871;
+    --green-primary : #5CB616;
+    --purple-200 : #E9D5FF;
+}
+
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    list-style-type: none;
+    color: var(--black);
+}
+
+*::-webkit-scrollbar ,
+*::-webkit-scrollbar-thumb ,
+*::-webkit-scrollbar-track
+ {
+    display: none;
+}
+
+body{
+    width: 100vw;
+    overflow-x: hidden;
+    color: var(--black);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 16px;
+}
+/* font-family: 'Inter', sans-serif;
+font-family: 'Montserrat', sans-serif;
+font-family: 'Philosopher', sans-serif;
+font-family: 'Poppins', sans-serif;
+font-family: 'PT Sans', sans-serif; */
+
+
+.flex{
+    display: flex;
+}
+
+.flex-col{
+    flex-direction: column;
+}
+
+.flex-wrap{
+    flex-wrap: wrap;
+}
+
+.justify-normal{
+    justify-content: normal;
+}	
+
+.justify-start{
+    justify-content: flex-start;
+}	
+
+.justify-end{
+    justify-content: flex-end;
+}	
+
+.justify-center{
+    justify-content: center;
+}	
+
+.justify-between{
+    justify-content: space-between;
+}	
+
+.justify-around{
+    justify-content: space-around;
+}	
+
+.justify-evenly{
+    justify-content: space-evenly;
+}	
+
+.justify-stretch{
+    justify-content: stretch;
+}	
+
+.items-start
+{
+    align-items: flex-start;
+}	
+
+.items-end
+{
+    align-items: flex-end;
+}	
+
+.items-center
+{
+    align-items: center;
+}	
+
+.items-baseline
+{
+    align-items: baseline;
+}	
+
+.items-stretch
+{
+    align-items: stretch;
+}
+
+.cursor-pointer{
+    cursor: pointer;
+}
+
+.icon{
+    cursor: pointer;
+}

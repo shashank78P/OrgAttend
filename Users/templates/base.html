@@ -1,3 +1,5 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,9 +8,12 @@
     <title>
         {% block page_title %} title {% endblock %}
     </title>
-    {% block css_block %}{% endblock %}
+    {% block css_block %}
+        <!-- <link rel="stylesheet" href={% static "css/Global.css" %}> -->
+    {% endblock %}
 </head>
 <body>
-    {% block content %}{% endblock %}
+    {% block content %}
+    {% endblock %}
 </body>
 </html>

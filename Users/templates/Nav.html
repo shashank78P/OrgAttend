@@ -1,0 +1,42 @@
+<ul class="flex justify-between items-center userNav">
+    <li>
+        <ul class=" flex items-center">
+            <li class="logo cursor-pointer">
+                {% with width=30 height=30 color="#3D4756"%}
+                {% include 'SvgIcon/AttendanceIco.html' %}
+                {% endwith %}
+            </li>
+            <li class="organization">
+                <div class="flex justify-start items-center">
+                    <div>Organization</div>
+                    <div class="org-list-open-btn flex justify-center items-center flex-col" onclick="togglePopOver('listContainer','org-list-open-btn')"
+                        aria-expanded="false">
+                        <span class="org-list-open-arrow">
+                            {% with width=20 height=20 color="#3D4756"%}
+                            {% include 'SvgIcon/CodeArrowIco.html' %}
+                            {% endwith %}
+                        </span>
+                        <ul id="listContainer" class="list-container" aria-hidden="true"> 
+                            <li class="cursor-pointer">Daily Dash</li>
+                            <li class="cursor-pointer">UST Global</li>
+                            <li class="cursor-pointer">Infosys</li>
+                            <li class="cursor-pointer">IBM</li>
+                            <li class="cursor-pointer">Accenture</li>
+                            <li class="cursor-pointer">Accenture</li>
+                        </ul>
+                    </div>
+                </div>
+            </li>
+        </ul>
+    </li>
+    <li>
+        <ul class="flex justify-between items-center user-nav-last-part">
+            <li class="cursor-pointer">
+                {% with width=20 height=20 color="#3D4756"%}
+                {% include 'SvgIcon/BellIco.html' %}
+                {% endwith %}
+            </li>
+            <li class="log-out-btn cursor-pointer">Log Out</li>
+        </ul>
+    </li>
+</ul>

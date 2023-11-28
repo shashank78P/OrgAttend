@@ -1,0 +1,107 @@
+.userCard{
+    padding: 10px;
+}
+
+.userCard img{
+    width: 200px;
+    object-fit: cover;
+    /* border: 1px solid red; */
+    margin-right: 10px;
+}
+
+.userCardDetails{
+    /* border: 1px solid red; */
+    padding: 10px;
+}
+
+.userCardDetails li{
+    margin-bottom: 10px;
+    
+}
+
+.userCard-top-section li{
+    margin-bottom: 5px;
+}
+
+.userCard-top-section p{
+    font-size: 14px;
+    color: var(--slate-500);
+}
+
+.user-role{
+    margin: 5px ;
+    padding: 5px;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.role{
+    background-color: var(--purple-primary);
+    color: white;
+}
+
+.type{
+    background-color: var(--blue-primary);
+    color: white;
+}
+
+.userCardIcon{
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+}
+
+
+.userName{
+    font-size: 18px;
+}
+
+.user-chart-component{
+    display: grid;
+    grid-template-columns:1fr 1fr;
+    gap: 20px;
+}
+
+/* .user-role-bigscreen{
+    display: flex;
+}
+
+.user-role-small-screen{
+    display: none;
+} */
+
+@media screen and (max-width : 700px) {
+    .userName{
+        font-size: 16px;
+    }
+    
+    /* .user-role-bigscreen{
+        display: none;
+    }
+    
+    .user-role-small-screen{
+        display: flex;
+    } */
+
+    .userCard{
+        font-size: 16px;
+    }
+
+    .userCard {
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: flex-start;
+    }
+
+    .userImageSec{
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .user-chart-component{
+        grid-template-columns: 1fr !important;
+    }
+}
+

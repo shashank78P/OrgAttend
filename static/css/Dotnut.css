@@ -1,0 +1,144 @@
+.chartContainer {
+    container-type: inline-size;
+    container-name: chartContainer;
+    padding: 10px;
+    border-radius: 10px;
+    /* border: 1px solid red; */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.pieChart {
+    width: 200px;
+    min-width: 100px;
+    max-width: 300px;
+    max-height: 200px;
+    height: 200px;
+    margin: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.lineChart {
+    width: 100%;
+    height: auto;
+    min-height: 200px;
+    max-height: 200px;
+    margin: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.chart-card {
+    width: fit-content;
+    height: fit-content;
+    padding: 5px;
+    margin: 10px;
+}
+
+.marker {
+    display: block;
+    width: 5px;
+    min-width: 5px;
+    height: max-content;
+    min-height: 70px;
+    max-height: 100px;
+    /* height: 80px; */
+    border-radius: 5px;
+    margin-right: 10px;
+}
+
+.result {
+    font-size: 24px;
+    font-weight: 700;
+    margin-top: 5px;
+}
+
+.chatContent {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+.chart-top-nav {
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.chart-title {
+    font-size: 20px;
+    font-weight: 500;
+}
+
+.chart-filter li {
+    margin: 10px;
+}
+
+.chart-filter li span {
+    margin-right: 10px;
+}
+
+.chart-filter li input {
+    padding: 5px;
+    font-size: 14px;
+    /* border-color: var(--slate-500); */
+}
+
+@container chartContainer (max-width : 600px) {
+    .chart-title {
+        margin-bottom: 10px;
+    }
+
+    .chart-filter li {
+        margin-right: 10px;
+    }
+
+    .date-filter-container{
+        width: 100%;
+    }
+    .date-filter-container ul{
+        /* width: 100%; */
+        justify-content: space-between;
+    }
+    
+}
+@container chartContainer (max-width : 400px) {
+    .chart-top-nav {
+        width: 100%;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .chart-top-nav li {
+        /* width: 100%; */
+    }
+
+    .chart-filter {
+        margin-top: 10px;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: nowrap;
+    }
+
+    .chart-filter li {
+        width: auto;
+        /* margin: 10px; */
+        padding: 0;
+    }
+
+    .chart-filter li span{
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    .date-filter-container{
+        width: 100%;
+        padding: 0;
+    }
+}
+
+@container chartContainer (max-width : 300px) {
+    .chart-filter {
+        flex-wrap: wrap;
+    }
+}

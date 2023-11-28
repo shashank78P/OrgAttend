@@ -1,0 +1,97 @@
+
+<div class="flex flex-col items-center justify-center chartContainer">
+    <ul class="flex justify-between items-center flex-wrap chart-top-nav" >
+        <li class="chart-title">Attendance Report</li>
+        <li class=" date-filter-container " >
+            <ul class="flex justify-center items-center chart-filter" >
+                <li>
+                    <span>From</span>
+                    <input type="date" name="" id="">
+                </li>
+                <li>
+                    <span>To</span>
+                    <input type="date" name="" id="">
+                </li>
+            </ul>
+        </li>
+    </ul>
+    <div class="flex justify-center items-center flex-wrap">
+        <div class="pieChart">
+            <canvas id={{id}}></canvas>
+        </div>
+        <div class="chatContent">
+            <ul class="flex justify-center items-center chart-card">
+                <li class="marker" style="background-color:#017BF6"></li>
+                <li>
+                    <ul class="">
+                        <li>In Office</li>
+                        <li class="result">65%</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <ul class="flex justify-center items-center chart-card">
+                <li class="marker" style="background-color:#CC6EE3"></li>
+                <li>
+                    <ul class="">
+                        <li>Half Day</li>
+                        <li class="result">6%</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <ul class="flex justify-center items-center chart-card">
+                <li class="marker" style="background-color:#FF6EB4"></li>
+                <li>
+                    <ul class="">
+                        <li>Work From Home</li>
+                        <li class="result">22%</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <ul class="flex justify-center items-center chart-card">
+                <li class="marker" style="background-color:#FF9181"></li>
+                <li>
+                    <ul class="">
+                        <li>On Leave {{id}}</li>
+                        <li class="result">9%</li>
+                    </ul>
+                </li>
+            </ul>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    console.log('{{id}}')
+    new Chart(document.getElementById('{{id}}'), {
+        type: 'doughnut',
+        data: data = {
+            // labels: [
+            //     'Red',
+            //     'Blue',
+            //     'Yellow'
+            // ],
+            datasets: [{
+                label: 'My First Dataset',
+                data: [300, 50, 100, 34, 122, 34, 45, 56],
+                backgroundColor: [
+                    // 'rgb(255, 99, 132)',
+                    // 'rgb(54, 162, 235)',
+                    // 'rgb(255, 205, 86)'
+                    "#017BF6", "#CC6EE3", "#FF6EB4", "#FF9181", "#FE674C", "#F9D600", "#F9F871", "#5CB616"
+                ],
+                hoverOffset: 4
+            }]
+        },
+        // options: {
+        //     scales: {
+        //         y: {
+        //             beginAtZero: true
+        //         }
+        //     }
+        // }
+    });
+</script>

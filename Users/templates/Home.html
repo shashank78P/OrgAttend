@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block page_title %}
+{{ text | title }}
+{% endblock %}
+
+{% block css_block %}
+<link rel="stylesheet" href={% static "css/Global.css" %}>
+<link rel="stylesheet" href={% static "css/home.css" %}>
+<link rel="stylesheet" href={% static 'css/homeNav.css' %}>
+<link rel="stylesheet" href={% static "css/UserInfo.css" %}>
+<link rel="stylesheet" href={% static "css/Dotnut.css" %}>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src={% static 'js/script.js' %}></script>
+{% endblock %}
+
+{% block content %}
+<div>
+    {% include "Nav.html" %}
+    {% include "UserInfo.html" %}
+    <!-- style="width: 500px;" -->
+    <!-- style="display: grid; grid-template-columns:1fr 1fr; gap: 20px;" -->
+    <div 
+    class="user-chart-component"
+    >
+        {% with id="chart1" %}
+        {% include "dotnut.html" %}
+        {% endwith %}
+
+        {% with id="chart2" %}
+        {% include "lineChart.html" %}
+        {% endwith %}
+
+        <!-- {% with id="chart3"%}
+            {% include "dotnut.html" %}
+        {% endwith %} -->
+    </div>
+</div>
+{% endblock %}
