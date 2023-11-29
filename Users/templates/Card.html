@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="../../static/css/Global.css">
+
+    <style>
+        .month_box {
+            display: grid;
+            gap: 10px;
+            grid-template-columns: repeat(12, 1fr);
+            border: 1px solid red;
+        }
+
+        .days_container {
+            display: grid;
+            grid-template-columns: repeat(4, 20px);
+            grid-template-rows: repeat(7, 20px);
+            justify-content: space-around;
+            gap: 5px;
+            /* border: 1px solid red; */
+        }
+
+        .day_box {
+            width: 20px;
+            height: 20px;
+            border-radius: 5px;
+            border: 1px solid red;
+        }
+    </style>
+</head>
+
+<body>
+    <ul>
+        <li>
+            <ul>Top Nav</ul>
+        </li>
+        <li>
+            <ul class="month_box">
+                <li>
+                    <ul>
+                        <li>Jan</li>
+                        <li>
+                            <ul class="days_container">
+                                <li class="day_box"></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    <ul>
+                        <li>Feb</li>
+                        <li>
+                            <ul class="days_container">
+                                <li class="day_box"></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    <ul>
+                        <li>Mar</li>
+                        <li>
+                            <ul class="days_container">
+                                <li class="day_box"></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    <ul>
+                        <li>Apr</li>
+                        <li>
+                            <ul class="days_container">
+                                <li class="day_box"></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    <ul>
+                        <li>May</li>
+                        <li>
+                            <ul class="days_container">
+                                <li class="day_box"></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    <ul>
+                        <li>Jun</li>
+                        <li>
+                            <ul class="days_container">
+                                <li class="day_box"></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    <ul>
+                        <li>Jul</li>
+                        <li>
+                            <ul class="days_container">
+                                <li class="day_box"></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    <ul>
+                        <li>Aug</li>
+                        <li>
+                            <ul class="days_container">
+                                <li class="day_box"></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    <ul>
+                        <li>Sep</li>
+                        <li>
+                            <ul class="days_container">
+                                <li class="day_box"></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    <ul>
+                        <li>Oct</li>
+                        <li>
+                            <ul class="days_container">
+                                <li class="day_box"></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    <ul>
+                        <li>Nov</li>
+                        <li>
+                            <ul class="days_container">
+                                <li class="day_box"></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    <ul>
+                        <li>Dec</li>
+                        <li>
+                            <ul class="days_container">
+                                <li class="day_box"></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </li>
+    </ul>
+
+    <script>
+        let DayInNumber = {
+            Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 7
+        }
+        let startDate = new Date(2023, 10, 1)
+        let lastDate = new Date(2023, 10, 0)
+        let startDay = startDate.toLocaleDateString('en-US', { weekday: 'short' });
+        let numberOfDays = lastDate.getDate() + DayInNumber[startDay] - 1
+        console.log(numberOfDays)
+    </script>
+</body>
+
+</html>
