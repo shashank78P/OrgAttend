@@ -5,3 +5,7 @@ function togglePopOver(listContainerId , buttonClass) {
     document.querySelector(`.${buttonClass}`).setAttribute('aria-expanded', !isOpen);
     listContainer.setAttribute('aria-hidden', isOpen);
 }
+
+function openWindow(path){
+    window.open(path ,target="_self")
+}

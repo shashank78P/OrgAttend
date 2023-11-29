@@ -1,0 +1,49 @@
+.attendance_card {
+    max-width: 500px;
+    min-width: 200px;
+    border: 1px solid gray;
+    padding: 10px;
+    border-left: 5px solid green;
+    border-radius: 10px;
+}
+
+.attendance_row {
+    padding: 10px 0;
+}
+
+.attendance_row_1st {
+    border-bottom: 1px solid gray;
+}
+
+.lightText {
+    font-size: 14px;
+    color: gray;
+    margin-bottom: 5px;
+}
+
+.attendance_tag_card {
+    background-color: #aacfff;
+    padding: 5px;
+    border-radius: 5px;
+}
+
+.attendance_tag {}
+
+.attendance_dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 5px;
+    background-color: #006fff;
+    margin-right: 5px;
+}
+
+.todayAttendance{
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    place-content: center;
+    gap: 20px;
+    padding: 20px;
+}

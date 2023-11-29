@@ -2,6 +2,9 @@
 
 :root{
     --black : #3D4756;
+    --slate-50 : #f8fafc;
+    --slate-100 : #f1f5f9;
+    --slate-200 : #e2e8f0;
     --slate-500 : #64748B;
     --slate-700: #334155;
     --hover : #f6f8fb;
@@ -22,6 +25,7 @@
     box-sizing: border-box;
     list-style-type: none;
     color: var(--black);
+    text-decoration: none;
 }
 
 *::-webkit-scrollbar ,
@@ -120,4 +124,16 @@ font-family: 'PT Sans', sans-serif; */
 
 .icon{
     cursor: pointer;
+}
+
+.w-full{
+	width : 100%;
+}
+
+.shadow{
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.border{
+    border: 1px solid var(--slate-500);
 }

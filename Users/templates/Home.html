@@ -11,20 +11,24 @@
 <link rel="stylesheet" href={% static 'css/homeNav.css' %}>
 <link rel="stylesheet" href={% static "css/UserInfo.css" %}>
 <link rel="stylesheet" href={% static "css/Dotnut.css" %}>
+<link rel="stylesheet" href={% static "css/NavigationOptions.css" %}>
+<link rel="stylesheet" href={% static "css/ConsumedLeave.css" %}>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src={% static 'js/script.js' %}></script>
+<script src={% static "js/chart.js" %}></script>
 {% endblock %}
 
 {% block content %}
 <div>
     {% include "Nav.html" %}
     {% include "UserInfo.html" %}
+    {% with page="home"%}
+    {% include "NavigationOptions.html" %}
+    {% endwith %}
     <!-- style="width: 500px;" -->
     <!-- style="display: grid; grid-template-columns:1fr 1fr; gap: 20px;" -->
-    <div 
-    class="user-chart-component"
-    >
+    <div class="user-chart-component">
         {% with id="chart1" %}
         {% include "dotnut.html" %}
         {% endwith %}
@@ -33,9 +37,11 @@
         {% include "lineChart.html" %}
         {% endwith %}
 
+        {% include "ConsumedLeave.html" %}
         <!-- {% with id="chart3"%}
             {% include "dotnut.html" %}
-        {% endwith %} -->
+            {% endwith %} -->
     </div>
+    
 </div>
 {% endblock %}

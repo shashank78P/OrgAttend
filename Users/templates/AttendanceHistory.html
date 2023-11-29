@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block page_title %}
+{{ text | title }}
+{% endblock %}
+
+{% block css_block %}
+<link rel="stylesheet" href={% static "css/Global.css" %}>
+<link rel="stylesheet" href={% static "css/home.css" %}>
+<link rel="stylesheet" href={% static 'css/homeNav.css' %}>
+<link rel="stylesheet" href={% static "css/UserInfo.css" %}>
+<link rel="stylesheet" href={% static "css/NavigationOptions.css" %}>
+<link rel="stylesheet" href={% static "css/AttendanceCalendar.css" %}>
+<link rel="stylesheet" href={% static "css/AttendanceDetailsCard.css" %}>
+
+<script src={% static 'js/script.js' %}></script>
+
+
+{% endblock %}
+
+{% block content %}
+{% include "Nav.html" %}
+{% include "UserInfo.html" %}
+{% with page="attendanceHistory" %}
+{% include "NavigationOptions.html" %}
+{% endwith %}
+{% include "AttendanceCalendar.html" %}
+
+<div class="todayAttendance">
+    {% include "AttendanceDetailsCard.html" %}
+    {% include "AttendanceDetailsCard.html" %}
+    {% include "AttendanceDetailsCard.html" %}
+    {% include "AttendanceDetailsCard.html" %}
+
+</div>
+<script src={% static 'js/AttendanceCalendar.js' %}></script>
+{% endblock %}

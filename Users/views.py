@@ -117,6 +117,12 @@ def home(request , slug) :
     except():
         HttpResponseServerError("Internal Server error")
 
+def attendanceHistory(request , slug) :
+    try:
+        return render(request ,"AttendanceHistory.html")
+    except():
+        HttpResponseServerError("Internal Server error")
+
 def add(request) :
     try:
         return render(request ,"SignUp.html")
