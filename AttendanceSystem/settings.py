@@ -63,6 +63,7 @@ TEMPLATES = [
         'DIRS': [
             BASE_DIR / "Users" / "templates" ,
             BASE_DIR / "Users" / "templates" / "Home" ,
+            BASE_DIR / "Organization" / "templates" / "Form" ,
             BASE_DIR / "AttendanceSystem" / "templates" ,
             BASE_DIR / "AttendanceSystem" / "templates" / "global" ,
             BASE_DIR / "templates" 
@@ -85,23 +86,23 @@ WSGI_APPLICATION = 'AttendanceSystem.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
 DATABASES = {
     'default': {
-        'ENGINE': os.environ.get('ENGINE'),
-        'NAME': os.environ.get('NAME'),
-        'USER': os.environ.get('USER'),
-        'PASSWORD': os.environ.get('PASSWORD'),
-        'HOST': os.environ.get('HOST'),
-        'PORT': os.environ.get('PORT'),
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': os.environ.get('ENGINE'),
+#         'NAME': os.environ.get('NAME'),
+#         'USER': os.environ.get('USER'),
+#         'PASSWORD': os.environ.get('PASSWORD'),
+#         'HOST': os.environ.get('HOST'),
+#         'PORT': os.environ.get('PORT'),
+#     }
+# }
 
 
 
@@ -143,7 +144,12 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [
             os.path.join(BASE_DIR, 'static'),
             os.path.join(BASE_DIR, 'Users/static'),
+            os.path.join(BASE_DIR, 'Organization/static'),
+            os.path.join(BASE_DIR, 'AttendanceSystem/static'),
         ]
+
+MEDIA_ROOT = BASE_DIR / 'uploads'
+MEDIA_URL = '/media/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

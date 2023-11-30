@@ -109,7 +109,9 @@ def login(request) :
             form = logInForm()
             return render(request ,"LogIn.html", { 'form' : form })
     except():
-        HttpResponseServerError("Internal Server error")
+        form = logInForm()
+        return render(request ,"LogIn.html", { 'form' : form })
+        # HttpResponseServerError("Internal Server error")
 
 def home(request , slug) :
     try:

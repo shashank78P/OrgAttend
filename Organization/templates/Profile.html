@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load static %}
+{% block page_title %}
+{{ text | title }}
+{% endblock %}
+
+{% block css_block %}
+<link rel="stylesheet" href={% static "css/Global.css" %}>
+<link rel="stylesheet" href={% static "css/CreateOrganization.css" %}>
+
+{% endblock %}
+{% block content %}
+<h1>Profile</h1>
+{% endblock %}

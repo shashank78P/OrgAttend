@@ -17,6 +17,7 @@
     --yellow-secondary : #F9F871;
     --green-primary : #5CB616;
     --purple-200 : #E9D5FF;
+    --red-500 : #ef4444;
 }
 
 *{
@@ -33,6 +34,10 @@
 *::-webkit-scrollbar-track
  {
     display: none;
+}
+
+input{
+    outline: none;
 }
 
 body{
@@ -136,4 +141,10 @@ font-family: 'PT Sans', sans-serif; */
 
 .border{
     border: 1px solid var(--slate-500);
+}
+
+.errorlist li{
+    color: var(--red-500) !important;
+    margin-top: 10px;
+    display: inline-block;
 }

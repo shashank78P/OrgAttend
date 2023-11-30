@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% load static %}
+{% block page_title %}
+{{ text | title }}
+{% endblock %}
+
+{% block css_block %}
+<link rel="stylesheet" href={% static "css/Global.css" %}>
+
+<style>
+    .form_title {
+        color: var(--orange-primary);
+    }
+
+    .formContainer {
+        width: 70vw;
+        margin: 20px auto;
+        padding: 20px;
+        border-radius: 10px;
+        /* border: 1px solid red; */
+    }
+
+    .form_row {
+        padding: 5px;
+    }
+
+    .form_row label {
+        margin-bottom: 5px;
+    }
+
+
+    .form_row input,
+    .form_row textarea {
+        width: 100%;
+        padding: 10px;
+        border-radius: 5px;
+        font-size: 16px;
+        border: 1px solid var(--slate-500);
+    }
+
+    .form_row input[type="submit"] {
+        background-color: var(--orange-primary);
+        color: white;
+        font-weight: 500;
+        font-size: 18px;
+        border-color: transparent;
+        cursor: pointer;
+    }
+</style>
+{% endblock %}
+<!-- <form action="" method="post" class=" shadow formContainer">
+        <h1 class="form_title">Create Organization</h1>
+        <div class="w-full flex justify-center items-center flex-col">
+            <div class="w-full form_row flex justify-center items-start flex-col">
+                <label for="">Name</label>
+                <input type="text" name="" id="">
+            </div>
+            <div class="w-full form_row flex justify-center items-start flex-col">
+                <label for="">Address</label>
+                <input type="text" name="" id="">
+            </div>
+            <div class="w-full form_row flex justify-center items-start flex-col">
+                <label for="">Logo</label>
+                <input type="text" name="" id="">
+            </div>
+            <div class="w-full form_row flex justify-center items-start flex-col">
+                <label for="">Website Link</label>
+                <input type="link" name="" id="">
+            </div>
+            <div class="w-full form_row flex justify-center items-start flex-col">
+                <label for="">Social Media</label>
+                <input type="link" name="" id="">
+            </div>
+            <div class="w-full form_row flex justify-center items-start flex-col">
+                <label for="">Contact No</label>
+                <input type="link" name="" id="">
+            </div>
+            <div class="w-full form_row flex justify-center items-start flex-col">
+                <label for="">Creater email</label>
+                <input type="link" name="" id="">
+            </div>
+            <div class="w-full form_row flex justify-center items-start flex-col">
+                <label for="">Description</label>
+                <textarea name="" id="" cols="30" rows="5"></textarea>
+            </div>
+            <div class="w-full form_row flex justify-center items-start flex-col">
+                <input type="submit" value="Create">
+            </div>
+        </div>
+    </form> -->
+
+{% block content %}
+<form action="/organization/create-team" method="POST" class=" shadow formContainer">
+    {% csrf_token %}
+    <h1 class="form_title">Create Team</h1>
+    <div class="w-full flex justify-center items-center flex-col">
+        {% for field in form %}
+        <!-- field.errors -->
+        <div class="w-full form_row flex justify-center items-start flex-col">
+            <div class="w-full form_row flex justify-center items-start flex-col">
+                {{ field.label_tag }}
+                {{ field }}
+                {{ field.errors }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="w-full form_row flex justify-center items-start flex-col">
+        <input type="submit" value="Create">
+    </div>
+</form>
+{% endblock %}
+</body>
+
+</html>
