@@ -6,47 +6,8 @@
 
 {% block css_block %}
 <link rel="stylesheet" href={% static "css/Global.css" %}>
+<link rel="stylesheet" href={% static "css/CreateOrganization.css" %}>
 
-<style>
-    .form_title {
-        color: var(--orange-primary);
-    }
-
-    .formContainer {
-        width: 70vw;
-        margin: 20px auto;
-        padding: 20px;
-        border-radius: 10px;
-        /* border: 1px solid red; */
-    }
-
-    .form_row {
-        padding: 5px;
-    }
-
-    .form_row label {
-        margin-bottom: 5px;
-    }
-
-
-    .form_row input,
-    .form_row textarea {
-        width: 100%;
-        padding: 10px;
-        border-radius: 5px;
-        font-size: 16px;
-        border: 1px solid var(--slate-500);
-    }
-
-    .form_row input[type="submit"] {
-        background-color: var(--orange-primary);
-        color: white;
-        font-weight: 500;
-        font-size: 18px;
-        border-color: transparent;
-        cursor: pointer;
-    }
-</style>
 {% endblock %}
 <!-- <form action="" method="post" class=" shadow formContainer">
         <h1 class="form_title">Create Organization</h1>

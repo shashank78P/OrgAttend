@@ -1,7 +1,10 @@
+from django.http import HttpResponseServerError 
 from django.shortcuts import render
+import requests
 from Organization.forms import createOrganizationForm, createTeamForm
-from Organization.models import Organization ,OwnerDetails
+from Organization.models import Organization ,OwnerDetails , Team ,TeamMember
 from Users.models import Address, Users
+from Users.views import getUserByEmail
 
 # Create your views here.
 def createOrganization(request):
@@ -56,12 +59,72 @@ def createOrganization(request):
         return render(request ,"CreateOrganization.html", { 'form' : form })
     
 
+def companyProfile(request , slug):
+    try:
+        return render(request ,"companyProfile.html")
+    except():
+        return render(request ,"companyProfile.html")        
+
+def companyRole(request , slug):
+    try:
+        return render(request ,"createEmployeeRole.html")
+    except():
+        return render(request ,"createEmployeeRole.html")
+
+def saveTeamMemberData(request,data , form , role , team , name):
+    try:
+        if not data.error:
+            teamMem = TeamMember(
+                userId = data,
+                role = role,
+                TeamId = team
+            )
+            teamMem.save()
+        else:
+            form.add_error(name ,data.message)
+            return render(request ,"CreateTeam.html", { 'form' : form })
+            
+    except Exception as e:
+        return
+
 def createTeam(request):
-    print(request.method)
-    if(request.method == "POST"):
-        form = createTeamForm(request.POST)
-        print(request.POST)
-        return render(request ,"CreateTeam.html", { 'form' : form })
-    else:
+    try:
+        print(request.method)
+        if(request.method == "POST"):
+            print(request.POST)
+            form = createTeamForm(request.POST)
+            data = request.POST
+            team = Team(
+                   name = data.name,
+                   OrganizationId = 2,
+                   checkInTime = data.checkInTime,
+                   checkOutTime = data.checkOutTime,
+                   description = data.description,
+            )
+
+            team.save()
+        
+            # leader
+            leaderData = getUserByEmail(data.leader)
+            saveTeamMemberData(request,leaderData , form , "LEADER" ,team , "leader")
+            
+            # co_Leader
+            co_leader = data.co_Leader.split(",")
+            for email in co_leader:
+                co_Leader_Data = getUserByEmail(email)
+                saveTeamMemberData(request,co_Leader_Data , form , "CO-LEADER",team , "co_Leader")
+            
+            # team_members
+            team_members = getUserByEmail(data.team_members).split(",")
+            for email in team_members:
+                member_Data = getUserByEmail(email)
+                saveTeamMemberData(request,member_Data , form , "MEMBER" , team , "team_members")
+                
+            return render(request ,"companyProfile.html")
+            
         form = createTeamForm()
         return render(request ,"CreateTeam.html", { 'form' : form })
+    except():
+        form = createTeamForm()
+        return render(request ,"CreateTeam.html", { 'form' : form })
+

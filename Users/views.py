@@ -142,3 +142,21 @@ def delete(request , slug) :
         return render(request ,"delete.html" , { 'slug' : slug })
     except():
         HttpResponseServerError("Internal Server error")
+
+def getUserByEmail(email):
+    try:
+        # email = request.GET.get("email")
+        user = get_object_or_404(Users , email = email)
+
+        return JsonResponse({
+            'firstName' : user[0].firstName,
+            'middleName' : user[0].middleName,
+            'lastName' : user[0].lastName,
+            'DOB' : user[0].DOB,
+            'email' : user[0].email,
+            'phoneNumber' : user[0].phoneNumber,
+            'address' : user[0].address,
+            'error' : False
+        })
+    except Exception as e:
+        return JsonResponse({ 'error' : True , 'message' : e})

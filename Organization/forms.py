@@ -100,7 +100,7 @@ class createOrganizationForm(forms.Form):
     
 
 class createTeamForm(forms.Form):
-    Name = forms.CharField(
+    name = forms.CharField(
         label="Name",
         max_length = 200,
         min_length = 3,
@@ -129,7 +129,7 @@ class createTeamForm(forms.Form):
             "required" :"Check Out Time is required",
         }
     )
-    Leader = forms.CharField(
+    leader = forms.CharField(
         label="Leader",
         max_length = 200,
         min_length = 3,
@@ -140,11 +140,17 @@ class createTeamForm(forms.Form):
             "min_length" :"Leader is too small"
         }
     )
-    Co_Leader = forms.CharField(
-        label="Co-Leader's Id with','wpqeme",
-        max_length = 200,
-        min_length = 3,
-        required=True,   
+    co_Leader = forms.CharField(
+        label="Co-Leader's email separated with ','",
+        required=True,
+        error_messages={
+            "required" :"Co-Leader is required",
+            "max_length" :"Co-Leader is to large",
+            "min_length" :"Co-Leader is too small"
+        }
+    )
+    team_members = forms.CharField(
+        label="team members email separated with ','",
         error_messages={
             "required" :"Co-Leader is required",
             "max_length" :"Co-Leader is to large",
@@ -152,7 +158,7 @@ class createTeamForm(forms.Form):
         }
     )
     description = forms.CharField(
-        widget=forms.Textarea(attrs={'rows': 4}),  # Adjust 'rows' as needed
+        widget=forms.Textarea(attrs={'rows': 4}), 
         label="Description",
         required=False,
         error_messages={

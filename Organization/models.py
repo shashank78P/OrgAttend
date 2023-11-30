@@ -1,6 +1,7 @@
 import uuid
 from django.db import models
 from django.core.validators import EmailValidator
+from django.core.exceptions import ValidationError
 from django.utils.text import slugify
 from Users.models import Address, Users
 
@@ -59,3 +60,45 @@ class OwnerDetails(models.Model):
 
     def __str__(self):
         return f"{self.OrganizationId.name} ({self.userId.email})"
+    
+class Team(models.Model):
+        name = models.CharField(max_length=100)
+        checkInTime = models.TimeField()
+        OrganizationId =models.ForeignKey(Organization, db_index=True , on_delete=models.CASCADE, null=True)
+        checkOutTime = models.TimeField()
+        description = models.CharField(
+             max_length=2000,
+             error_messages={
+                  'invalid': 'Description is too long...'
+            },
+        )
+        createAt = models.DateTimeField(auto_now_add=True)
+        updatedAt = models.DateTimeField(auto_now=True)
+        
+        def __str__(self):
+           return f"{self.name} ({self.checkInTime} - {self.checkOutTime})"
+
+
+def isRole(value):
+    if value in ["LEADER" , "CO-LEADER","MEMBER"]:
+        return value
+    else:
+        raise ValidationError("invalid employee role")
+
+
+class TeamMember(models.Model):
+        role = models.CharField(
+             max_length=10 ,
+             db_index=True,
+             validators=[
+                  isRole
+             ]
+        )
+        TeamId =models.ForeignKey(Team, db_index=True , on_delete=models.CASCADE, null=True)
+        OrganizationId =models.ForeignKey(Organization, db_index=True , on_delete=models.CASCADE, null=True)
+        userId = models.ForeignKey(Users , db_index=True , on_delete=models.CASCADE, null=True)
+        createAt = models.DateTimeField(auto_now_add=True)
+        updatedAt = models.DateTimeField(auto_now=True)
+
+        def __str__(self):
+           return f"{self.role} | {self.OrganizationId.name} | ({self.userId.firstName} {self.userId.lastName})"
