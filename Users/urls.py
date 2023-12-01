@@ -7,6 +7,7 @@ urlpatterns = [
     path("log-in" , views.login),
     path("add" , views.add),
     path("edit/<slug:slug>" , views.edit ),
+    path("set-current-active-organization" , views.setCurrentActiveOrganization),
     path("attendance-history/<slug:slug>" , views.attendanceHistory),
     path("<slug:slug>" , views.home),
     path("profile/<slug:slug>" , views.index , name="user-profile"),

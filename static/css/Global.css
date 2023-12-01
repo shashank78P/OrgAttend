@@ -1,26 +1,26 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300&family=Montserrat:wght@200;400;500;600&family=PT+Sans&family=Philosopher:wght@700&family=Poppins:ital,wght@1,200&display=swap');
 
-:root{
-    --black : #3D4756;
-    --slate-50 : #f8fafc;
-    --slate-100 : #f1f5f9;
-    --slate-200 : #e2e8f0;
-    --slate-500 : #64748B;
+:root {
+    --black: #3D4756;
+    --slate-50: #f8fafc;
+    --slate-100: #f1f5f9;
+    --slate-200: #e2e8f0;
+    --slate-500: #64748B;
     --slate-700: #334155;
-    --hover : #f6f8fb;
-    --blue-primary : #017BF6;
-    --purple-primary : #CC6EE3;
-    --pink-primary : #FF6EB4;
-    --orange-primary : #FF9181;
-    --orange_secondary : #FE674C;
-    --yellow-primary : #F9D600;
-    --yellow-secondary : #F9F871;
-    --green-primary : #5CB616;
-    --purple-200 : #E9D5FF;
-    --red-500 : #ef4444;
+    --hover: #f6f8fb;
+    --blue-primary: #017BF6;
+    --purple-primary: #CC6EE3;
+    --pink-primary: #FF6EB4;
+    --orange-primary: #FF9181;
+    --orange_secondary: #FE674C;
+    --yellow-primary: #F9D600;
+    --yellow-secondary: #F9F871;
+    --green-primary: #5CB616;
+    --purple-200: #E9D5FF;
+    --red-500: #ef4444;
 }
 
-*{
+* {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -29,24 +29,24 @@
     text-decoration: none;
 }
 
-*::-webkit-scrollbar ,
-*::-webkit-scrollbar-thumb ,
-*::-webkit-scrollbar-track
- {
+*::-webkit-scrollbar,
+*::-webkit-scrollbar-thumb,
+*::-webkit-scrollbar-track {
     display: none;
 }
 
-input{
+input {
     outline: none;
 }
 
-body{
+body {
     width: 100vw;
     overflow-x: hidden;
     color: var(--black);
     font-family: 'Montserrat', sans-serif;
     font-size: 16px;
 }
+
 /* font-family: 'Inter', sans-serif;
 font-family: 'Montserrat', sans-serif;
 font-family: 'Philosopher', sans-serif;
@@ -54,97 +54,153 @@ font-family: 'Poppins', sans-serif;
 font-family: 'PT Sans', sans-serif; */
 
 
-.flex{
+.flex {
     display: flex;
 }
 
-.flex-col{
+.flex-col {
     flex-direction: column;
 }
 
-.flex-wrap{
+.flex-wrap {
     flex-wrap: wrap;
 }
 
-.justify-normal{
+.justify-normal {
     justify-content: normal;
-}	
+}
 
-.justify-start{
+.justify-start {
     justify-content: flex-start;
-}	
+}
 
-.justify-end{
+.justify-end {
     justify-content: flex-end;
-}	
+}
 
-.justify-center{
+.justify-center {
     justify-content: center;
-}	
+}
 
-.justify-between{
+.justify-between {
     justify-content: space-between;
-}	
+}
 
-.justify-around{
+.justify-around {
     justify-content: space-around;
-}	
+}
 
-.justify-evenly{
+.justify-evenly {
     justify-content: space-evenly;
-}	
+}
 
-.justify-stretch{
+.justify-stretch {
     justify-content: stretch;
-}	
+}
 
-.items-start
-{
+.items-start {
     align-items: flex-start;
-}	
+}
 
-.items-end
-{
+.items-end {
     align-items: flex-end;
-}	
+}
 
-.items-center
-{
+.items-center {
     align-items: center;
-}	
+}
 
-.items-baseline
-{
+.items-baseline {
     align-items: baseline;
-}	
+}
 
-.items-stretch
-{
+.items-stretch {
     align-items: stretch;
 }
 
-.cursor-pointer{
+.cursor-pointer {
     cursor: pointer;
 }
 
-.icon{
+.icon {
     cursor: pointer;
 }
 
-.w-full{
-	width : 100%;
+.w-full {
+    width: 100%;
 }
 
-.shadow{
+.shadow {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-.border{
+.border {
     border: 1px solid var(--slate-500);
 }
 
-.errorlist li{
+.errorlist li {
     color: var(--red-500) !important;
     margin-top: 10px;
     display: inline-block;
+}
+
+.loader i{
+    color : var(--orange-primary) !important;
+}
+
+.text-xs {
+    font-size: 0.75rem;/* 12px */
+    line-height: 1rem;    /* 16px */
+}
+
+.text-sm {
+    font-size: 0.875rem;/* 14px */
+    line-height: 1.25rem;    /* 20px */
+}
+
+.text-base {
+    font-size: 1rem;/* 16px */
+   line-height: 1.5rem;
+    /* 24px */
+}
+
+.text-lg {
+    font-size: 1.125rem;/* 18px */
+   line-height: 1.75rem;
+    /* 28px */
+}
+
+.text-xl {
+    font-size: 1.25rem;/* 20px */
+   line-height: 1.75rem;
+    /* 28px */
+}
+
+.text-2xl {
+    font-size: 1.5rem;/* 24px */
+   line-height: 2rem;
+    /* 32px */
+}
+
+.text-3xl {
+    font-size: 1.875rem;/* 30px */
+    line-height: 2.25rem;    /* 36px */
+}
+
+.text-4xl {
+    font-size: 2.25rem;/* 36px */
+    line-height: 2.5rem;    /* 40px */
+}
+
+.text-5xl {font-size: 3rem;
+    /* 48px */    line-height: 1;
+}
+
+.text-6xl {font-size: 3.75rem;
+    /* 60px */    line-height: 1;
+}
+
+.text-7xl {font-size: 4.5rem;
+   /* 72px */
+    line-height: 1;
 }

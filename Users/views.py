@@ -1,3 +1,4 @@
+import json
 import os
 from django.shortcuts import render , get_object_or_404
 from django.http import HttpResponse ,HttpResponseServerError , HttpResponseRedirect, JsonResponse ,Http404
@@ -5,6 +6,7 @@ from django.contrib import messages
 from django.contrib.auth.hashers import make_password , check_password
 from .forms import signUpForm , logInForm
 from .models import Users 
+from Organization.models import Organization
 from datetime import datetime , timedelta
 import jwt
 from dotenv import load_dotenv
@@ -15,17 +17,19 @@ print( datetime.utcnow() + timedelta(days= 2))
 
 def index(request , slug):
     try:
-        cookie = request.get_signed_cookie(
-            'authorization',
-            salt=os.environ.get('SECRET_KEY'),
-        )
-        print("request")
-        if not request.path:
-            return Http404("Page Not found")
-        slug = request.path.split("/")[-1]
-        print(request.path)
-        token = cookie.split(" ")[1]
-        decoded_data = jwt.decode(token, os.environ.get('SECRET_KEY'), algorithms='HS256')
+        # cookie = request.get_signed_cookie(
+        #     'authorization',
+        #     salt=os.environ.get('SECRET_KEY'),
+        # )
+        # print("request")
+        # if not request.path:
+        #     return Http404("Page Not found")
+        # slug = request.path.split("/")[-1]
+        # print(request.path)
+        # token = cookie.split(" ")[1]
+        # decoded_data = jwt.decode(token, os.environ.get('SECRET_KEY'), algorithms='HS256')
+        print('request.session["user"]')
+        print(request.session['user'])
         user = Users.objects.get(slug = slug)
         return render(request ,"Profile.html" , { 'slug' : slug , 'user' : user })
     except jwt.ExpiredSignatureError:
@@ -115,9 +119,30 @@ def login(request) :
 
 def home(request , slug) :
     try:
+        print('request.session["user"]')
+        print(request.session['user'])
         return render(request ,"Home.html")
     except():
         HttpResponseServerError("Internal Server error")
+
+def setCurrentActiveOrganization(request):
+    try:
+        if(request.method == "POST"):
+            userData = request.session["user"]
+            data = json.loads(request.body.decode('utf-8'))
+            user = Users.objects.get(_id = userData["_id"])
+
+            print(user)
+            org = get_object_or_404(Organization , slug = data["slug"])
+            print(org)
+            print(int(org._id))
+            user["currentActiveOrganization"] =  int(org._id)
+            user.save()
+            return JsonResponse({ "data" : "" , "message" : "Switched sucessfully" })
+        else:
+            return Http404()
+    except Exception as e:
+        return HttpResponseServerError(e)
 
 def attendanceHistory(request , slug) :
     try:

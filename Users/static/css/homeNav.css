@@ -72,6 +72,11 @@
     color: white;
 }
 
+.createNewOrg{
+    border: 1px solid var(--black);
+    padding: 2px;
+    border-radius: 5px;
+}
 
 @media screen and (max-width : 400px) {
     .user-nav-last-part{
@@ -88,3 +93,4 @@
         border-radius: 5px;
     }
 }
+

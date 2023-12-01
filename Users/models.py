@@ -43,6 +43,7 @@ class Users(models.Model):
         max_length = 10000
     )
     passwordReSetId = models.UUIDField(null=True)
+    currentActiveOrganization = models.IntegerField(null=True)
     email = models.EmailField(
         unique=True,
         error_messages={

@@ -9,20 +9,29 @@
             <li class="organization">
                 <div class="flex justify-start items-center">
                     <div>Organization</div>
-                    <div class="org-list-open-btn flex justify-center items-center flex-col" onclick="togglePopOver('listContainer','org-list-open-btn')"
-                        aria-expanded="false">
-                        <span class="org-list-open-arrow">
+                    <div class="org-list-open-btn flex justify-center items-center flex-col"
+                        onclick="togglePopOver('listContainer','org-list-open-btn')" aria-expanded="false">
+                        <span class="org-list-open-arrow" onclick="getAllOrganizationList()">
                             {% with width=20 height=20 color="#3D4756"%}
                             {% include 'SvgIcon/CodeArrowIco.html' %}
                             {% endwith %}
                         </span>
-                        <ul id="listContainer" class="list-container" aria-hidden="true"> 
-                            <li class="cursor-pointer">Daily Dash</li>
-                            <li class="cursor-pointer">UST Global</li>
-                            <li class="cursor-pointer">Infosys</li>
-                            <li class="cursor-pointer">IBM</li>
-                            <li class="cursor-pointer">Accenture</li>
-                            <li class="cursor-pointer">Accenture</li>
+                        <ul id="listContainer" class="list-container" aria-hidden="true">
+                            <li >
+                                <ul id="organizationList"></ul>
+                            </li>
+                            <li class="cursor-pointer">
+                                <a href="/organization/create-organization">
+                                    <ul class="flex justify-between items-center createNewOrg">
+                                        <li>Create New</li>
+                                        <li>
+                                            {% with width=15 height=15 color="#3D4756"%}
+                                            {% include 'SvgIcon/PlusIco.html' %}
+                                            {% endwith %}
+                                        </li>
+                                    </ul>
+                                </a>
+                            </li>
                         </ul>
                     </div>
                 </div>
@@ -40,3 +49,26 @@
         </ul>
     </li>
 </ul>
+<script>
+    async function getAllOrganizationList() {
+        console.log("calling api")
+        let organizationList = document.getElementById("organizationList")
+
+        organizationList.innerHTML = '<li class="cursor-pointer loader text-sm"><i class="fas fa-spinner fa-spin"></i></li>'
+        let response = await fetch("/organization/get-all-organization-list", {
+            credentials: "same-origin", // include, *same-origin, omit
+            headers: {
+                "Content-Type": "application/json",
+                // 'Content-Type': 'application/x-www-form-urlencoded',
+            },
+        });
+        const {data} = await response.json()
+        console.log("data")
+        console.log(data)
+        organizationList.innerHTML=""
+        data?.forEach((org) => {
+            organizationList.innerHTML  += `<li class="cursor-pointer"><a class="w-full" href="/organization/${org.slug}" >${org.name}</a></li>`
+        });
+        // 
+    }
+</script>

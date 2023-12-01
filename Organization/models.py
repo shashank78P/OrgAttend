@@ -72,7 +72,8 @@ class Team(models.Model):
                   'invalid': 'Description is too long...'
             },
         )
-        createAt = models.DateTimeField(auto_now_add=True)
+        createdBy = models.ForeignKey(Users, db_index=True , on_delete=models.SET_NULL, null=True)
+        createdAt = models.DateTimeField(auto_now_add=True)
         updatedAt = models.DateTimeField(auto_now=True)
         
         def __str__(self):

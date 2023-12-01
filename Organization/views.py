@@ -1,4 +1,4 @@
-from django.http import HttpResponseServerError 
+from django.http import HttpResponseServerError , HttpResponseNotAllowed, JsonResponse , Http404
 from django.shortcuts import render
 import requests
 from Organization.forms import createOrganizationForm, createTeamForm
@@ -61,7 +61,7 @@ def createOrganization(request):
 
 def companyProfile(request , slug):
     try:
-        return render(request ,"companyProfile.html")
+        return render(request ,"companyProfile.html" , { "slug" : slug})
     except():
         return render(request ,"companyProfile.html")        
 
@@ -86,6 +86,39 @@ def saveTeamMemberData(request,data , form , role , team , name):
             
     except Exception as e:
         return
+    
+def getAllOrganizationList(request) :
+    try:
+        print("getAllOrganizationList")
+        user = request.session["user"]
+        print(user)
+
+        # getting all companies of a user
+        data = TeamMember.objects.filter( userId =3 ).values_list('OrganizationId', flat=True).distinct()
+
+        all_org = []
+        org_data = Organization.objects.filter(_id__in = data)
+
+        for org in list(org_data):
+            all_org.append({
+                'name' : org.name,
+                '_id' : org._id,
+                'slug' : org.slug
+            })
+
+        return JsonResponse({'data' : all_org})
+    except Exception as e:
+        print(e)
+        HttpResponseServerError("Internal Server error")
+
+def isUserPermittedToAdd(request):
+    try:
+        user = request.session['user']
+        print(user)
+
+        
+    except:
+        return HttpResponseNotAllowed("U don't have a permission")
 
 def createTeam(request):
     try:
