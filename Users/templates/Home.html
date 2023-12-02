@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block page_title %}
-{{ text | title }}
+{{user.firstName | title}} {{user.middleName | title}} {{user.lastName | title}} 
 {% endblock %}
 
 {% block css_block %}

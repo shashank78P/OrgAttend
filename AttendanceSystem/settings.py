@@ -65,6 +65,7 @@ TEMPLATES = [
             BASE_DIR / "Users" / "templates" ,
             BASE_DIR / "Users" / "templates" / "Home" ,
             BASE_DIR / "Organization" / "templates" / "Form" ,
+            BASE_DIR / "Organization" / "templates" / "Profile" ,
             BASE_DIR / "AttendanceSystem" / "templates" ,
             BASE_DIR / "AttendanceSystem" / "templates" / "global" ,
             BASE_DIR / "templates" 

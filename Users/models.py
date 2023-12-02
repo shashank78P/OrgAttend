@@ -5,6 +5,7 @@ from django.utils.text import slugify
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
 from datetime import date
+# from Organization.models import Organization
 
 # Creating a validator function
 def isPhoneNumber(value):
@@ -26,6 +27,12 @@ class Address(models.Model):
     country = models.CharField(max_length=50 , null=True)
     code = models.CharField(max_length=6 , null=True)
 
+    def __str__(self):
+        return f"{self.city} {self.state} {self.country} ({self.id})"
+
+# class currentActiveOrganization(models.Model):
+#     currentActiveOrganization =  models.ForeignKey(Organization , on_delete=models.SET_NULL, null=True)
+
 # Users class inheriting models.Model
 class Users(models.Model):
     _id = models.AutoField(auto_created=True, primary_key=True)
@@ -43,7 +50,8 @@ class Users(models.Model):
         max_length = 10000
     )
     passwordReSetId = models.UUIDField(null=True)
-    currentActiveOrganization = models.IntegerField(null=True)
+    currentActiveOrganization =  models.IntegerField(null=True)
+    # models.ForeignKey(currentActiveOrganization , on_delete=models.SET_NULL, null=True)
     email = models.EmailField(
         unique=True,
         error_messages={

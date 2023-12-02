@@ -70,8 +70,9 @@ def signUp(request) :
         elif(request.method == "GET"):
             form = signUpForm()
             return render(request ,"SignUp.html" , { 'form' : form })
-    except():
-        HttpResponseServerError("Internal Server error")
+    except Exception as e:
+            print(e)
+            HttpResponseServerError(e)
 
 def login(request) :
     try:
@@ -112,21 +113,32 @@ def login(request) :
         else:
             form = logInForm()
             return render(request ,"LogIn.html", { 'form' : form })
-    except():
-        form = logInForm()
+    except Exception as e:
+        print(e)
         return render(request ,"LogIn.html", { 'form' : form })
         # HttpResponseServerError("Internal Server error")
 
 def home(request , slug) :
+    try:    
+        user = request.session["user"]
+        print(user)
+        return render(request ,"Home.html" , { 'slug' : slug , "user" : user})
+    except Exception as e:
+        print('Internal Server error')
+        return HttpResponseServerError(e)
+    
+def homePage(request):
     try:
-        print('request.session["user"]')
-        print(request.session['user'])
-        return render(request ,"Home.html")
-    except():
-        HttpResponseServerError("Internal Server error")
+        user = request.session["user"]
+        # org = Organization.objects.get(_id = user["currentActiveOrganization"])
+        # slug = org.slug
+        return HttpResponseRedirect(f"/users/{user["slug"]}")
+    except Exception as e:
+        return HttpResponseServerError(e)
 
 def setCurrentActiveOrganization(request):
     try:
+        print("called set current org.....")
         if(request.method == "POST"):
             userData = request.session["user"]
             data = json.loads(request.body.decode('utf-8'))
@@ -136,52 +148,60 @@ def setCurrentActiveOrganization(request):
             org = get_object_or_404(Organization , slug = data["slug"])
             print(org)
             print(int(org._id))
-            user["currentActiveOrganization"] =  int(org._id)
+            user.currentActiveOrganization =  int(org._id)
             user.save()
             return JsonResponse({ "data" : "" , "message" : "Switched sucessfully" })
         else:
             return Http404()
     except Exception as e:
+        print(e)
         return HttpResponseServerError(e)
 
 def attendanceHistory(request , slug) :
     try:
         return render(request ,"AttendanceHistory.html")
-    except():
-        HttpResponseServerError("Internal Server error")
+    except Exception as e:
+            print(e)
+            HttpResponseServerError(e)
 
 def add(request) :
     try:
         return render(request ,"SignUp.html")
-    except():
-        HttpResponseServerError("Internal Server error")
+    except Exception as e:
+            print(e)
+            HttpResponseServerError(e)
 
 def edit(request , slug) :
     try:
         return render(request ,"Edit.html" , { 'slug' : slug })
-    except():
-        HttpResponseServerError("Internal Server error")
+    except Exception as e:
+            print(e)
+            HttpResponseServerError(e)
 
 def delete(request , slug) :
     try:
         return render(request ,"delete.html" , { 'slug' : slug })
-    except():
-        HttpResponseServerError("Internal Server error")
+    except Exception as e:
+            print(e)
+            HttpResponseServerError(e)
 
 def getUserByEmail(email):
     try:
         # email = request.GET.get("email")
-        user = get_object_or_404(Users , email = email)
+        # user = get_object_or_404(Users , email = email)
+        user = Users.objects.get(email = email)
 
-        return JsonResponse({
-            'firstName' : user[0].firstName,
-            'middleName' : user[0].middleName,
-            'lastName' : user[0].lastName,
-            'DOB' : user[0].DOB,
-            'email' : user[0].email,
-            'phoneNumber' : user[0].phoneNumber,
-            'address' : user[0].address,
-            'error' : False
-        })
+        return user
+
+        # return JsonResponse({
+        #     'firstName' : user.firstName,
+        #     'middleName' : user.middleName,
+        #     'lastName' : user.lastName,
+        #     'DOB' : user.DOB,
+        #     'email' : user.email,
+        #     'phoneNumber' : user.phoneNumber,
+        #     'address' : user.address,
+        #     'error' : False
+        # })
     except Exception as e:
         return JsonResponse({ 'error' : True , 'message' : e})

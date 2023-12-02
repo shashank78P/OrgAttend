@@ -8,10 +8,12 @@
             </li>
             <li class="organization">
                 <div class="flex justify-start items-center">
-                    <div>Organization</div>
+                    <div id="orgName">Organization</div>
                     <div class="org-list-open-btn flex justify-center items-center flex-col"
                         onclick="togglePopOver('listContainer','org-list-open-btn')" aria-expanded="false">
-                        <span class="org-list-open-arrow" onclick="getAllOrganizationList()">
+                        <!-- onclick="getAllOrganizationList()" -->
+                        <span class="org-list-open-arrow"
+                        >
                             {% with width=20 height=20 color="#3D4756"%}
                             {% include 'SvgIcon/CodeArrowIco.html' %}
                             {% endwith %}
@@ -53,6 +55,7 @@
     async function getAllOrganizationList() {
         console.log("calling api")
         let organizationList = document.getElementById("organizationList")
+        let orgName = document.getElementById("orgName")
 
         organizationList.innerHTML = '<li class="cursor-pointer loader text-sm"><i class="fas fa-spinner fa-spin"></i></li>'
         let response = await fetch("/organization/get-all-organization-list", {
@@ -67,8 +70,16 @@
         console.log(data)
         organizationList.innerHTML=""
         data?.forEach((org) => {
-            organizationList.innerHTML  += `<li class="cursor-pointer"><a class="w-full" href="/organization/${org.slug}" >${org.name}</a></li>`
+            if("{{user.currentActiveOrganization}}" == org._id){
+                orgName.innerText = org.name
+            }
+
+            if("{{page}}" === "COMPANY_PROFILE"){
+                document.title = org.name
+            }
+            organizationList.innerHTML  += `<li class="cursor-pointer ${ ("{{user.currentActiveOrganization}}" == org._id) ? 'activeOrg' : '' }"><a class="w-full" href="/organization/${org.slug}" >${org.name}</a></li>`
         });
         // 
     }
+    getAllOrganizationList()
 </script>

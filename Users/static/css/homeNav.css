@@ -78,6 +78,13 @@
     border-radius: 5px;
 }
 
+.activeOrg , .activeOrg:hover , li.activeOrg:hover{
+    background-color: var(--black);
+}
+
+.activeOrg a{
+    color: white;
+}
 @media screen and (max-width : 400px) {
     .user-nav-last-part{
         gap: 5px;

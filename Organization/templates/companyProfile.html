@@ -6,12 +6,21 @@
 {% endblock %}
 
 {% block css_block %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
 <link rel="stylesheet" href={% static "css/Global.css" %}>
+<link rel="stylesheet" href={% static 'css/homeNav.css' %}>
 <link rel="stylesheet" href={% static "css/CreateOrganization.css" %}>
+<link rel="stylesheet" href={% static "css/UserInfo.css" %}>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src={% static 'js/script.js' %}></script>
+
 
 {% endblock %}
 {% block content %}
-<h1>Profile</h1>
+{% include "Nav.html" %}
+{% include "Profile/profile.html" %}
 
 <script>
     window.addEventListener("load", async () => {
@@ -29,5 +38,7 @@
             }),
         });
     })
+
+    
 </script>
 {% endblock %}

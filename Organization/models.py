@@ -98,6 +98,7 @@ class TeamMember(models.Model):
         TeamId =models.ForeignKey(Team, db_index=True , on_delete=models.CASCADE, null=True)
         OrganizationId =models.ForeignKey(Organization, db_index=True , on_delete=models.CASCADE, null=True)
         userId = models.ForeignKey(Users , db_index=True , on_delete=models.CASCADE, null=True)
+        # addedBy = models.ForeignKey(Users, db_index=True , on_delete=models.SET_NULL, null=True)
         createAt = models.DateTimeField(auto_now_add=True)
         updatedAt = models.DateTimeField(auto_now=True)
 

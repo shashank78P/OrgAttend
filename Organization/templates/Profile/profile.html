@@ -1,42 +1,39 @@
 <ul class="flex items-center flex-wrap userCard">
     <li class="userImageSec">
-        <img src="../../static/images/tempImage.png" alt="">
+        <img src="../../../static/images/tempImage.png" alt="">
     </li>
     <li>
         <ul class="userCardDetails flex flex-col justify-between items-start">
             <li class="userCard-top-section">
                 <ul class="flex items-center userName-section">
                     <li class="userName">
-                        <h1>{{user.firstName }} {{user.middleName}} {{user.lastName}}</h1>
+                        <h1>{{org.name}}</h1>
                     </li>
-                    <li class="user-role role cursor-pointer">Admin</li>
-                    <li class="user-role type cursor-pointer">Full time</li>
                 </ul>
-                <p>UI/UX Developer</p>
             </li>
             <li class="flex items-center">
                 <span class="icon userCardIcon">
-                    {% with width=20 height=20 color="#3D4756"%}
+                    <!-- {% with width=20 height=20 color="#3D4756"%}
                     {% include 'SvgIcon/EnvelopIco.html' %}
-                    {% endwith %}
+                    {% endwith %} -->
                 </span>
-                <span>{{user.email}}</span>
+                <span>{{org.contactEmail}}</span>
             </li>
             <li class="flex items-center">
                 <span class="icon userCardIcon">
-                    {% with width=20 height=20 color="#3D4756" %}
+                    <!-- {% with width=20 height=20 color="#3D4756" %}
                     {% include 'SvgIcon/phoneIco.html' %}
-                    {% endwith %}
+                    {% endwith %} -->
                 </span>
-                <span>{{user.phoneNumber}}</span>
+                <span>7778457854</span>
             </li>
             <li class="flex items-center">
                 <span class="icon userCardIcon">
-                    {% with width=20 height=20 color="#3D4756"%}
+                    <!-- {% with width=20 height=20 color="#3D4756"%}
                     {% include 'SvgIcon/locationIco.html' %}
-                    {% endwith %}
+                    {% endwith %} -->
                 </span>
-                <span>{{user.city}} {{user.state}} {{user.country}} {{user.code}}</span>
+                <span>{{org.address.city | title}} {{org.address.state | title}} {{org.address.country | title}} {{org.address.code | title}}</span>
             </li>
         </ul>
     </li>

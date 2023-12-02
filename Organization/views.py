@@ -1,10 +1,12 @@
-from django.http import HttpResponseServerError , HttpResponseNotAllowed, JsonResponse , Http404
+from django.http import HttpResponseServerError , HttpResponseNotAllowed, JsonResponse , Http404 , HttpResponseRedirect
 from django.shortcuts import render
 import requests
 from Organization.forms import createOrganizationForm, createTeamForm
 from Organization.models import Organization ,OwnerDetails , Team ,TeamMember
 from Users.models import Address, Users
 from Users.views import getUserByEmail
+from django.db.models import Q
+from datetime import datetime
 
 # Create your views here.
 def createOrganization(request):
@@ -61,7 +63,14 @@ def createOrganization(request):
 
 def companyProfile(request , slug):
     try:
-        return render(request ,"companyProfile.html" , { "slug" : slug})
+        print("called companyProfile")
+        user = request.session["user"]
+        org = Organization.objects.get(slug = slug)
+        owner = OwnerDetails.objects.filter(OrganizationId = org).values_list('userId_id', flat=True).distinct()
+        print(owner)
+        member = TeamMember.objects.filter(Q(OrganizationId = org) & ~Q(userId_id__in = owner)).values_list('userId_id', flat=True).distinct()
+        print(member)
+        return render(request ,"companyProfile.html" , { "slug" : slug , "user" : user, "org": org , "page" : "COMPANY_PROFILE"})
     except():
         return render(request ,"companyProfile.html")        
 
@@ -71,21 +80,38 @@ def companyRole(request , slug):
     except():
         return render(request ,"createEmployeeRole.html")
 
-def saveTeamMemberData(request,data , form , role , team , name):
+def saveTeamMemberData(request,user , form , role , team , name , orgId):
     try:
-        if not data.error:
-            teamMem = TeamMember(
-                userId = data,
-                role = role,
-                TeamId = team
-            )
-            teamMem.save()
+        print("save team member user")
+        print(user)
+        print(type(user))
+        print(team)
+        print("teamMem")
+
+        isDuplicate = TeamMember.objects.filter(userId_id = user._id , TeamId_id = team.id , OrganizationId_id = orgId._id )
+
+        print(isDuplicate)
+
+        if len(isDuplicate) >= 1:
+            print("isDuplicate")
+            return
         else:
-            form.add_error(name ,data.message)
-            return render(request ,"CreateTeam.html", { 'form' : form })
+            teamMem = TeamMember(
+                userId = user,
+                role = role,
+                TeamId = team,
+                OrganizationId = orgId
+            )
+            print(teamMem)
+            teamMem.save()
+            return
+        # else:
+        #     form.add_error(name ,data.message)
+        #     return render(request ,"CreateTeam.html", { 'form' : form })
             
     except Exception as e:
-        return
+        print(e)
+        HttpResponseServerError(e)
     
 def getAllOrganizationList(request) :
     try:
@@ -94,10 +120,13 @@ def getAllOrganizationList(request) :
         print(user)
 
         # getting all companies of a user
-        data = TeamMember.objects.filter( userId =3 ).values_list('OrganizationId', flat=True).distinct()
+        data = TeamMember.objects.filter( userId = user["_id"] ).values_list('OrganizationId', flat=True).distinct()
+        data2 = OwnerDetails.objects.filter( userId = user["_id"] ).values_list('OrganizationId', flat=True).distinct()
 
+        print(data)
+        print(data2)
         all_org = []
-        org_data = Organization.objects.filter(_id__in = data)
+        org_data = Organization.objects.filter(Q(_id__in = data) | Q(_id__in = data2))
 
         for org in list(org_data):
             all_org.append({
@@ -113,9 +142,14 @@ def getAllOrganizationList(request) :
 
 def isUserPermittedToAdd(request):
     try:
+        print("called isUserPermittedToAdd")
         user = request.session['user']
         print(user)
+        print("getting org details")
+        isPermited = OwnerDetails.objects.filter(Q(OrganizationId_id = user['currentActiveOrganization']) & Q(userId_id = user['_id']))  
 
+        if(len(isPermited) == 0):
+            return HttpResponseServerError("You don't an access to add")
         
     except:
         return HttpResponseNotAllowed("U don't have a permission")
@@ -123,37 +157,48 @@ def isUserPermittedToAdd(request):
 def createTeam(request):
     try:
         print(request.method)
+        user = request.session["user"]
         if(request.method == "POST"):
+            isUserPermittedToAdd(request)
             print(request.POST)
             form = createTeamForm(request.POST)
             data = request.POST
+            print(data)
+            print(type(data))
+            createdBy = Users.objects.get(_id = user["_id"])
+            org_id = Organization.objects.get(_id = user["currentActiveOrganization"])
             team = Team(
-                   name = data.name,
-                   OrganizationId = 2,
-                   checkInTime = data.checkInTime,
-                   checkOutTime = data.checkOutTime,
-                   description = data.description,
+                   name = data["name"],
+                   OrganizationId = org_id,
+                   checkInTime = datetime.strptime(data["checkInTime"], "%I:%M %p").time(),
+                   checkOutTime = datetime.strptime(data["checkOutTime"], "%I:%M %p").time(),
+                   description = data["description"],
+                   createdBy = createdBy
             )
 
-            team.save()
+            # team.save()
         
             # leader
-            leaderData = getUserByEmail(data.leader)
-            saveTeamMemberData(request,leaderData , form , "LEADER" ,team , "leader")
+            print("team leader")
+            print(data["leader"])
+            leaderData = getUserByEmail(data["leader"])
+            print(leaderData)
+            # saveTeamMemberData(request,leaderData , form , "LEADER" ,team , "leader" , org_id)
             
             # co_Leader
-            co_leader = data.co_Leader.split(",")
+            co_leader = data["co_Leader"].split(",")
             for email in co_leader:
                 co_Leader_Data = getUserByEmail(email)
-                saveTeamMemberData(request,co_Leader_Data , form , "CO-LEADER",team , "co_Leader")
+                # saveTeamMemberData(request,co_Leader_Data , form , "CO-LEADER",team , "co_Leader", org_id)
             
             # team_members
-            team_members = getUserByEmail(data.team_members).split(",")
+            team_members = data["team_members"].split(",")
             for email in team_members:
                 member_Data = getUserByEmail(email)
-                saveTeamMemberData(request,member_Data , form , "MEMBER" , team , "team_members")
+                # saveTeamMemberData(request,member_Data , form , "MEMBER" , team , "team_members",org_id)
                 
-            return render(request ,"companyProfile.html")
+            print(org_id.slug)
+            return HttpResponseRedirect(f"/organization/{org_id.slug}")
             
         form = createTeamForm()
         return render(request ,"CreateTeam.html", { 'form' : form })
