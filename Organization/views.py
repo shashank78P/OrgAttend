@@ -1,3 +1,4 @@
+import os
 from django.http import HttpResponseServerError , HttpResponseNotAllowed, JsonResponse , Http404 , HttpResponseRedirect
 from django.shortcuts import render
 import requests
@@ -7,6 +8,15 @@ from Users.models import Address, Users
 from Users.views import getUserByEmail
 from django.db.models import Q
 from datetime import datetime
+from django.db.models import Count
+
+def getOrgBySlug(request , slug):
+    try:
+        org = Organization.objects.get(slug = slug)
+        return org
+    except Exception as e:
+        print(e)
+        HttpResponseServerError(e)
 
 # Create your views here.
 def createOrganization(request):
@@ -70,7 +80,20 @@ def companyProfile(request , slug):
         print(owner)
         member = TeamMember.objects.filter(Q(OrganizationId = org) & ~Q(userId_id__in = owner)).values_list('userId_id', flat=True).distinct()
         print(member)
-        return render(request ,"companyProfile.html" , { "slug" : slug , "user" : user, "org": org , "page" : "COMPANY_PROFILE"})
+        print("org.contactEmail")
+        print(org.webSiteLink)
+        orgSize = len(owner) + len(member)
+        return render(request ,"companyProfile.html" , 
+            { 
+                "slug" : slug ,
+                "user" : user,
+                "org": org ,
+                "page" : "COMPANY_PROFILE" ,
+                "logo" : f"{os.environ.get('FRONTEND')}media/{org.logo}" ,
+                "orgSize" : orgSize,
+                "endpoint":"organization"
+            }
+        )
     except():
         return render(request ,"companyProfile.html")        
 
@@ -206,3 +229,51 @@ def createTeam(request):
         form = createTeamForm()
         return render(request ,"CreateTeam.html", { 'form' : form })
 
+def leaveRequest(request , slug):
+    try:
+        user = request.session["user"]
+        org = Organization.objects.get(slug = slug)
+        owner = OwnerDetails.objects.filter(OrganizationId = org).values_list('userId_id', flat=True).distinct()
+        print(owner)
+        member = TeamMember.objects.filter(Q(OrganizationId = org) & ~Q(userId_id__in = owner)).values_list('userId_id', flat=True).distinct()
+        print(member)
+        print("org.contactEmail")
+        print(org.webSiteLink)
+        orgSize = len(owner) + len(member)
+        return render(request ,"LeaveRequest.html" , 
+                       { 
+                "slug" : slug ,
+                "user" : user,
+                "org": org ,
+                "page" : "COMPANY_PROFILE" ,
+                "logo" : f"{os.environ.get('FRONTEND')}media/{org.logo}" ,
+                "orgSize" : orgSize,
+                "endpoint":"organization"
+                    } 
+                      )
+    except Exception as e:
+        print(e)
+        HttpResponseServerError(e)
+
+
+def teams(request , slug):
+    try:
+        org = getOrgBySlug(request , slug)
+        t.objects.annotate(totalMem = Count("teammember")) 
+    except Exception as e:
+        print(e)
+        HttpResponseServerError(e)
+
+def employees(request , slug):
+    try:
+        pass
+    except Exception as e:
+        print(e)
+        HttpResponseServerError(e)
+
+def jobTitle(request , slug):
+    try:
+        pass
+    except Exception as e:
+        print(e)
+        HttpResponseServerError(e)

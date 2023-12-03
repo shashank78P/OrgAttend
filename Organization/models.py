@@ -1,3 +1,4 @@
+import os
 import uuid
 from django.db import models
 from django.core.validators import EmailValidator
@@ -104,3 +105,6 @@ class TeamMember(models.Model):
 
         def __str__(self):
            return f"{self.role} | {self.OrganizationId.name} | ({self.userId.firstName} {self.userId.lastName})"
+        
+# tm.objects.filter(OrganizationId = o , TeamId_id__in = teamDetails) 
+#>>> teamMem = t.objects.annotate(count = Count('teammember'))                          

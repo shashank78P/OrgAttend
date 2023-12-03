@@ -1,6 +1,6 @@
 <ul class="flex items-center flex-wrap userCard">
     <li class="userImageSec">
-        <img src="../../../static/images/tempImage.png" alt="">
+        <img src="{{logo}}" class="OrgProfileImage" alt="">
     </li>
     <li>
         <ul class="userCardDetails flex flex-col justify-between items-start">
@@ -13,28 +13,50 @@
             </li>
             <li class="flex items-center">
                 <span class="icon userCardIcon">
-                    <!-- {% with width=20 height=20 color="#3D4756"%}
+                    {% with width=20 height=20 color="#3D4756"%}
                     {% include 'SvgIcon/EnvelopIco.html' %}
-                    {% endwith %} -->
+                    {% endwith %}
                 </span>
                 <span>{{org.contactEmail}}</span>
             </li>
             <li class="flex items-center">
                 <span class="icon userCardIcon">
-                    <!-- {% with width=20 height=20 color="#3D4756" %}
-                    {% include 'SvgIcon/phoneIco.html' %}
-                    {% endwith %} -->
+                    {% with width=20 height=20 color="#3D4756"%}
+                    {% include 'SvgIcon/LocationIco.html' %}
+                    {% endwith %}
                 </span>
-                <span>7778457854</span>
+                <span>{{org.address.city | title}} {{org.address.state | title}} {{org.address.country | title}}
+                    {{org.address.code | title}}</span>
             </li>
             <li class="flex items-center">
                 <span class="icon userCardIcon">
-                    <!-- {% with width=20 height=20 color="#3D4756"%}
-                    {% include 'SvgIcon/locationIco.html' %}
-                    {% endwith %} -->
+                    {% with width=20 height=20 color="#3D4756"%}
+                    {% include 'SvgIcon/OrganizationIco.html' %}
+                    {% endwith %}
                 </span>
-                <span>{{org.address.city | title}} {{org.address.state | title}} {{org.address.country | title}} {{org.address.code | title}}</span>
+                <span>{{orgSize}} employee working</span>
             </li>
+        </ul>
+        <ul>
+            <li>
+                <ul class="flex items-center mediaIco">
+                    <li>
+                        <a href={{org.webSiteLink}}>
+                            {% with width=20 height=20 color="#3D4756" %}
+                            {% include 'SvgIcon/WebsiteIco.html' %}
+                            {% endwith %}
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ org.socialMediaLink }}" target="_self">
+                            {% with width=20 height=20 color="#3D4756"%}
+                            {% include 'SvgIcon/LinkedInIco.html' %}
+                            {% endwith %}
+                        </a>
+                    </li>
+                </ul>
+            </li>
+            <li class="profileDescription">{{org.description}}</li>
         </ul>
     </li>
 </ul>

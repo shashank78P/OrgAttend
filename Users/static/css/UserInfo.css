@@ -4,10 +4,21 @@
 
 .userCard img{
     width: 200px;
-    object-fit: cover;
+    object-fit: fill;
+    aspect-ratio: 1 / 1;
     /* border: 1px solid red; */
     margin-right: 10px;
+    border-radius: 50%;
+    overflow: hidden;
 }
+
+.mediaIco li{
+    margin: 5px;
+}
+/* .OrgProfileImage{
+    border: 1px solid red;
+    object-fit: fill;
+} */
 
 .userCardDetails{
     /* border: 1px solid red; */
@@ -69,6 +80,10 @@
 .user-role-small-screen{
     display: none;
 } */
+
+.profileDescription{
+    margin-top: 10px;
+}
 
 @media screen and (max-width : 700px) {
     .userName{

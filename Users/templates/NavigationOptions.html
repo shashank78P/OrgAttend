@@ -1,16 +1,44 @@
 <ul class="flex justify-start items-center nav_option_container">
     <li class="flex justify-center items-center">
-        <a href="/users/shashank-p-2301a45b-a322-4825-9141-d58d56fcb67c">
+        <a href="/{{endpoint}}/{{slug}}">
             <ul class="nav_link_card {% if page == 'home' %} active_nav_link_card {% endif %}">
                 <li class="icon"></li>
                 <li>Dashboard</li>
             </ul>
         </a>
-        <a href="/users/attendance-history/shashank-p-2301a45b-a322-4825-9141-d58d56fcb67c">
+        {% if app != 'organization' %}
+        <a href="/{{endpoint}}/attendance-history/{{slug}}">
             <ul class="nav_link_card {% if page == 'attendanceHistory' %} active_nav_link_card {% endif %}">
                 <li class="icon"></li>
                 <li>Attendance</li>
             </ul>
         </a>
+        {% endif %}
+        <a href="/{{endpoint}}/leave-request/{{slug}}">
+            <ul class="nav_link_card {% if page == 'leave-request' %} active_nav_link_card {% endif %}">
+                <li class="icon"></li>
+                <li>Leave Request</li>
+            </ul>
+        </a>
+        {% if app == 'organization' %}
+        <a href="/{{endpoint}}/job-title/{{slug}}">
+            <ul class="nav_link_card {% if page == 'job-title' %} active_nav_link_card {% endif %}">
+                <li class="icon"></li>
+                <li>Job Title</li>
+            </ul>
+        </a>
+        <a href="/{{endpoint}}/teams/{{slug}}">
+            <ul class="nav_link_card {% if page == 'teams' %} active_nav_link_card {% endif %}">
+                <li class="icon"></li>
+                <li>Teams</li>
+            </ul>
+        </a>
+        <a href="/{{endpoint}}/employees/{{slug}}">
+            <ul class="nav_link_card {% if page == 'employees' %} active_nav_link_card {% endif %}">
+                <li class="icon"></li>
+                <li>Employees</li>
+            </ul>
+        </a>
+        {% endif %}
     </li>
 </ul>
