@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="../../../static/css/Global.css">
+    <style>
+        .pagination{
+            display: flex;
+            align-items: center;
+        }
+
+        .pag_btn{
+            width: 30px;
+            height: 30px;
+            border: 1px solid var(--black);
+            user-select: none;
+            padding: 10px;
+            border-radius: 10px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        
+        .active_pag_btn{
+            border: 1px solid var(--orange_secondary);
+            background-color: var(--orange_secondary);
+            color: white;
+        }
+        
+        .pag_btn_action{
+            border: none;
+            width: 50px;
+            height: 30px;
+            background-color: var(--orange-primary);
+            color: white;
+        }
+    </style>
+<body>
+    <ul class="pagination">
+        <li id="prev" class="flex justify-center items-center pag_btn pag_btn_action" onclick="decrement()">Prev</li>
+        <li class="flex justify-center items-center pag_btn pag_btn_num" onclick="setPage(0)">1</li>
+        <li class="flex justify-center items-center pag_btn pag_btn_num" onclick="setPage(1)">2</li>
+        <li class="flex justify-center items-center pag_btn pag_btn_num" onclick="setPage(2)">3</li>
+        <li class="flex justify-center items-center pag_btn pag_btn_num" onclick="setPage(3)">4</li>
+        <li class="flex justify-center items-center pag_btn pag_btn_num" onclick="setPage(4)">5</li>
+        <li class="flex justify-center items-center pag_btn pag_btn_num" onclick="setPage(5)">6</li>
+        <li class="flex justify-center items-center pag_btn pag_btn_num" onclick="setPage(6)">7</li>
+        <li class="flex justify-center items-center pag_btn pag_btn_num" onclick="setPage(7)">8</li>
+        <li class="flex justify-center items-center pag_btn pag_btn_num" onclick="setPage(8)">9</li>
+        <li class="flex justify-center items-center pag_btn pag_btn_num" onclick="setPage(9)">10</li>
+        <li id="next" class="flex justify-center items-center pag_btn pag_btn_action" onclick="increment()">Next</li>
+    </ul>
+
+    <script>
+        let total = 10;
+        let currIndex = 0;
+        let next = document.getElementById("next")
+        let prev = document.getElementById("prev")
+        let pag_btn_num = document.getElementsByClassName("pag_btn_num")
+        
+        function increment(){
+            removeActiveClass()
+            console.log("increment")
+            currIndex = (currIndex+1) % total
+            setActiveClass()
+        }
+        
+        function setActiveClass(){
+            console.log("setActiveClass")
+            console.log(currIndex)
+            pag_btn_num[currIndex].classList.add("active_pag_btn")
+        }
+        setActiveClass()
+        
+        function removeActiveClass(){
+            console.log("removeActiveClass")
+            pag_btn_num[currIndex].classList.remove("active_pag_btn")
+        }
+        
+        function setPage(pageNumber){
+            console.log("setPage")
+            removeActiveClass()
+            currIndex = pageNumber
+            setActiveClass()
+        }
+        
+        function decrement(){
+            console.log("decrement")
+            removeActiveClass()
+            currIndex = (currIndex - 1)
+            
+            if(currIndex == -1){
+                currIndex = total -1
+            }
+            setActiveClass()
+        }
+    </script>
+</body>
+</html>

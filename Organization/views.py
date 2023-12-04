@@ -83,15 +83,17 @@ def companyProfile(request , slug):
         print("org.contactEmail")
         print(org.webSiteLink)
         orgSize = len(owner) + len(member)
+        print(f"{os.environ.get('FRONTEND')}/media/{org.logo}")
         return render(request ,"companyProfile.html" , 
             { 
                 "slug" : slug ,
                 "user" : user,
                 "org": org ,
                 "page" : "COMPANY_PROFILE" ,
-                "logo" : f"{os.environ.get('FRONTEND')}media/{org.logo}" ,
+                "logo" : f"{os.environ.get('FRONTEND')}/media/{org.logo}" ,
                 "orgSize" : orgSize,
-                "endpoint":"organization"
+                "endpoint":"organization",
+                "baseUrl" : os.environ.get('FRONTEND')
             }
         )
     except():
@@ -245,10 +247,11 @@ def leaveRequest(request , slug):
                 "slug" : slug ,
                 "user" : user,
                 "org": org ,
-                "page" : "COMPANY_PROFILE" ,
-                "logo" : f"{os.environ.get('FRONTEND')}media/{org.logo}" ,
+                "page" : "leave-request" ,
+                "logo" : f"{os.environ.get('FRONTEND')}/media/{org.logo}" ,
                 "orgSize" : orgSize,
-                "endpoint":"organization"
+                "endpoint":"organization",
+                "baseUrl" : os.environ.get('FRONTEND')
                     } 
                       )
     except Exception as e:
@@ -259,21 +262,45 @@ def leaveRequest(request , slug):
 def teams(request , slug):
     try:
         org = getOrgBySlug(request , slug)
-        t.objects.annotate(totalMem = Count("teammember")) 
+        # t.objects.annotate(totalMem = Count("teammember")) 
+        return render(request ,"JobTitle.html" , { 
+            "slug" : slug ,
+            "org": org ,
+            "logo" : f"{os.environ.get('FRONTEND')}/media/{org.logo}" ,
+            "baseUrl" : os.environ.get('FRONTEND'), 
+            "endpoint":"organization",
+            "page" : "teams" 
+             })
     except Exception as e:
         print(e)
         HttpResponseServerError(e)
 
 def employees(request , slug):
     try:
-        pass
+        org = getOrgBySlug(request , slug)
+        return render(request ,"JobTitle.html" , { 
+            "slug" : slug ,
+            "org": org ,
+            "logo" : f"{os.environ.get('FRONTEND')}/media/{org.logo}" ,
+            "baseUrl" : os.environ.get('FRONTEND') ,
+            "endpoint":"organization",
+            "page" : "employees" 
+             })
     except Exception as e:
         print(e)
         HttpResponseServerError(e)
 
 def jobTitle(request , slug):
     try:
-        pass
+        org = getOrgBySlug(request , slug)
+        return render(request ,"JobTitle.html" , { 
+            "slug" : slug ,
+            "org": org ,
+            "logo" : f"{os.environ.get('FRONTEND')}/media/{org.logo}" ,
+            "baseUrl" : os.environ.get('FRONTEND') ,
+            "endpoint":"organization",
+            "page" : "job-title" 
+             })
     except Exception as e:
         print(e)
-        HttpResponseServerError(e)
+        return HttpResponseServerError(e)

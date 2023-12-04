@@ -1,5 +1,9 @@
 .nav_option_container{
     margin-top: 10px;
+    overflow-x: scroll;
+}
+.nav_option_container li{
+    width: 100%;
 }
 
 .active_nav_link_card{

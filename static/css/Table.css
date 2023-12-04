@@ -1,0 +1,54 @@
+.tableContainer{
+    width: 100%;
+    overflow-x: scroll;
+}
+.table {
+    outline: none;
+    min-width: 700px;
+    margin: 10px;
+}
+
+.table tr {
+    border-bottom: 1px solid black;
+}
+
+.table tr:nth-child(even),
+.table tr:hover
+{
+    background-color: var(--hover);
+}
+
+.table td,
+.table th {
+    padding: 10px;
+    text-align: start;
+}
+
+.table tbody {
+    overflow-x: scroll;
+}
+
+.topSection{
+    margin: 10px 0;
+    padding: 10px;
+}
+
+.searchContainer{
+    border: 1px solid var(--black);
+    border-radius: 5px;
+}
+
+.searchContainer input{
+    border: 0px;
+    padding: 5px;
+}
+
+.searchIcon{
+    padding: 5px;
+}
+
+.selectTag select{
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 16px;
+}

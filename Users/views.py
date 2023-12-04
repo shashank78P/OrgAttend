@@ -122,7 +122,7 @@ def home(request , slug) :
     try:    
         user = request.session["user"]
         print(user)
-        return render(request ,"Home.html" , { 'slug' : slug , "user" : user , "endpoint":"users"})
+        return render(request ,"Home.html" , { 'slug' : slug , "user" : user , "endpoint":"users" , "baseUrl" : os.environ.get('FRONTEND')})
     except Exception as e:
         print('Internal Server error')
         return HttpResponseServerError(e)
@@ -160,7 +160,7 @@ def setCurrentActiveOrganization(request):
 def attendanceHistory(request , slug) :
     try:
         user = request.session["user"]
-        return render(request ,"AttendanceHistory.html" , { 'slug' : slug , "user" : user , "endpoint":"users"})
+        return render(request ,"AttendanceHistory.html" , { 'slug' : slug , "user" : user , "endpoint":"users" , "baseUrl" : os.environ.get('FRONTEND')})
     except Exception as e:
             print(e)
             HttpResponseServerError(e)

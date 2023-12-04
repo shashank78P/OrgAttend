@@ -11,8 +11,8 @@
     --blue-primary: #017BF6;
     --purple-primary: #CC6EE3;
     --pink-primary: #FF6EB4;
-    --orange-primary: #FF9181;
-    --orange_secondary: #FE674C;
+    --orange-primary: #FE674C;
+    --orange_secondary: #FF9181;
     --yellow-primary: #F9D600;
     --yellow-secondary: #F9F871;
     --green-primary: #5CB616;
@@ -204,4 +204,10 @@ font-family: 'PT Sans', sans-serif; */
 .text-7xl {font-size: 4.5rem;
    /* 72px */
     line-height: 1;
+}
+
+.truncate{
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
