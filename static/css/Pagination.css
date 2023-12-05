@@ -1,0 +1,31 @@
+.pagination{
+    width: 100%;
+    overflow-x: scroll;
+    display: flex;
+    align-items: center;
+}
+
+.pag_btn{
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--black);
+    user-select: none;
+    padding: 10px;
+    border-radius: 10px;
+    margin: 5px;
+    cursor: pointer;
+}
+
+.active_pag_btn{
+    border: 1px solid var(--orange_secondary);
+    background-color: var(--orange_secondary);
+    color: white;
+}
+
+.pag_btn_action{
+    border: none;
+    width: 50px;
+    height: 30px;
+    background-color: var(--orange-primary);
+    color: white;
+}
