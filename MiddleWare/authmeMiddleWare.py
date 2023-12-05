@@ -16,6 +16,9 @@ class AuthMe:
             response = self.get_response(request)
             token = request.get_signed_cookie('authorization', salt=os.environ.get('SECRET_KEY'), default=None)
 
+            print("request.path")
+            print(request.path)
+
             if request.path in Allowed_paths:
                 return response
 
