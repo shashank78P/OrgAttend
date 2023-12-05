@@ -3,11 +3,12 @@
     overflow-x: scroll;
     display: flex;
     align-items: center;
+    margin: 10px 0;
 }
 
 .pag_btn{
-    width: 30px;
-    height: 30px;
+    width: 40px;
+    height: 40px;
     border: 1px solid var(--black);
     user-select: none;
     padding: 10px;
@@ -22,10 +23,14 @@
     color: white;
 }
 
+.pag_btn_action_next{
+    transform: rotate(180deg);
+}
+
 .pag_btn_action{
     border: none;
     width: 50px;
-    height: 30px;
+    height: 40px;
     background-color: var(--orange-primary);
     color: white;
 }

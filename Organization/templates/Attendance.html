@@ -1,0 +1,336 @@
+{% extends "base.html" %}
+{% csrf_token %}
+{% load static %}
+{% block page_title %}
+{{ text | title }}
+{% endblock %}
+
+{% block css_block %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+<link rel="stylesheet" href={% static "css/Global.css" %}>
+<link rel="stylesheet" href={% static "css/Attendance.css" %}>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src={% static 'js/script.js' %}></script>
+
+
+<div class="att_container">
+
+    <div>
+        <ul>
+            <li class="att_main_title">Team</li>
+        </ul>
+    </div>
+    <!-- stats -->
+    <div class="att_chart_sec">
+        <ul class="att_chart_sec1">
+            <li class="att_cards box-shadow border-light">
+                <ul>
+                    <li class="title title_card">Leaders</li>
+                    <li class="flex justify-end items-center att_card_stat">
+                        <span>2</span>
+                        <span>/</span>
+                        <span>10</span>
+                    </li>
+                </ul>
+            </li>
+            <li class="att_cards box-shadow border-light">
+                <ul>
+                    <li class="title title_card">Co-Leaders</li>
+                    <li class="flex justify-end items-center att_card_stat">
+                        <span>2</span>
+                        <span>/</span>
+                        <span>10</span>
+                    </li>
+                </ul>
+            </li>
+            <li class="att_cards box-shadow border-light">
+                <ul>
+                    <li class="title title_card">Members</li>
+                    <li class="flex justify-end items-center att_card_stat">
+                        <span>6</span>
+                        <span>/</span>
+                        <span>10</span>
+                    </li>
+                </ul>
+            </li>
+            <li class="att_cards box-shadow border-light">
+                <ul>
+                    <li class="title title_card">Avg Attendance</li>
+                    <li class="flex justify-end items-center att_card_stat">
+                        <span>60%</span>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+        <ul class="att_chart_sec2">
+            <li class="">
+                <div class="flex flex-col items-center  chartContainer box-shadow border-light">
+                    <ul class="flex justify-between items-center flex-wrap chart-top-nav">
+                        <li class="chart-title">Attendance Report</li>
+                        <li class=" date-filter-container ">
+                            <ul class="flex justify-center items-center chart-filter">
+                                <li>
+                                    <span>From</span>
+                                    <input type="date" name="" id="">
+                                </li>
+                                <li>
+                                    <span>To</span>
+                                    <input type="date" name="" id="">
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <div class="lineChart">
+                        <canvas id="id1"></canvas>
+                    </div>
+                </div>
+            </li>
+            <li>
+                <div class="flex flex-col items-center justify-center chartContainer box-shadow border-light">
+                    <ul class="flex justify-between items-center flex-wrap chart-top-nav">
+                        <li class="chart-title">Attendance Report</li>
+                        <li class=" date-filter-container ">
+                            <ul class="flex justify-center items-center chart-filter">
+                                <li>
+                                    <span>From</span>
+                                    <input type="date" name="" id="">
+                                </li>
+                                <li>
+                                    <span>To</span>
+                                    <input type="date" name="" id="">
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <div class="flex justify-center items-center flex-wrap">
+                        <div class="pieChart">
+                            <canvas id={{id}}></canvas>
+                        </div>
+                        <div class="chatContent">
+                            <ul class="flex justify-center items-center chart-card">
+                                <li class="marker" style="background-color:#017BF6"></li>
+                                <li>
+                                    <ul class="">
+                                        <li>In Office</li>
+                                        <li class="result">65%</li>
+                                    </ul>
+                                </li>
+                            </ul>
+
+                            <ul class="flex justify-center items-center chart-card">
+                                <li class="marker" style="background-color:#CC6EE3"></li>
+                                <li>
+                                    <ul class="">
+                                        <li>Half Day</li>
+                                        <li class="result">6%</li>
+                                    </ul>
+                                </li>
+                            </ul>
+
+                            <ul class="flex justify-center items-center chart-card">
+                                <li class="marker" style="background-color:#FF6EB4"></li>
+                                <li>
+                                    <ul class="">
+                                        <li>Work From Home</li>
+                                        <li class="result">22%</li>
+                                    </ul>
+                                </li>
+                            </ul>
+
+                            <ul class="flex justify-center items-center chart-card">
+                                <li class="marker" style="background-color:#FF9181"></li>
+                                <li>
+                                    <ul class="">
+                                        <li>On Leave</li>
+                                        <li class="result">9%</li>
+                                    </ul>
+                                </li>
+                            </ul>
+
+                        </div>
+                    </div>
+                </div>
+            </li>
+        </ul>
+    </div>
+
+    <div class="att_nav_container">
+        <ul class="flex justify-between items-center">
+            <li class="">
+                <ul class="att_date_time_section">
+                    <li class="title att_title">Title </li>
+                    <li class="">1st company</li>
+                </ul>
+            </li>
+            <li>
+                <ul class=" flex flex-col items-end att_date_time_section">
+                    <li>05-12-2023</li>
+                    <li>11:00 AM to 12:00 AM</li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+
+    <div>
+        <ul class="flex justify-between items-center box-shadow att_row">
+            <li class="att_user_img">
+                <img src="../../static/images/tempImage.png" alt="">
+            </li>
+            <li class="w-full">
+                <ul class="w-full flex flex-col justify-evenly att_user_info">
+                    <li>Temp user</li>
+                    <li class="text-sm att_percentage">75%</li>
+                </ul>
+            </li>
+            <li>
+                <div id="1" class="checkBox flex items-center" onclick="MarkCheck(1)">
+                    <span id="1ring" class="checkBox_ring"></span>
+                </div>
+            </li>
+        </ul>
+
+        <ul class="flex justify-between items-center box-shadow att_row">
+            <li class="att_user_img">
+                <img src="../../static/images/tempImage.png" alt="">
+            </li>
+            <li class="w-full">
+                <ul class="w-full flex flex-col justify-evenly att_user_info">
+                    <li>Temp user</li>
+                    <li class="text-sm att_percentage">75%</li>
+                </ul>
+            </li>
+            <li>
+                <div id="2" class="checkBox flex items-center" onclick="MarkCheck(2)">
+                    <span id="2ring" class="checkBox_ring"></span>
+                </div>
+            </li>
+        </ul>
+        <ul class="flex justify-between items-center box-shadow att_row">
+            <li class="att_user_img">
+                <img src="../../static/images/tempImage.png" alt="">
+            </li>
+            <li class="w-full">
+                <ul class="w-full flex flex-col justify-evenly att_user_info">
+                    <li>Temp user</li>
+                    <li class="text-sm att_percentage">75%</li>
+                </ul>
+            </li>
+            <li>
+                <div id="3" class="checkBox flex items-center" onclick="MarkCheck(3)">
+                    <span id="3ring" class="checkBox_ring"></span>
+                </div>
+            </li>
+        </ul>
+        <ul class="flex justify-between items-center box-shadow att_row">
+            <li class="att_user_img">
+                <img src="../../static/images/tempImage.png" alt="">
+            </li>
+            <li class="w-full">
+                <ul class="w-full flex flex-col justify-evenly att_user_info">
+                    <li>Temp user</li>
+                    <li class="text-sm att_percentage">75%</li>
+                </ul>
+            </li>
+            <li>
+                <div id="4" class="checkBox flex items-center" onclick="MarkCheck(4)">
+                    <span id="4ring" class="checkBox_ring"></span>
+                </div>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<script>
+    // console.log('{{id}}')
+    new Chart(document.getElementById('id1'), {
+        type: 'bar',
+        data: {
+            labels: [1, 2, 3, 4, 5, 6, 7],
+            datasets: [{
+                label: 'My First Dataset',
+                data: [65, 59, 80, 81, 56, 55, 40],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(255, 159, 64, 0.2)',
+                    'rgba(255, 205, 86, 0.2)',
+                    'rgba(75, 192, 192, 0.2)',
+                    'rgba(54, 162, 235, 0.2)',
+                    'rgba(153, 102, 255, 0.2)',
+                    'rgba(201, 203, 207, 0.2)'
+                ],
+                borderColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(255, 159, 64)',
+                    'rgb(255, 205, 86)',
+                    'rgb(75, 192, 192)',
+                    'rgb(54, 162, 235)',
+                    'rgb(153, 102, 255)',
+                    'rgb(201, 203, 207)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        },
+    });
+</script>
+
+
+
+<script>
+    console.log('{{id}}')
+    new Chart(document.getElementById('{{id}}'), {
+        type: 'doughnut',
+        data: data = {
+            // labels: [
+            //     'Red',
+            //     'Blue',
+            //     'Yellow'
+            // ],
+            datasets: [{
+                label: 'My First Dataset',
+                data: [300, 12],
+                backgroundColor: [
+                    // 'rgb(255, 99, 132)',
+                    // 'rgb(54, 162, 235)',
+                    // 'rgb(255, 205, 86)'
+                    "#017BF6", "#CC6EE3", "#FF6EB4", "#FF9181", "#FE674C", "#F9D600", "#F9F871", "#5CB616"
+                ],
+                hoverOffset: 4
+            }]
+        },
+        // options: {
+        //     scales: {
+        //         y: {
+        //             beginAtZero: true
+        //         }
+        //     }
+        // }
+    });
+
+</script>
+
+<script>
+    const AttendanceData = {}
+    function MarkCheck(userId) {
+        const ele = document.getElementById(userId)
+        const ring = document.getElementById(`${userId}ring`)
+        if (AttendanceData[userId]) {
+            ele.classList.remove("activeCheckBox")
+            ring.classList.remove("activeCheckBox_ring")
+            AttendanceData[userId] = false
+        } else {
+            ele.classList.add("activeCheckBox")
+            ring.classList.add("activeCheckBox_ring")
+            AttendanceData[userId] = true
+        }
+        console.log(AttendanceData)
+    }
+</script>

@@ -2,9 +2,10 @@
     container-type: inline-size;
     container-name: chartContainer;
     padding: 10px;
+    height: 100%;
     border-radius: 10px;
     /* border: 1px solid red; */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    /* box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); */
 }
 
 .pieChart {

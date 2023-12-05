@@ -1,0 +1,132 @@
+.att_main_title {
+    font-size: 25px;
+    font-weight: 900;
+    color: var(--orange-primary);
+}
+
+.att_container {
+    padding: 5px;
+}
+
+.att_nav_container {
+    margin: 10px 0;
+    /* background-color: var(--hover); */
+}
+
+.att_title {
+    color: var(--orange-primary);
+}
+
+.att_date_time_section li {
+    margin-bottom: 10px;
+}
+
+.att_chart_sec {
+    margin: 10px 0;
+}
+
+/* .att_chart_sec .title_card {
+    color: var(--orange-primary);
+} */
+
+.att_chart_sec1 {
+    display: grid;
+    min-height: 100px;
+    padding: 10px;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 10px;
+}
+
+.att_chart_sec2 {
+    /* border: 1px solid red; */
+    margin: 20px 0;
+    display: grid;
+    height: auto;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.att_cards {
+    cursor: pointer;
+    border-radius: 10px;
+    padding: 10px;
+}
+
+.att_cards li {
+    margin-bottom: 10px;
+}
+
+.att_card_stat {
+    font-size: 30px;
+}
+
+.att_card_stat span {
+    color: var(--blue-primary);
+    margin: 2px;
+    font-weight: 700;
+}
+
+#att_bar_chart {
+    max-height: 200px;
+}
+
+.att_row {
+    border: 1px solid var(--slate-200);
+    padding: 5px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.att_user_img img {
+    width: 50px;
+    height: 50px;
+}
+
+.att_percentage {
+    margin-top: 3px;
+}
+
+.checkBox {
+    /* border: 1px solid black; */
+    width: 50px;
+    height: 25px;
+    border-radius: 25px;
+    padding: 5px;
+    background-color: var(--red-200);
+    transition: all .5s;
+    cursor: pointer;
+}
+
+.activeCheckBox {
+    /* justify-content: flex-end; */
+    background-color: var(--green-200) !important;
+}
+
+.activeCheckBox_ring {
+    transform: translateX(20px);
+    background-color: var(--green-500) !important;
+}
+
+.checkBox_ring {
+    width: 20px;
+    height: 20px;
+    display: block;
+    transition: all .5s;
+    border-radius: 50%;
+    background-color: var(--red-500);
+}
+
+.att_user_info {
+    margin-left: 20px;
+}
+
+@media screen and (max-width : 900px) {
+    .att_card_stat {
+        font-size: 20px;
+    }
+
+    .att_chart_sec1 {
+        min-height: 150px;
+        grid-template-columns: 1fr 1fr;
+    }
+}

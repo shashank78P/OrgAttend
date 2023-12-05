@@ -1,7 +1,7 @@
 .consumedLeaveContainer {
     container-type: inline-size;
     container-name: consumedLeaveContainer;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    /* box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); */
     padding: 10px;
     border-radius: 10px;
     margin: 10px;

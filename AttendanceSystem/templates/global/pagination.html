@@ -1,11 +1,19 @@
 <ul class="pagination">
-        <li id="prev" class="flex justify-center items-center pag_btn pag_btn_action" onclick="decrement()">Prev</li>
+        <li id="prev" class="flex justify-center items-center pag_btn pag_btn_action" onclick="decrement()">
+            {% with width=15 height=15 color="white"%}
+            {% include 'SvgIcon/ArrowLeft.html' %}
+            {% endwith %}
+        </li>
         {% for x in y|rjust:total %}
             <li class="flex justify-center items-center pag_btn pag_btn_num" onclick="setPage('{{forloop.counter0}}')">{{forloop.counter}}</li>
             <!-- {{forloop.counter0}} -->
         {% endfor %}
         
-        <li id="next" class="flex justify-center items-center pag_btn pag_btn_action" onclick="increment()">Next</li>
+        <li id="next" class="flex justify-center items-center pag_btn pag_btn_action pag_btn_action_next" onclick="increment()">
+            {% with width=15 height=15 color="white"%}
+            {% include 'SvgIcon/ArrowLeft.html' %}
+            {% endwith %}
+        </li>
     </ul>
 
     <script>
