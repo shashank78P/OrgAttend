@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% csrf_token %}
+{% load static %}
+{% block page_title %}
+{{ text | title }}
+{% endblock %}
+
+{% block css_block %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+<link rel="stylesheet" href={% static "css/Global.css" %}>
+<link rel="stylesheet" href={% static 'css/homeNav.css' %}>
+<link rel="stylesheet" href={% static "css/CreateOrganization.css" %}>
+<link rel="stylesheet" href={% static "css/UserInfo.css" %}>
+<link rel="stylesheet" href={% static "css/NavigationOptions.css" %}>
+<link rel="stylesheet" href={% static "css/JobTitle.css" %}>
+<link rel="stylesheet" href={% static "css/Dotnut.css" %}>
+<link rel="stylesheet" href={% static "css/Pagination.css" %}>
+<link rel="stylesheet" href={% static "css/Attendance.css" %}>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src={% static 'js/script.js' %}></script>
+
+
+{% endblock %}
+{% block content %}
+{% include "Nav.html" %}
+{% include "Profile/profile.html" %}
+
+{% with page="job-title" app="organization"%}
+{% include "NavigationOptions.html" %}
+{% endwith %}
+
+<!-- stats -->
+<div class="att_chart_sec">
+    <ul class="att_chart_sec1">
+        <li class="att_cards box-shadow border-light">
+            <ul>
+                <li class="title title_card">Leaders</li>
+                <li class="flex justify-end items-center att_card_stat">
+                    <span>2</span>
+                    <span>/</span>
+                    <span>10</span>
+                </li>
+            </ul>
+        </li>
+        <li class="att_cards box-shadow border-light">
+            <ul>
+                <li class="title title_card">Co-Leaders</li>
+                <li class="flex justify-end items-center att_card_stat">
+                    <span>2</span>
+                    <span>/</span>
+                    <span>10</span>
+                </li>
+            </ul>
+        </li>
+        <li class="att_cards box-shadow border-light">
+            <ul>
+                <li class="title title_card">Members</li>
+                <li class="flex justify-end items-center att_card_stat">
+                    <span>6</span>
+                    <span>/</span>
+                    <span>10</span>
+                </li>
+            </ul>
+        </li>
+        <li class="att_cards box-shadow border-light">
+            <ul>
+                <li class="title title_card">Avg Attendance</li>
+                <li class="flex justify-end items-center att_card_stat">
+                    <span>60%</span>
+                </li>
+            </ul>
+        </li>
+    </ul>
+    <ul class="att_chart_sec2">
+        {% with id="chart1" %}
+        {% include "dotnut.html" %}
+        {% endwith %}
+
+        {% with id="chart2" %}
+        {% include "LineChart.html" %}
+        {% endwith %}
+    </ul>
+</div>
+{% with page="employees" app="organization" data=tableData title=tableTitle action='/organization/employees' slug=slug %}
+{% include "table.html" %}
+{% endwith %}
+
+{% with page="job-title" app="organization" total=totalEmployee action="/organization/employees" slug=slug page=pageNo%}
+{% include "pagination.html" %}
+{% endwith %}
+
+{% endblock %}

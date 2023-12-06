@@ -1,14 +1,16 @@
+import math
 import os
 from django.http import HttpResponseServerError , HttpResponseNotAllowed, JsonResponse , Http404 , HttpResponseRedirect
 from django.shortcuts import render
 import requests
-from Organization.forms import createOrganizationForm, createTeamForm
-from Organization.models import Organization ,OwnerDetails , Team ,TeamMember
+from Organization.forms import createOrganizationForm, createTeamForm , addEmployeeForm , addJobTitleForm
+from Organization.models import Organization ,OwnerDetails , Team ,TeamMember , Employee , Job_title
 from Users.models import Address, Users
 from Users.views import getUserByEmail
 from django.db.models import Q
 from datetime import datetime
 from django.db.models import Count
+import numpy as np
 
 def getOrgBySlug(request , slug):
     try:
@@ -256,7 +258,7 @@ def leaveRequest(request , slug):
                       )
     except Exception as e:
         print(e)
-        HttpResponseServerError(e)
+        return HttpResponseServerError(e)
 
 
 def teams(request , slug):
@@ -273,22 +275,98 @@ def teams(request , slug):
              })
     except Exception as e:
         print(e)
-        HttpResponseServerError(e)
+        return HttpResponseServerError(e)
+
+def getEmployeeFormatedData(employeeData):
+    tableTitle = ["Name","Job Title","Email","DOB","Phone Number","Address",]
+    tableData = []
+    for i in  range(0,len(employeeData)):
+        emp = employeeData[i]
+        address = "-"
+        DOB = "-"
+        phoneNumber = "-"
+        if emp.employee.DOB != None :
+            DOB = emp.employee.DOB
+
+        if emp.employee.phoneNumber != None :
+            phoneNumber = emp.employee.phoneNumber
+
+        if emp.employee.address :
+            address = f'{emp.employee.address.city} {emp.employee.address.state} {emp.employee.address.country} {emp.employee.address.code}'
+
+        tableData.append([ 
+            f'{emp.employee.firstName} {emp.employee.middleName} {emp.employee.lastName}' ,
+            f'{emp.jobTitle.title}',
+            f'{emp.employee.email}',
+            f'{DOB}',
+            f'{phoneNumber}',
+            address
+        ])
+    return tableTitle , tableData
 
 def employees(request , slug):
     try:
+        search=""
+        rows=10
+        page=0
+        data = request.POST
+        print(data)
+
+
+        if(data.get("search" , "") not in [None , "" ]):
+            search = data["search"]
+        
+        
+        if(data.get("rows" ,"") not in [None , "" ]):
+            rows = int(data["rows"])
+        
+        
+        if(data.get("page" , "") not in [None , "" ]):
+            page = int(data["page"])
+        
+
+        print("data ===>")
+        print(search , rows)
+
         org = getOrgBySlug(request , slug)
-        return render(request ,"JobTitle.html" , { 
+        skip = page*rows
+        employeeData = Employee.objects.filter(Q(Organization = org) &
+         (Q(employee__DOB__icontains=search) |
+     Q(employee__phoneNumber__icontains=search) |
+     Q(employee__firstName__icontains=search) |
+     Q(employee__middleName__icontains=search) |
+     Q(employee__lastName__icontains=search) |
+     Q(jobTitle__title__icontains=search) |  # Correct field name
+     Q(employee__email__icontains=search) |
+     Q(employee__address__city__icontains=search) |
+     Q(employee__address__state__icontains=search) |
+     Q(employee__address__country__icontains=search) |
+     Q(employee__address__code__icontains=search))
+    )
+        
+        tableTitle , tableData = getEmployeeFormatedData(employeeData)
+        print(tableTitle )
+        print(tableData)
+
+        return render(request ,"Employee.html" , { 
             "slug" : slug ,
             "org": org ,
             "logo" : f"{os.environ.get('FRONTEND')}/media/{org.logo}" ,
             "baseUrl" : os.environ.get('FRONTEND') ,
             "endpoint":"organization",
-            "page" : "employees" 
+            "page" : "employees" ,
+            "employeeData" : employeeData[ skip :  skip + rows],
+            "totalEmployee" : np.arange(0, math.ceil(len(employeeData)/10)),
+            'tableTitle':tableTitle,
+            'tableData':tableData,
+            "pageNo":page,
+            "skip":skip,
+            "rows":rows,
+            "search":search
              })
     except Exception as e:
         print(e)
-        HttpResponseServerError(e)
+        return HttpResponseServerError(e)
 
 def jobTitle(request , slug):
     try:
@@ -301,6 +379,65 @@ def jobTitle(request , slug):
             "endpoint":"organization",
             "page" : "job-title" 
              })
+    except Exception as e:
+        print(e)
+        return HttpResponseServerError(e)
+
+
+def AddEmployee(request ):
+    try:
+        print("entered add employee")
+        user = request.session["user"]
+        print(user)
+        org = Organization.objects.get(_id = user["currentActiveOrganization"])
+        print(org)
+        if(request.method == "POST"):
+            print("post method")
+            print(request.POST["email"])
+            form = addEmployeeForm( request.POST, organization=org)
+            if form.is_valid():
+                userToAdd = Users.objects.get(email = request.POST["email"])
+                print(userToAdd)
+                emp = Employee(
+                    employee = userToAdd , 
+                    createdBy = Users.objects.get(_id = user["_id"]),
+                    Organization = org
+                               )
+                emp.save()
+                return HttpResponseRedirect(f"/organization/{org.slug}")
+            else:
+                return render(request ,"AddEmployee.html", { 'form' : form })
+        else:
+            form = addEmployeeForm(organization=org)
+            return render(request ,"AddEmployee.html", { 'form' : form })
+    except Exception as e:
+        print(e)
+        return HttpResponseServerError(e)
+
+def AddJobTitle(request ):
+    try:
+        print("entered add job title")
+        user = request.session["user"]
+        print(user)
+        org = Organization.objects.get(_id = user["currentActiveOrganization"])
+        print(org)
+        if(request.method == "POST"):
+            form = addJobTitleForm( request.POST)
+            print("post method")
+            print(request.POST)
+            if form.is_valid():
+                newJobTitle = Job_title(
+                    title = request.POST["title"] ,
+                    Organization = org,
+                    createdBy = Users.objects.get(_id = user["_id"])
+                    )
+                newJobTitle.save()
+                return HttpResponseRedirect(f"/organization/{org.slug}")
+            else:
+                return render(request ,"AddJobTitle.html", { 'form' : form })
+        else:
+            form = addJobTitleForm()
+            return render(request ,"AddJobTitle.html", { 'form' : form })
     except Exception as e:
         print(e)
         return HttpResponseServerError(e)

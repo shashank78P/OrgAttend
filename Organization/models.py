@@ -52,7 +52,6 @@ class Organization(models.Model):
     def __str__(self):
         return f"{self.name}"
 
-
 class OwnerDetails(models.Model):
     OrganizationId =models.ForeignKey(Organization , on_delete=models.CASCADE, null=True)
     userId = models.ForeignKey(Users , on_delete=models.CASCADE, null=True)
@@ -106,5 +105,37 @@ class TeamMember(models.Model):
         def __str__(self):
            return f"{self.role} | {self.OrganizationId.name} | ({self.userId.firstName} {self.userId.lastName})"
         
+class Job_title(models.Model):
+    title = models.CharField(
+        unique=True,
+        max_length=100,
+        error_messages={
+            "unique": "Tile is already exist",
+            'invalid': 'Please enter a valid job title name.',
+            'max_length': 'Job title name must be smaller than 100 characters.',
+            # 'min_length': 'Job title name must have minimum of 3 characters.',
+        },
+    )
+    createdBy = models.ForeignKey(Users , on_delete=models.CASCADE , null=True)
+    Organization = models.ForeignKey(Organization , db_index=True , on_delete=models.SET_NULL, null=True)
+    createdAt = models.DateTimeField(auto_now_add=True, null=True)
+    updatedAt = models.DateTimeField(auto_now=True , null=True)
+
+    def __str__(self):
+        return f"{self.title} ({self.Organization.name})"
+
+class Employee(models.Model):
+    _id = models.AutoField(auto_created=True, primary_key=True)
+    employee = models.ForeignKey(Users , on_delete=models.CASCADE , related_name='employee')
+    Organization = models.ForeignKey(Organization , db_index=True , on_delete=models.SET_NULL, null=True)
+    jobTitle = models.ForeignKey(Job_title , db_index=True , on_delete=models.SET_NULL, null=True)
+    createdBy = models.ForeignKey(Users , on_delete=models.CASCADE , related_name='created_employee' , null=True)
+    createdAt = models.DateTimeField(auto_now_add=True , null=True)
+    updatedAt = models.DateTimeField(auto_now=True , null=True)
+
+    def __str__(self):
+        return f"{self.employee.firstName} {self.employee.lastName}"
+
+
 # tm.objects.filter(OrganizationId = o , TeamId_id__in = teamDetails) 
 #>>> teamMem = t.objects.annotate(count = Count('teammember'))                          

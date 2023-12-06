@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import OwnerDetails, Organization , Team , TeamMember
+from .models import OwnerDetails, Organization , Team , TeamMember , Employee ,Job_title
 
 class OrganizationAdmin(admin.ModelAdmin):
     list_display = (
@@ -25,8 +25,18 @@ class TeamMembersAdmin(admin.ModelAdmin):
     list_display = ("role","TeamId","OrganizationId","userId","createAt","updatedAt") 
     list_filter = ("role","TeamId","OrganizationId","userId","createAt","updatedAt")
 
+class JobTitleAdmin(admin.ModelAdmin):
+    list_display = ("title","Organization","createdAt","createdBy","updatedAt") 
+    list_filter = ("createdAt","updatedAt")
+
+class EmployeeAdmin(admin.ModelAdmin):
+    list_display = ("_id","employee","jobTitle","createdAt","createdBy","updatedAt") 
+    list_filter = ("createdAt","updatedAt")
+
 # Register your models here.
 admin.site.register(Organization , OrganizationAdmin)
 admin.site.register(OwnerDetails , OwnerDetailsAdmin)
 admin.site.register(Team , TeamsAdmin)
 admin.site.register(TeamMember , TeamMembersAdmin)
+admin.site.register(Employee , EmployeeAdmin)
+admin.site.register(Job_title , JobTitleAdmin)

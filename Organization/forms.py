@@ -1,6 +1,8 @@
 from django import forms
 from django.core.exceptions import ValidationError
 
+from Organization.models import Job_title
+
 class createOrganizationForm(forms.Form):
     name = forms.CharField(
         label="Name",
@@ -164,4 +166,44 @@ class createTeamForm(forms.Form):
         error_messages={
             "required": "Description is required",
         },
+    )
+
+    
+class addEmployeeForm(forms.Form):
+    email = forms.EmailField(
+        label="email",
+        required=True,   
+        error_messages={
+            "required" :"Email is required",
+        }
+    )
+
+    def __init__(self, *args, organization, **kwargs):
+        super(addEmployeeForm, self).__init__(*args, **kwargs)
+
+        # Query the job titles for the specific organization
+        job_titles = Job_title.objects.filter(Organization=organization)
+        print(job_titles)
+        
+        self.fields['role'] = forms.ModelChoiceField(
+            queryset=job_titles,
+            label="Role",
+            required=True,
+            empty_label="Select a role",
+            error_messages={
+                "required": "Role is required",
+            }
+        )
+    
+
+
+class addJobTitleForm(forms.Form):
+    title = forms.CharField(
+        label="title",
+        max_length=200,
+        required=True,   
+        error_messages={
+            "required" :"Title is required",
+            "max_length" : "Title is too long"
+        }
     )

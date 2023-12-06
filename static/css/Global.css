@@ -261,3 +261,7 @@ font-family: 'PT Sans', sans-serif; */
 .aspect-video{
     aspect-ratio: 16 / 9;
 }	
+
+.hidden{
+    display: none;
+}

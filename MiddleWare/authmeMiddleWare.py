@@ -57,6 +57,7 @@ class AuthMe:
                 'country' : address.country,
                 'code' : address.code,
             }
+            print("exiting from middle ware")
             return response
 
         except jwt.ExpiredSignatureError:

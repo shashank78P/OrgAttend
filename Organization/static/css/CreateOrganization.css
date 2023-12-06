@@ -20,6 +20,7 @@
 
 
 .form_row input,
+.form_row select,
 .form_row textarea {
     width: 100%;
     padding: 10px;

@@ -1,62 +1,76 @@
-<ul class="pagination">
+<form action="{{action}}{% if slug %}/{{slug}}{% endif %}" method="post" id="postPagination">
+    {% csrf_token %}
+    <input type="number" name="page" id="pag_page" class="hidden">
+    <ul class="pagination">
         <li id="prev" class="flex justify-center items-center pag_btn pag_btn_action" onclick="decrement()">
             {% with width=15 height=15 color="white"%}
             {% include 'SvgIcon/ArrowLeft.html' %}
             {% endwith %}
         </li>
-        {% for x in y|rjust:total %}
-            <li class="flex justify-center items-center pag_btn pag_btn_num" onclick="setPage('{{forloop.counter0}}')">{{forloop.counter}}</li>
-            <!-- {{forloop.counter0}} -->
+        {% for x in total %}
+        <li class="flex justify-center items-center pag_btn pag_btn_num" onclick="setPage('{{forloop.counter0}}')">
+            {{forloop.counter}}</li>
+        <!-- {{forloop.counter0}} -->
         {% endfor %}
-        
-        <li id="next" class="flex justify-center items-center pag_btn pag_btn_action pag_btn_action_next" onclick="increment()">
+
+        <li id="next" class="flex justify-center items-center pag_btn pag_btn_action pag_btn_action_next"
+            onclick="increment()">
             {% with width=15 height=15 color="white"%}
             {% include 'SvgIcon/ArrowLeft.html' %}
             {% endwith %}
         </li>
     </ul>
+</form>
 
-    <script>
-        let total = 10;
-        let currIndex = 0;
-        let next = document.getElementById("next")
-        let prev = document.getElementById("prev")
-        let pag_btn_num = document.getElementsByClassName("pag_btn_num")
+<script>
+    let total = "{{total}}";
+    let currIndex = "{{page}}";
+    let next = document.getElementById("next")
+    let prev = document.getElementById("prev")
+    let pag_btn_num = document.getElementsByClassName("pag_btn_num")
+    let postPagination = document.getElementById("postPagination")
+    let pag_page = document.getElementById("pag_page")
+
+    function increment() {
+        removeActiveClass()
+        console.log("increment")
+        currIndex = (currIndex + 1) % total
+        setActiveClass()
+        pag_page.value = currIndex
+        postPagination.submit()
+    }
+    
+    function setActiveClass() {
+        console.log("setActiveClass")
+        console.log(currIndex)
+        pag_btn_num[currIndex].classList.add("active_pag_btn")
+    }
+    setActiveClass()
+
+    function removeActiveClass() {
+        console.log("removeActiveClass")
+        pag_btn_num[currIndex].classList.remove("active_pag_btn")
+    }
+    
+    function setPage(pageNumber) {
+        console.log("setPage")
+        removeActiveClass()
+        currIndex = pageNumber
+        setActiveClass()
+        pag_page.value = currIndex
+        postPagination.submit()
+    }
+    
+    function decrement() {
+        console.log("decrement")
+        removeActiveClass()
+        currIndex = (currIndex - 1)
         
-        function increment(){
-            removeActiveClass()
-            console.log("increment")
-            currIndex = (currIndex+1) % total
-            setActiveClass()
-        }
-        
-        function setActiveClass(){
-            console.log("setActiveClass")
-            console.log(currIndex)
-            pag_btn_num[currIndex].classList.add("active_pag_btn")
+        if (currIndex == -1) {
+            currIndex = total - 1
         }
         setActiveClass()
-        
-        function removeActiveClass(){
-            console.log("removeActiveClass")
-            pag_btn_num[currIndex].classList.remove("active_pag_btn")
-        }
-        
-        function setPage(pageNumber){
-            console.log("setPage")
-            removeActiveClass()
-            currIndex = pageNumber
-            setActiveClass()
-        }
-        
-        function decrement(){
-            console.log("decrement")
-            removeActiveClass()
-            currIndex = (currIndex - 1)
-            
-            if(currIndex == -1){
-                currIndex = total -1
-            }
-            setActiveClass()
-        }
+        pag_page.value = currIndex
+        postPagination.submit()
+    }
 </script>
