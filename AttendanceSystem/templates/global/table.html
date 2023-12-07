@@ -1,4 +1,4 @@
-{% load index_filter %}
+{% load is_last %}
 
 <div class="flex justify-between item-center topSection">
     <form action="{{action}}{% if slug %}/{{slug}}{% endif %}" method="post">
@@ -41,43 +41,49 @@
             <tr>
                 <th>SI no.</th>
                 {% for t in title %}
-                <th>{{t}}</th>
+                <th>{{t | title}}</th>
                 {% endfor %}
                 <th>Actions</th>
             </tr>
         </thead>
         <tbody>
             {% for row in data %}
-            <tr>
+            <tr >
                 <td>{{forloop.counter}}</td>
                 {% for r in row %}
-                <td>
-                    {{ r }}
-                </td>
-                {% endfor %}
-                <td class="flex actionContainer">
-                    <span class="icon actionIcons">
-                        <form action={{openAction}} method="get">
+                    {% if forloop.counter ==  columnCount%}
+                    <td class="flex actionContainer">
+                        <span class="icon actionIcons">
+                        <a href="{{action}}{% if slug %}/{{slug}}/{{r}}{% endif %}" >
                             {% with width=20 height=20 color="#017BF6"%}
                             {% include 'SvgIcon/OpenIco.html' %}
                             {% endwith %}
-                        </form>
-                    </span>
-                    <span class="icon actionIcons">
-                        <form action={{editAction}} method="get">
-                            {% with width=20 height=20 color="#22c55e"%}
-                            {% include 'SvgIcon/PencileIco.html' %}
-                            {% endwith %}
-                        </form>
-                    </span>
-                    <span class="icon actionIcons">
-                        <form action={{deleteAction}} method="get">
-                            {% with width=20 height=20 color="#ef4444"%}
-                            {% include 'SvgIcon/DeleteIco.html' %}
-                            {% endwith %}
-                        </form>
-                    </span>
-                </td>
+                        </a>
+                        </span>
+                        <span class="icon actionIcons">
+                            <form action="{{action}}{% if slug %}/{{slug}}/edit/{{r}}{% endif %}" method="get">
+                                {% with width=20 height=20 color="#22c55e"%}
+                                {% include 'SvgIcon/PencileIco.html' %}
+                                {% endwith %}
+                            </form>
+                        </span>
+                        <span class="icon actionIcons">
+                            <form action="{{action}}{% if slug %}/{{slug}}/delete/{{r}}{% endif %}" method="post">
+                                <input type="text" name="id" value="" class="hidden">
+                                {% with width=20 height=20 color="#ef4444"%}
+                                {% include 'SvgIcon/DeleteIco.html' %}
+                                {% endwith %}
+                            </form>
+                        </span>
+                    </td>
+                    {% else %}
+                    <td>
+                        {{r}}
+                    </td>
+                    {% endif %}
+                    <!-- {{forloop.counter|isLast:columnCount}} -->
+                {% endfor %}
+                
             </tr>
             {% endfor %}
         </tbody>

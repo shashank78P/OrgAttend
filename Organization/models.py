@@ -46,10 +46,6 @@ class Organization(models.Model):
 
     def save(self , *args , **kwargs):
         slug = f"{self.name} {uuid.uuid4() }"
-        now = timezone.now()
-        ist = timezone.pytz.timezone('Asia/Kolkata')
-        self.createdAt = now.astimezone(ist) if self.createdAt is None else self.createdAt.astimezone(ist)
-        self.updatedAt = now.astimezone(ist)
         print(slug)
         self.slug = slugify(slug)
         super().save(*args , **kwargs)
@@ -88,15 +84,6 @@ class Team(models.Model):
         createdBy = models.ForeignKey(Users, db_index=True , on_delete=models.SET_NULL, null=True)
         createdAt = models.DateTimeField(auto_now_add=True)
         updatedAt = models.DateTimeField(auto_now=True)
-
-        def save(self, *args, **kwargs):
-            # Convert to Indian Standard Time (IST)
-            now = timezone.now()
-            ist = timezone.pytz.timezone('Asia/Kolkata')
-            self.createdAt = now.astimezone(ist) if self.createdAt is None else self.createdAt.astimezone(ist)
-            self.updatedAt = now.astimezone(ist)
-
-            super().save(*args, **kwargs)
         
         def __str__(self):
            return f"{self.name} ({self.checkInTime} - {self.checkOutTime})"
@@ -119,18 +106,19 @@ class TeamMember(models.Model):
         )
         TeamId =models.ForeignKey(Team, db_index=True , on_delete=models.CASCADE, null=True)
         OrganizationId =models.ForeignKey(Organization, db_index=True , on_delete=models.CASCADE, null=True)
-        userId = models.ForeignKey(Users , db_index=True , on_delete=models.CASCADE, null=True)
+        userId = models.ForeignKey(Users , db_index=True , on_delete=models.CASCADE, null=True , related_name="user")
         # addedBy = models.ForeignKey(Users, db_index=True , on_delete=models.SET_NULL, null=True)
-        createAt = models.DateTimeField(auto_now_add=True)
+        createdBy = models.ForeignKey(Users, db_index=True , on_delete=models.SET_NULL, null=True , related_name="createdBy")
+        createdAt = models.DateTimeField(auto_now_add=True)
         updatedAt = models.DateTimeField(auto_now=True)
 
-        def save(self, *args, **kwargs):
-            now = timezone.now()
-            ist = timezone.pytz.timezone('Asia/Kolkata')
-            self.createdAt = now.astimezone(ist) if self.createdAt is None else self.createdAt.astimezone(ist)
-            self.updatedAt = now.astimezone(ist)
+        # def save(self, *args, **kwargs):
+        #     now = timezone.now()
+        #     ist = timezone.pytz.timezone('Asia/Kolkata')
+        #     # self.createdAt = now.astimezone(ist) if self.createdAt is None else self.createdAt.astimezone(ist)
+        #     # self.updatedAt = now.astimezone(ist)
 
-            super().save(*args, **kwargs)
+        #     super().save(*args, **kwargs)
 
         def __str__(self):
            return f"{self.role} | {self.OrganizationId.name} | ({self.userId.firstName} {self.userId.lastName})"
@@ -151,15 +139,6 @@ class Job_title(models.Model):
     createdAt = models.DateTimeField(auto_now_add=True, null=True)
     updatedAt = models.DateTimeField(auto_now=True , null=True)
 
-    def save(self, *args, **kwargs):
-        # Convert to Indian Standard Time (IST)
-        now = timezone.now()
-        ist = timezone.pytz.timezone('Asia/Kolkata')
-        self.createdAt = now.astimezone(ist) if self.createdAt is None else self.createdAt.astimezone(ist)
-        self.updatedAt = now.astimezone(ist)
-        
-        super().save(*args, **kwargs)
-
     def __str__(self):
         return f"{self.title} ({self.Organization.name})"
 
@@ -171,15 +150,6 @@ class Employee(models.Model):
     createdBy = models.ForeignKey(Users , on_delete=models.CASCADE , related_name='created_employee' , null=True)
     createdAt = models.DateTimeField(auto_now_add=True , null=True)
     updatedAt = models.DateTimeField(auto_now=True , null=True)
-
-    def save(self, *args, **kwargs):
-        # Convert to Indian Standard Time (IST)
-        now = timezone.now()
-        ist = timezone.pytz.timezone('Asia/Kolkata')
-        self.createdAt = now.astimezone(ist) if self.createdAt is None else self.createdAt.astimezone(ist)
-        self.updatedAt = now.astimezone(ist)
-        
-        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.employee.firstName} {self.employee.lastName}"

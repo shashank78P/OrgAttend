@@ -75,17 +75,6 @@ class Users(models.Model):
     slug = models.SlugField(default="" , null=False , blank=True , db_index=True )
     address = models.ForeignKey(Address , on_delete=models.SET_NULL, null=True)
 
-    def save(self , *args , **kwargs):
-        slug = f"{self.firstName} {self.middleName} {self.lastName} {uuid.uuid4() }"
-        print(slug)
-        self.slug = slugify(slug)
-
-        now = timezone.now()
-        ist = timezone.pytz.timezone('Asia/Kolkata')
-        self.createdAt = now.astimezone(ist) if self.createdAt is None else self.createdAt.astimezone(ist)
-        self.updatedAt = now.astimezone(ist)
-
-        super().save(*args , **kwargs)
 
     def get_absolute_url(self):
         return reverse("user-detail" , [self._id])

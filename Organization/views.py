@@ -123,11 +123,13 @@ def saveTeamMemberData(request,user , form , role , team , name , orgId):
             print("isDuplicate")
             return
         else:
+            createdBy = Users.objects.filter(email = user._id)
             teamMem = TeamMember(
                 userId = user,
                 role = role,
                 TeamId = team,
-                OrganizationId = orgId
+                OrganizationId = orgId,
+                createdBy = createdBy[0]
             )
             print(teamMem)
             teamMem.save()
@@ -203,26 +205,29 @@ def createTeam(request):
                    createdBy = createdBy
             )
 
-            # team.save()
+            team.save()
         
             # leader
             print("team leader")
             print(data["leader"])
-            leaderData = getUserByEmail(data["leader"])
+            leaderData = Users.objects.filter(email = data["leader"])
             print(leaderData)
-            # saveTeamMemberData(request,leaderData , form , "LEADER" ,team , "leader" , org_id)
+            if len(leaderData) == 1:
+                saveTeamMemberData(request,leaderData[0] , form , "LEADER" ,team , "leader" , org_id)
             
             # co_Leader
             co_leader = data["co_Leader"].split(",")
             for email in co_leader:
-                co_Leader_Data = getUserByEmail(email)
-                # saveTeamMemberData(request,co_Leader_Data , form , "CO-LEADER",team , "co_Leader", org_id)
+                co_Leader_Data = Users.objects.filter(email = email)
+                if len(co_Leader_Data) == 1:
+                    saveTeamMemberData(request,co_Leader_Data[0] , form , "CO-LEADER",team , "co_Leader", org_id)
             
             # team_members
             team_members = data["team_members"].split(",")
             for email in team_members:
-                member_Data = getUserByEmail(email)
-                # saveTeamMemberData(request,member_Data , form , "MEMBER" , team , "team_members",org_id)
+                member_Data = Users.objects.filter(email = email)
+                if len(member_Data) ==1:
+                    saveTeamMemberData(request,member_Data[0] , form , "MEMBER" , team , "team_members",org_id)
                 
             print(org_id.slug)
             return HttpResponseRedirect(f"/organization/{org_id.slug}")
@@ -261,7 +266,7 @@ def leaveRequest(request , slug):
         return HttpResponseServerError(e)
 
 def getTeamsFormatedData(TeamsData):
-    tableTitle = ["name","OrganizationId","checkInTime" , "checkOutTime","description","createdBy","createdAt"]
+    tableTitle = ["name","Organization","checkInTime" , "checkOutTime","description","createdBy","createdAt"]
     tableData = []
     for i in  range(0,len(TeamsData)):
         team = TeamsData[i]
@@ -274,6 +279,7 @@ def getTeamsFormatedData(TeamsData):
             f'{team.description}',
             f'{team.createdBy.firstName} {team.createdBy.middleName} {team.createdBy.lastName}',
             f'{team.createdAt}',
+            f'{team.id}',
         ])
     return tableTitle , tableData
 
@@ -323,6 +329,9 @@ def teams(request , slug):
         )
         
         tableTitle , tableData = getTeamsFormatedData(teamsData)
+        openAction = False
+        editAction = False
+        deleteAction = f"/delete-team-member/{id}"
         print(tableTitle )
         print(tableData)
 
@@ -337,7 +346,101 @@ def teams(request , slug):
             "teamsData" : teamsData[ skip :  skip + rows],
             "totalTeams" : np.arange(0, math.ceil(len(teamsData)/10)),
             'tableTitle':tableTitle,
-            'tableData':tableData,
+            'tableData':tableData[ skip :  skip + rows],
+            "openAction":openAction,
+            "editAction":editAction,
+            "deleteAction":deleteAction,
+            "columnCount":8,
+            "pageNo":page,
+            "skip":skip,
+            "rows":rows,
+            "search":search
+             })
+    except Exception as e:
+        print(e)
+        return HttpResponseServerError(e)
+
+def getTeamsMemebesFormatedData(TeamsMembersData):
+    tableTitle = ["name","role","createdBy","createdAt"]
+    tableData = []
+    for i in  range(0,len(TeamsMembersData)):
+        teamMember = TeamsMembersData[i]
+    
+        tableData.append([ 
+            f'{teamMember.userId.firstName} {teamMember.userId.middleName} {teamMember.userId.lastName}',
+            f'{teamMember.role}',
+            f'{teamMember.createdBy.firstName} {teamMember.createdBy.middleName} {teamMember.createdBy.lastName}',
+            f'{teamMember.createdAt}',
+            f'{teamMember.id}',
+        ])
+    return tableTitle , tableData
+
+def teamMembersDetails(request , slug , id):
+    try:
+        search=""
+        rows=10
+        page=0
+        data = request.POST
+        print(data)
+
+
+        if(data.get("search" , "") not in [None , "" ]):
+            search = data["search"]
+        
+        
+        if(data.get("rows" ,"") not in [None , "" ]):
+            rows = int(data["rows"])
+        
+        
+        if(data.get("page" , "") not in [None , "" ]):
+            page = int(data["page"])
+        
+
+        print("data ===>")
+        print(search , rows)
+
+        org = getOrgBySlug(request , slug)
+        skip = page*rows
+
+        teamsMembersDetails = TeamMember.objects.filter(Q(OrganizationId = org) & Q(TeamId = id) &                                 
+         (Q(role__icontains=search) |
+        Q(createdAt__icontains=search) |
+        Q(userId__firstName__icontains=search) |
+        Q(userId__middleName__icontains=search) |
+        Q(userId__lastName__icontains=search) |
+        Q(createdBy__firstName__icontains=search) |
+        Q(createdBy__middleName__icontains=search) |
+        Q(createdBy__lastName__icontains=search) |
+        Q(userId__email__icontains=search) |
+        Q(userId__address__city__icontains=search) |
+        Q(userId__address__state__icontains=search) |
+        Q(userId__address__country__icontains=search) |
+        Q(userId__address__code__icontains=search))
+        )
+        
+        tableTitle , tableData = getTeamsMemebesFormatedData(teamsMembersDetails)
+        openAction = False
+        editAction = False
+        deleteAction = f"/delete-team-member/{id}"
+        print(tableTitle )
+        print(tableData)
+
+        # t.objects.annotate(totalMem = Count("teammember")) 
+        return render(request ,"Team.html" , { 
+            "slug" : slug ,
+            "org": org ,
+            "logo" : f"{os.environ.get('FRONTEND')}/media/{org.logo}" ,
+            "baseUrl" : os.environ.get('FRONTEND'), 
+            "endpoint":"organization",
+            "page" : "team-details" ,
+            "teamsMembersDetails" : teamsMembersDetails[ skip :  skip + rows],
+            "totalMemeberTeams" : np.arange(0, math.ceil(len(teamsMembersDetails)/10)),
+            'tableTitle':tableTitle,
+            'tableData':tableData[ skip :  skip + rows],
+            "openAction":openAction,
+            "editAction":editAction,
+            "deleteAction":deleteAction,
+            "columnCount":4,
             "pageNo":page,
             "skip":skip,
             "rows":rows,
@@ -372,6 +475,7 @@ def getEmployeeFormatedData(employeeData):
             f'{phoneNumber}',
             address,
             f'{emp.createdAt}',
+            f'{emp._id}',
         ])
     return tableTitle , tableData
 
@@ -416,6 +520,9 @@ def employees(request , slug):
     )
         
         tableTitle , tableData = getEmployeeFormatedData(employeeData)
+        openAction = False
+        editAction = f"/edit-employee/{id}"
+        deleteAction = f"/delete-employee/{id}"
         print(tableTitle )
         print(tableData)
 
@@ -429,7 +536,11 @@ def employees(request , slug):
             "employeeData" : employeeData[ skip :  skip + rows],
             "totalEmployee" : np.arange(0, math.ceil(len(employeeData)/10)),
             'tableTitle':tableTitle,
-            'tableData':tableData,
+            'tableData':tableData[ skip :  skip + rows],
+            "openAction":openAction,
+            "editAction":editAction,
+            "deleteAction":deleteAction,
+            "columnCount" : 8,
             "pageNo":page,
             "skip":skip,
             "rows":rows,
@@ -448,6 +559,7 @@ def getJobTitleFormatedData(jobTitleData):
             f'{jobs.title}' ,
             f'{jobs.createdBy.firstName} {jobs.createdBy.middleName} {jobs.createdBy.lastName}' ,
             f'{jobs.createdAt}',
+            f'{jobs.id}',
         ])
     return tableTitle , tableData
 
@@ -496,10 +608,11 @@ def jobTitle(request , slug):
             "baseUrl" : os.environ.get('FRONTEND') ,
             "endpoint":"organization",
             "page" : "job-title",
-            # "JobTitleData" : tableData[ skip :  skip + rows],
+            # "JobTitleData" : tableData
             "totalJobTitle" : np.arange(0, math.ceil(len(JobTitleData)/10)),
             'tableTitle':tableTitle,
-            'tableData':tableData,
+            'tableData':tableData[ skip :  skip + rows],
+            "columnCount" : 4,
             "pageNo":page,
             "skip":skip,
             "rows":rows,

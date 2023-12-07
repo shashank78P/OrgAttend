@@ -9,6 +9,7 @@ urlpatterns = [
     path("get-all-organization-list" , views.getAllOrganizationList),
     path("leave-request/<slug:slug>" , views.leaveRequest),
     path("teams/<slug:slug>" , views.teams),
+    path("teams/<slug:slug>/<id>" , views.teamMembersDetails),
     path("job-title/<slug:slug>" , views.jobTitle),
     path("employees/<slug:slug>" , views.employees),
     path("<slug:slug>" , views.companyProfile),

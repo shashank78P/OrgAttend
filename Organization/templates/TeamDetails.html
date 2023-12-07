@@ -1,8 +1,6 @@
 {% extends "base.html" %}
 {% csrf_token %}
-
 {% load static %}
-{% load index_filter %}
 {% block page_title %}
 {{ text | title }}
 {% endblock %}
@@ -30,7 +28,7 @@
 {% include "Nav.html" %}
 {% include "Profile/profile.html" %}
 
-{% with page="job-title" app="organization"%}
+{% with page=page app="organization"%}
 {% include "NavigationOptions.html" %}
 {% endwith %}
 
@@ -87,12 +85,12 @@
     </ul>
 </div>
 
-{% with page=page app="organization" data=tableData title=tableTitle action='/organization/job-title' slug=slug columnCount=columnCount %}
+<!-- {% with page=page app="organization" data=tableData title=tableTitle action='/organization/employees' slug=slug columnCount=columnCount  %}
 {% include "table.html" %}
 {% endwith %}
 
-{% with app="organization" total=totalJobTitle action="/organization/job-title" slug=slug page=pageNo%}
+{% with app="organization" total=totalEmployee action="/organization/employees" slug=slug page=pageNo%}
 {% include "pagination.html" %}
-{% endwith %}
+{% endwith %} -->
 
 {% endblock %}

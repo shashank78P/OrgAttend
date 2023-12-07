@@ -22,8 +22,8 @@ class TeamsAdmin(admin.ModelAdmin):
     list_filter = ("name","id","OrganizationId","createdAt","updatedAt")
 
 class TeamMembersAdmin(admin.ModelAdmin):
-    list_display = ("role","TeamId","OrganizationId","userId","createAt","updatedAt") 
-    list_filter = ("role","TeamId","OrganizationId","userId","createAt","updatedAt")
+    list_display = ("role","TeamId","OrganizationId","userId","createdAt","createdBy","updatedAt") 
+    list_filter = ("role","TeamId","OrganizationId","userId","createdAt","updatedAt")
 
 class JobTitleAdmin(admin.ModelAdmin):
     list_display = ("title","Organization","createdAt","createdBy","updatedAt") 
