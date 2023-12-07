@@ -1,3 +1,5 @@
+{% load index_filter %}
+
 <div class="flex justify-between item-center topSection">
     <form action="{{action}}{% if slug %}/{{slug}}{% endif %}" method="post">
         <ul class="flex justify-center items-center searchContainer">
@@ -41,6 +43,7 @@
                 {% for t in title %}
                 <th>{{t}}</th>
                 {% endfor %}
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -48,8 +51,33 @@
             <tr>
                 <td>{{forloop.counter}}</td>
                 {% for r in row %}
-                <td>{{r}}</td>
+                <td>
+                    {{ r }}
+                </td>
                 {% endfor %}
+                <td class="flex actionContainer">
+                    <span class="icon actionIcons">
+                        <form action={{openAction}} method="get">
+                            {% with width=20 height=20 color="#017BF6"%}
+                            {% include 'SvgIcon/OpenIco.html' %}
+                            {% endwith %}
+                        </form>
+                    </span>
+                    <span class="icon actionIcons">
+                        <form action={{editAction}} method="get">
+                            {% with width=20 height=20 color="#22c55e"%}
+                            {% include 'SvgIcon/PencileIco.html' %}
+                            {% endwith %}
+                        </form>
+                    </span>
+                    <span class="icon actionIcons">
+                        <form action={{deleteAction}} method="get">
+                            {% with width=20 height=20 color="#ef4444"%}
+                            {% include 'SvgIcon/DeleteIco.html' %}
+                            {% endwith %}
+                        </form>
+                    </span>
+                </td>
             </tr>
             {% endfor %}
         </tbody>
@@ -57,6 +85,15 @@
 </div>
 
 <script>
+    const submitOpen = () => {
+
+    }
+    const submitEdit = () => {
+
+    }
+    const submitDelete = () => {
+
+    }
     const submitRow = () => {
         const rowsSubmit = document.getElementById("rowsSubmit")
         console.log(rowsSubmit)

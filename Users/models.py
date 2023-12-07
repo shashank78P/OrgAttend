@@ -5,6 +5,8 @@ from django.utils.text import slugify
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
 from datetime import date
+from django.utils import timezone
+
 # from Organization.models import Organization
 
 # Creating a validator function
@@ -77,6 +79,12 @@ class Users(models.Model):
         slug = f"{self.firstName} {self.middleName} {self.lastName} {uuid.uuid4() }"
         print(slug)
         self.slug = slugify(slug)
+
+        now = timezone.now()
+        ist = timezone.pytz.timezone('Asia/Kolkata')
+        self.createdAt = now.astimezone(ist) if self.createdAt is None else self.createdAt.astimezone(ist)
+        self.updatedAt = now.astimezone(ist)
+
         super().save(*args , **kwargs)
 
     def get_absolute_url(self):

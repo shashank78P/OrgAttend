@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% csrf_token %}
+
 {% load static %}
+{% load index_filter %}
 {% block page_title %}
 {{ text | title }}
 {% endblock %}
@@ -84,9 +86,11 @@
     </ul>
 </div>
 
+{% with page=page app="organization" data=tableData title=tableTitle action='/organization/job-title' slug=slug %}
 {% include "table.html" %}
+{% endwith %}
 
-{% with page="job-title" app="organization" total=10 %}
+{% with app="organization" total=totalJobTitle action="/organization/job-title" slug=slug page=pageNo%}
 {% include "pagination.html" %}
 {% endwith %}
 

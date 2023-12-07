@@ -260,25 +260,95 @@ def leaveRequest(request , slug):
         print(e)
         return HttpResponseServerError(e)
 
+def getTeamsFormatedData(TeamsData):
+    tableTitle = ["name","OrganizationId","checkInTime" , "checkOutTime","description","createdBy","createdAt"]
+    tableData = []
+    for i in  range(0,len(TeamsData)):
+        team = TeamsData[i]
+    
+        tableData.append([ 
+            f'{team.name}' ,
+            f'{team.OrganizationId.name}',
+            f'{team.checkInTime}',
+            f'{team.checkOutTime}',
+            f'{team.description}',
+            f'{team.createdBy.firstName} {team.createdBy.middleName} {team.createdBy.lastName}',
+            f'{team.createdAt}',
+        ])
+    return tableTitle , tableData
+
 
 def teams(request , slug):
     try:
+        search=""
+        rows=10
+        page=0
+        data = request.POST
+        print(data)
+
+
+        if(data.get("search" , "") not in [None , "" ]):
+            search = data["search"]
+        
+        
+        if(data.get("rows" ,"") not in [None , "" ]):
+            rows = int(data["rows"])
+        
+        
+        if(data.get("page" , "") not in [None , "" ]):
+            page = int(data["page"])
+        
+
+        print("data ===>")
+        print(search , rows)
+
         org = getOrgBySlug(request , slug)
+        skip = page*rows
+
+        teamsData = Team.objects.filter(Q(OrganizationId = org) &                                 
+         (Q(name__icontains=search) |
+        Q(checkInTime__icontains=search) |
+        Q(checkOutTime__icontains=search) |
+        Q(description__icontains=search) |
+        Q(createdAt__icontains=search) |
+        Q(createdBy__firstName__icontains=search) |
+        Q(createdBy__middleName__icontains=search) |
+        Q(createdBy__lastName__icontains=search) |
+        Q(OrganizationId__name__icontains=search) |  
+        Q(createdBy__email__icontains=search) |
+        Q(createdBy__address__city__icontains=search) |
+        Q(createdBy__address__state__icontains=search) |
+        Q(createdBy__address__country__icontains=search) |
+        Q(createdBy__address__code__icontains=search))
+        )
+        
+        tableTitle , tableData = getTeamsFormatedData(teamsData)
+        print(tableTitle )
+        print(tableData)
+
         # t.objects.annotate(totalMem = Count("teammember")) 
-        return render(request ,"JobTitle.html" , { 
+        return render(request ,"Team.html" , { 
             "slug" : slug ,
             "org": org ,
             "logo" : f"{os.environ.get('FRONTEND')}/media/{org.logo}" ,
             "baseUrl" : os.environ.get('FRONTEND'), 
             "endpoint":"organization",
-            "page" : "teams" 
+            "page" : "teams" ,
+            "teamsData" : teamsData[ skip :  skip + rows],
+            "totalTeams" : np.arange(0, math.ceil(len(teamsData)/10)),
+            'tableTitle':tableTitle,
+            'tableData':tableData,
+            "pageNo":page,
+            "skip":skip,
+            "rows":rows,
+            "search":search
              })
     except Exception as e:
         print(e)
         return HttpResponseServerError(e)
 
 def getEmployeeFormatedData(employeeData):
-    tableTitle = ["Name","Job Title","Email","DOB","Phone Number","Address",]
+    tableTitle = ["Name","Job Title","Email","DOB","Phone Number","Address","createdAt"]
     tableData = []
     for i in  range(0,len(employeeData)):
         emp = employeeData[i]
@@ -300,7 +370,8 @@ def getEmployeeFormatedData(employeeData):
             f'{emp.employee.email}',
             f'{DOB}',
             f'{phoneNumber}',
-            address
+            address,
+            f'{emp.createdAt}',
         ])
     return tableTitle , tableData
 
@@ -368,17 +439,74 @@ def employees(request , slug):
         print(e)
         return HttpResponseServerError(e)
 
+def getJobTitleFormatedData(jobTitleData):
+    tableTitle = ["Job Title","Created By","Created At"]
+    tableData = []
+    for i in  range(0,len(jobTitleData)):
+        jobs = jobTitleData[i]
+        tableData.append([ 
+            f'{jobs.title}' ,
+            f'{jobs.createdBy.firstName} {jobs.createdBy.middleName} {jobs.createdBy.lastName}' ,
+            f'{jobs.createdAt}',
+        ])
+    return tableTitle , tableData
+
+
 def jobTitle(request , slug):
     try:
+        search=""
+        rows=10
+        page=0
+        data = request.POST
+        print(data)
+
+
+        if(data.get("search" , "") not in [None , "" ]):
+            search = data["search"]
+        
+        
+        if(data.get("rows" ,"") not in [None , "" ]):
+            rows = int(data["rows"])
+        
+        
+        if(data.get("page" , "") not in [None , "" ]):
+            page = int(data["page"])
+        
+
+        print("data ===>")
+        print(search , rows)
+
         org = getOrgBySlug(request , slug)
-        return render(request ,"JobTitle.html" , { 
+        skip = page*rows
+        JobTitleData = Job_title.objects.filter(Q(Organization = org) &
+         (Q(title__icontains=search) |
+          Q(createdBy__firstName__icontains=search) |
+          Q(createdBy__middleName__icontains=search) |
+          Q(createdBy__lastName__icontains=search)
+          ))
+        
+        tableTitle , tableData = getJobTitleFormatedData(JobTitleData)
+        print(tableTitle)
+        print(tableData)
+
+        data = { 
             "slug" : slug ,
             "org": org ,
             "logo" : f"{os.environ.get('FRONTEND')}/media/{org.logo}" ,
             "baseUrl" : os.environ.get('FRONTEND') ,
             "endpoint":"organization",
-            "page" : "job-title" 
-             })
+            "page" : "job-title",
+            # "JobTitleData" : tableData[ skip :  skip + rows],
+            "totalJobTitle" : np.arange(0, math.ceil(len(JobTitleData)/10)),
+            'tableTitle':tableTitle,
+            'tableData':tableData,
+            "pageNo":page,
+            "skip":skip,
+            "rows":rows,
+            "search":search 
+             }
+        print(data)
+        return render(request ,"JobTitle.html" , data)
     except Exception as e:
         print(e)
         return HttpResponseServerError(e)

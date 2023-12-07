@@ -1,6 +1,10 @@
 .nav_option_container{
     margin-top: 10px;
     overflow-x: scroll;
+    position: sticky;
+    top: 0;
+    background-color: white;
+    z-index: 1000;
 }
 .nav_option_container li{
     width: 100%;
