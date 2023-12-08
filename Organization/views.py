@@ -4,7 +4,7 @@ from django.http import QueryDict
 from django.http import HttpResponseServerError , HttpResponseNotAllowed, JsonResponse , Http404 , HttpResponseRedirect
 from django.shortcuts import render , get_object_or_404
 import requests
-from Organization.forms import createOrganizationForm, createTeamForm , addEmployeeForm , addJobTitleForm , ChangeEmployeeRoleInTeam , addEmployeeToTeam
+from Organization.forms import createOrganizationForm, createTeamForm , addEmployeeForm , addJobTitleForm , ChangeEmployeeRoleInTeam , addEmployeeToTeam, editEmployeeForm
 from Organization.models import Organization ,OwnerDetails , Team ,TeamMember , Employee , Job_title
 from Users.models import Address, Users
 from Users.views import getUserByEmail
@@ -980,7 +980,7 @@ def employees(request , slug):
         print(e)
         return HttpResponseServerError(e)
 
-def saveEmployeeData(request , user, org , redirectUrl,action):
+def saveEmployeeData(request , user, org , redirectUrl,action , isEdit = False):
     print("post method")
     print(request.POST)
     form = addEmployeeForm( request.POST, organization=org)
@@ -1011,14 +1011,18 @@ def saveEmployeeData(request , user, org , redirectUrl,action):
 
         print("employeeDetails")
         print(employeeDetails)
-        emp = Employee(
-            employee = userToAdd[0] , 
-            jobTitle = role,
-            createdBy = Users.objects.get(_id = user["_id"]),
-            Organization = org
-                       )
-        emp.save()
-        return HttpResponseRedirect(redirectUrl)
+
+        if not isEdit:
+            emp = Employee(
+                employee = userToAdd[0] , 
+                jobTitle = role,
+                createdBy = Users.objects.get(_id = user["_id"]),
+                Organization = org
+                )
+            emp.save()
+            return HttpResponseRedirect(redirectUrl)
+        else:
+            Employee.objects.filter()
     else:
         return render(request ,"AddEmployee.html", { 'form' : form })
 
@@ -1050,11 +1054,22 @@ def editEmployee(request, slug , jobTitleId , employeeId):
         print("edit employee")
         print(user)
         org = getOrgBySlug(request,slug)
+        emp = get_object_or_404(Employee , _id = employeeId)
+        print(emp.employee.email)
+        job = get_object_or_404(Job_title , id=jobTitleId)
+        print(job)
+
         if(request.method == "POST"):
-            return saveEmployeeData(request,user,org,f"/organization/job-title/{org.slug}/{jobTitleId}" , f"/organization/job-title/{org.slug}/add/{jobTitleId}")
-        else:
-            form = addEmployeeForm(organization=org)
-            return render(request ,"AddEmployee.html", { 'form' : form ,'action' : f"/organization/job-title/{org.slug}/add/{jobTitleId}"})
+            print(request.POST)
+            form = editEmployeeForm(request.POST["role"] , organization=org)
+            return render(request ,"AddEmployee.html", { 'form' : form ,'action' : f"/organization/job-title/{org.slug}/edit/{jobTitleId}/{employeeId}" , "isEdit" : True })
+            # return saveEmployeeData(request,user,org,f"/organization/job-title/{org.slug}/{jobTitleId}" , f"/organization/job-title/{org.slug}/add/{jobTitleId}" , True)
+        else:    
+            q = QueryDict(mutable=True)
+            q.appendlist("email" , emp.employee.email)
+            q.appendlist("role" , job.id)
+            form = editEmployeeForm(q,organization=org)
+            return render(request ,"AddEmployee.html", { 'form' : form ,'action' : f"/organization/job-title/{org.slug}/edit/{jobTitleId}/{employeeId}" , "isEdit" : True })
     except Exception as e:
         return HttpResponseServerError(e)
 

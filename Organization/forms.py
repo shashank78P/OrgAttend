@@ -196,6 +196,33 @@ class addEmployeeForm(forms.Form):
             }
         )
     
+class editEmployeeForm(forms.Form):
+    email = forms.EmailField(
+        label="email",
+        required=True,   
+        error_messages={
+            "required" :"Email is required",
+        },
+    widget=forms.TextInput(attrs={'readonly': 'readonly'})
+    )
+
+    def __init__(self, *args, organization, **kwargs):
+        super(editEmployeeForm, self).__init__(*args, **kwargs)
+
+        # Query the job titles for the specific organization
+        job_titles = Job_title.objects.filter(Organization=organization)
+        print(job_titles)
+        
+        self.fields['role'] = forms.ModelChoiceField(
+            queryset=job_titles,
+            label="Role",
+            required=True,
+            empty_label="Select a role",
+            error_messages={
+                "required": "Role is required",
+            }
+        )
+    
 
 class ChangeEmployeeRoleInTeam(forms.Form):
     Name = forms.CharField(
