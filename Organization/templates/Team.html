@@ -85,11 +85,11 @@
     </ul>
 </div>
 
-{% with  page=page app="organization"  data=tableData  title=tableTitle  action='/organization/teams'  slug=slug  columnCount=columnCount %}
+{% with  page=page app="organization"  data=tableData  title=tableTitle  action='/organization/teams'  slug=slug afterSlug='create-team' isAutoConstructHref=False  columnCount=columnCount %}
 {% include "table.html" %}
 {% endwith %}
 
-{% with  app="organization" total=totalTeams action="/organization/teams" editAction=editAction  openAction=openAction deleteAction=deleteAction slug=slug page=pageNo%}
+{% with  app="organization" total=totalTeams action="/organization/teams"  editAction=editAction  openAction=openAction deleteAction=deleteAction slug=slug page=pageNo%}
 {% include "pagination.html" %}
 {% endwith %}
 

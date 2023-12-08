@@ -19,7 +19,13 @@
                   </svg> -->
             </li>
         </ul>
-        <ul>
+        
+        <ul class="flex items-center ">
+            <li class="table_add_btn">
+                <a id="link_to_add" href="{{action}}{% if slug %}/{{slug}}{% endif %}{%if afterSlug %}/{{afterSlug}}{% endif %}">
+                    Add +
+                </a>
+            </li>
             <li class="selectTag">
                 rows: <select name="rows" id="" onchange="searchPaginationParam()">
                     <option {% if 5 == rows %} selected {% endif %} for="rows" value="5">5</option>
@@ -59,21 +65,25 @@
                     </span>
                     {% endif %}
                     {% if editAction %}
+                    <span class="endpoint hidden">{{r}}</span>
                     <span class="icon actionIcons">
-                        <form action="{{action}}{% if slug %}/{{slug}}/edit/{{r}}{% endif %}" method="get">
+                        <a href="{{action}}{% if slug %}/{{slug}}/edit/{{r}}{% endif %}" >
                             {% with width=20 height=20 color="#22c55e"%}
                             {% include 'SvgIcon/PencileIco.html' %}
                             {% endwith %}
-                        </form>
+                        </a>
                     </span>
                     {% endif %}
                     {% if deleteAction %}
                     <span class="icon actionIcons">
                         <form action="{{action}}{% if slug %}/{{slug}}/delete/{{r}}{% endif %}" method="post">
                             <input type="text" name="id" value="" class="hidden">
-                            {% with width=20 height=20 color="#ef4444"%}
-                            {% include 'SvgIcon/DeleteIco.html' %}
-                            {% endwith %}
+                            {% csrf_token %}
+                            <button type="submit">
+                                {% with width=20 height=20 color="#ef4444"%}
+                                {% include 'SvgIcon/DeleteIco.html' %}
+                                {% endwith %}
+                            </button>
                         </form>
                     </span>
                     {% endif %}
@@ -93,6 +103,18 @@
 </div>
 
 <script>
+    const endpoint = document.getElementsByClassName("endpoint")
+    const link_to_add = document.getElementById("link_to_add")
+    url_path = endpoint[0].innerText
+    url_path = url_path.split("/")
+
+    console.log("isAutoConstructHref")
+    console.log("{{isAutoConstructHref}}")
+
+    if( "{{isAutoConstructHref}}" == 'True' && Array.isArray(url_path) && url_path.length > 0){
+        link_to_add.setAttribute('href', `{{action}}/{{slug}}/add/${url_path[0]}` );
+    }
+
     const submitOpen = () => {
 
     }

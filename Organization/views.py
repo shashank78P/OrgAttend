@@ -1,9 +1,10 @@
 import math
 import os
+from django.http import QueryDict
 from django.http import HttpResponseServerError , HttpResponseNotAllowed, JsonResponse , Http404 , HttpResponseRedirect
 from django.shortcuts import render , get_object_or_404
 import requests
-from Organization.forms import createOrganizationForm, createTeamForm , addEmployeeForm , addJobTitleForm
+from Organization.forms import createOrganizationForm, createTeamForm , addEmployeeForm , addJobTitleForm , ChangeEmployeeRoleInTeam , addEmployeeToTeam
 from Organization.models import Organization ,OwnerDetails , Team ,TeamMember , Employee , Job_title
 from Users.models import Address, Users
 from Users.views import getUserByEmail
@@ -107,7 +108,7 @@ def companyRole(request , slug):
     except():
         return render(request ,"createEmployeeRole.html")
 
-def saveTeamMemberData(request,user , form , role , team , name , orgId):
+def saveTeamMemberData(request,user , form , role , team , orgId, createdBy):
     try:
         print("save team member user")
         print(user)
@@ -123,13 +124,12 @@ def saveTeamMemberData(request,user , form , role , team , name , orgId):
             print("isDuplicate")
             return
         else:
-            createdBy = Users.objects.filter(email = user._id)
             teamMem = TeamMember(
                 userId = user,
                 role = role,
                 TeamId = team,
                 OrganizationId = orgId,
-                createdBy = createdBy[0]
+                createdBy = Users.objects.get(_id = createdBy["_id"])
             )
             print(teamMem)
             teamMem.save()
@@ -183,60 +183,153 @@ def isUserPermittedToAdd(request):
     except:
         return HttpResponseNotAllowed("U don't have a permission")
 
-def createTeam(request):
+def isCorrectTime(checkInTime , checkOutTime):
+    print(checkInTime , checkOutTime)
+    checkIn = checkInTime.split(" ")
+    checkInTimeParam = checkIn[0].split(":")
+    checkOut = checkOutTime.split(" ")
+    checkOutTimeParam = checkOut[0].split(":")
+    checkInHrs = int(checkInTimeParam[0])
+    checkOutHrs = int(checkOutTimeParam[0])
+    if checkIn[1] == "PM":
+        checkInHrs += 12
+    if checkOut[1] == "PM":
+        checkOutHrs += 12
+    
+    if checkInHrs <= checkOutHrs:
+        print("123")
+        print((int(checkInTimeParam[1]) + 44 ) , int(checkOutTimeParam[1]))
+        if checkInHrs == checkOutHrs and (int(checkInTimeParam[1]) + 44 ) < int(checkOutTimeParam[1]):
+            return True
+        else:
+            return False
+    else:
+        return False
+
+def createOrUpdate(request , user,slug , isEdit, teamId=""):
     try:
-        print(request.method)
-        user = request.session["user"]
-        if(request.method == "POST"):
-            isUserPermittedToAdd(request)
-            print(request.POST)
-            form = createTeamForm(request.POST)
+        isUserPermittedToAdd(request)
+        print(request.POST)
+        form = createTeamForm(request.POST)
+        if form.is_valid():
             data = request.POST
+            if not isCorrectTime(data["checkInTime"] , data["checkOutTime"]):
+                form.add_error("checkOutTime" ,"Invalid CheckInTime and CheckOutTime , time interval between these must be of minimum 45min")
+                title = "Create Team"
+                if isEdit:
+                    title = "Edit Team"
+                    
+                return render(request ,"CreateTeam.html", { 'form' : form , "slug" :slug , teamId:teamId, 'title' : title})
             print(data)
             print(type(data))
             createdBy = Users.objects.get(_id = user["_id"])
             org_id = Organization.objects.get(_id = user["currentActiveOrganization"])
-            team = Team(
-                   name = data["name"],
-                   OrganizationId = org_id,
-                   checkInTime = datetime.strptime(data["checkInTime"], "%I:%M %p").time(),
-                   checkOutTime = datetime.strptime(data["checkOutTime"], "%I:%M %p").time(),
-                   description = data["description"],
-                   createdBy = createdBy
-            )
 
-            team.save()
-        
+            if not isEdit:
+                team = Team(
+                       name = data["name"],
+                       OrganizationId = org_id,
+                       checkInTime = datetime.strptime(data["checkInTime"], "%I:%M %p").time(),
+                       checkOutTime = datetime.strptime(data["checkOutTime"], "%I:%M %p").time(),
+                       description = data["description"],
+                       createdBy = createdBy
+                )
+                team.save()
+                
+                createrData = Users.objects.filter(email = user["email"])
+                saveTeamMemberData(request,createrData[0] , form , "LEADER" ,team , org_id,user)
+
+            else:
+                Team.objects.filter(id = teamId).update(
+                       name = data["name"],
+                       OrganizationId = org_id,
+                       checkInTime = datetime.strptime(data["checkInTime"], "%I:%M %p").time(),
+                       checkOutTime = datetime.strptime(data["checkOutTime"], "%I:%M %p").time(),
+                       description = data["description"]
+                )
+
             # leader
             print("team leader")
             print(data["leader"])
             leaderData = Users.objects.filter(email = data["leader"])
             print(leaderData)
             if len(leaderData) == 1:
-                saveTeamMemberData(request,leaderData[0] , form , "LEADER" ,team , "leader" , org_id)
-            
+                saveTeamMemberData(request,leaderData[0] , form , "LEADER" ,team , org_id,user)
+
             # co_Leader
             co_leader = data["co_Leader"].split(",")
             for email in co_leader:
                 co_Leader_Data = Users.objects.filter(email = email)
                 if len(co_Leader_Data) == 1:
-                    saveTeamMemberData(request,co_Leader_Data[0] , form , "CO-LEADER",team , "co_Leader", org_id)
-            
+                    saveTeamMemberData(request,co_Leader_Data[0] , form , "CO-LEADER",team , org_id , user)
+
             # team_members
             team_members = data["team_members"].split(",")
             for email in team_members:
                 member_Data = Users.objects.filter(email = email)
                 if len(member_Data) ==1:
-                    saveTeamMemberData(request,member_Data[0] , form , "MEMBER" , team , "team_members",org_id)
-                
+                    saveTeamMemberData(request,member_Data[0] , form , "MEMBER" , team ,org_id,user)
+
             print(org_id.slug)
-            return HttpResponseRedirect(f"/organization/{org_id.slug}")
+            return HttpResponseRedirect(f"/organization/teams/{slug}")
+        
+        else:
+            title="Create Team"
+            if isEdit:
+                title = "Edit Team"
+            return render(request ,"CreateTeam.html", { 'form' : form , "slug" :slug , 'title' : title})
+            
+    except Exception as e:
+        return HttpResponseServerError(e)
+
+def createTeam(request,slug):
+    try:
+        print(request.method)
+        user = request.session["user"]
+        if(request.method == "POST"):
+            return createOrUpdate(request , user,slug , False)
             
         form = createTeamForm()
-        return render(request ,"CreateTeam.html", { 'form' : form })
+        return render(request ,"CreateTeam.html", { 'form' : form , "slug" :slug , 'title' : "Create Team"})
     except():
         form = createTeamForm()
-        return render(request ,"CreateTeam.html", { 'form' : form })
+        return render(request ,"CreateTeam.html", { 'form' : form , "slug" :slug , 'title' : "Create Team"})
+
+def formateTime12Hrs(time):
+    time = str(time)
+    time = time.split(":")
+    hrs = int(time[0])
+    print(hrs)
+    if(hrs >= 12):
+        time = f"{hrs % 12}:{time[1]} PM"
+    else:  
+        time = f"{hrs % 12}:{time[1]} AM"
+    return time
+
+def editTeam(request , slug , teamId):
+    try:
+        user = request.session["user"]
+        print(user)
+        org = getOrgBySlug(request , slug)
+        print(org)
+        team = get_object_or_404(Team , id = teamId)
+        print(team)
+        if(request.method == "GET"):
+            query_dict = QueryDict(mutable=True)
+            query_dict.appendlist("checkInTime",formateTime12Hrs(team.checkInTime))
+            query_dict.appendlist("checkOutTime",formateTime12Hrs(team.checkOutTime))
+            query_dict.appendlist("description",team.description)
+            query_dict.appendlist("name",team.name)
+            form = createTeamForm(query_dict)
+            return render(request ,"CreateTeam.html", { 'form' : form , "slug" :slug, 'title':"Edit Team" , 'teamId':teamId})
+            
+        elif(request.method == "POST"):
+            return createOrUpdate(request,user,slug,True,teamId)
+
+        else:
+            return Http404()
+    except Exception as e:
+        return HttpResponseServerError(e)
 
 def getOrgSize(org):
     try:
@@ -379,20 +472,23 @@ def teams(request , slug):
         print(e)
         return HttpResponseServerError(e)
 
-def getTeamsMemebesFormatedData(TeamsMembersData):
-    tableTitle = ["name","role","createdBy","createdAt"]
+def getTeamsMemebesFormatedData(TeamsMembersData , teamId):
+    tableTitle = ["name","role","job-title","createdBy","createdAt"]
     tableData = []
     print(tableTitle)
     for i in  range(0,len(TeamsMembersData)):
         teamMember = TeamsMembersData[i]
         print(teamMembersDetails)
-    
+
+        emp = Employee.objects.filter(employee = teamMember.userId)
+
         tableData.append([ 
             f'{teamMember.userId.firstName} {teamMember.userId.middleName} {teamMember.userId.lastName}',
             f'{teamMember.role}',
+            f'{emp[0].jobTitle.title}',
             f'{teamMember.createdBy.firstName} {teamMember.createdBy.middleName} {teamMember.createdBy.lastName}',
             f'{teamMember.createdAt}',
-            f'{teamMember.id}',
+            f'{teamId}/{teamMember.id}/{emp[0]._id}',
         ])
     return tableTitle , tableData
 
@@ -443,9 +539,9 @@ def teamMembersDetails(request , slug , id):
         Q(userId__address__code__icontains=search))
         ).order_by("-createdAt")
         
-        tableTitle , tableData = getTeamsMemebesFormatedData(teamsMembersDetails)
+        tableTitle , tableData = getTeamsMemebesFormatedData(teamsMembersDetails,id)
         openAction = False
-        editAction = False
+        editAction = True
         deleteAction = True
         print(tableTitle )
         print(tableData)
@@ -467,7 +563,7 @@ def teamMembersDetails(request , slug , id):
             "openAction":openAction,
             "editAction":editAction,
             "deleteAction":deleteAction,
-            "columnCount":5,
+            "columnCount":6,
             "pageNo":page,
             "skip":skip,
             "rows":rows,
@@ -475,6 +571,119 @@ def teamMembersDetails(request , slug , id):
              })
     except Exception as e:
         print(e)
+        return HttpResponseServerError(e)
+
+def addTeamMember(request , slug ,teamId):
+    try:
+        print("==============================================")
+        print("addTeamMember")
+        print(slug , teamId)
+        user = request.session["user"]
+
+        org = Organization.objects.get(_id = user["currentActiveOrganization"])
+
+        team = get_object_or_404(Team , id = teamId ,OrganizationId = org )
+        print(team)
+        print(request.method)
+
+        if(request.method == "POST"):
+            print("post")
+            form = addEmployeeToTeam(request.POST)
+            if form.is_valid():
+                print(form.is_valid())
+                data = request.POST
+                print("request data")
+                print(data)
+                print(request.POST["Position"] , )
+                u = getUserByEmail(request.POST["email"])
+                print(u)
+                saveTeamMemberData(request , u,form,request.POST["Position"],team,org,user)
+                print("team")
+                return HttpResponseRedirect(f"/organization/teams/{org.slug}/{teamId}")
+            else:
+                print("form invalid")
+                return render(request ,"AddEmployeeToTeam.html", { 'form' : form , 'slug' : slug , 
+                     'teamId':teamId,
+                     'slug':slug,
+                     'title' : f"Add new employee to {team.name}", 
+                     })
+        else:
+            print("get request")
+            form = addEmployeeToTeam()            
+            return render(request ,"AddEmployeeToTeam.html", { 'form' : form , 'slug' : slug , 
+                     'teamId':teamId,
+                     'slug':slug,
+                     'title' : f"Add new employee to {team.name}", 
+                     })
+    except Exception as e:
+        return HttpResponseServerError(e)
+
+def editTeamMember(request , slug ,teamId, id , employeeId):
+    try:
+        print("==============================================")
+        print(slug , teamId, id , employeeId)
+        user = request.session["user"]
+
+        org = Organization.objects.get(_id = user["currentActiveOrganization"])
+
+        emp = Employee.objects.get( _id = employeeId , Organization = org)
+        team = Team.objects.get( id = teamId)
+        print(team)
+
+        if(request.method == "POST"):
+
+            form = ChangeEmployeeRoleInTeam(request.POST, organization=org)
+            if form.is_valid():
+                role = request.POST["role"]
+                Employee.objects.filter(_id = employeeId).update(jobTitle = Job_title.objects.get(Organization = org , title = role))
+
+                position = request.POST["Position"]
+                TeamMember.objects.filter(id = id).update(role = position)
+
+                print(f"/organization/teams/{org.slug}/{teamId}")
+                return HttpResponseRedirect(f"/organization/teams/{org.slug}/{teamId}")
+            else:
+                return render(request ,"ChangeEmployeeRoleInTeam.html", { 'form' : form ,'slug' : slug , 
+                     'id' : id ,
+                     'teamId':teamId,
+                     'teamName' : team.name,
+                     'employeeId' : employeeId })
+        else:
+            query_dict = QueryDict(mutable=True)
+            teamMem = TeamMember.objects.filter(id = id , userId = emp.employee )
+            print("---------")
+            print(id , employeeId)
+            print(teamMem)
+            query_dict.appendlist("Position",teamMem[0].role)
+            query_dict.appendlist("Name",f"{emp.employee.firstName} {emp.employee.middleName} {emp.employee.lastName}")
+            query_dict.appendlist("role",emp.jobTitle.title)
+            print(query_dict)
+            form = ChangeEmployeeRoleInTeam( query_dict , organization=org)
+            # print(form)
+            
+            return render(request ,"ChangeEmployeeRoleInTeam.html", { 'form' : form , 'slug' : slug , 
+                     'id' : id ,
+                     'teamId':teamId,
+                     'teamName' : team.name,
+                     'employeeId' : employeeId 
+                     })
+    except Exception as e:
+        return HttpResponseServerError(e)
+
+def deleteTeamMember(request , slug ,teamId, id , employeeId):
+    try:
+        user = request.session["user"]
+
+        org = Organization.objects.get(_id = user["currentActiveOrganization"])
+
+        emp = Employee.objects.get( _id = employeeId , Organization = org)
+
+        if(request.method == "POST"):
+            TeamMember.objects.filter(id = id).delete()
+            return HttpResponseRedirect(f"/organization/teams/{org.slug}/{teamId}")
+        else:
+            return HttpResponseRedirect(f"/organization/teams/{org.slug}/{teamId}")
+    except Exception as e:
         return HttpResponseServerError(e)
 
 def getEmployeeFormatedData(employeeData):

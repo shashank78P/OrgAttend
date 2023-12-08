@@ -146,6 +146,7 @@ font-family: 'PT Sans', sans-serif; */
     color: var(--red-500) !important;
     margin-top: 10px;
     display: inline-block;
+    font-size: 14px;
 }
 
 .loader i{
@@ -264,4 +265,10 @@ font-family: 'PT Sans', sans-serif; */
 
 .hidden{
     display: none;
+}
+
+button[type="submit"]{
+    display: block;
+    border: none;
+    background-color: transparent;
 }

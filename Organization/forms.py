@@ -135,7 +135,7 @@ class createTeamForm(forms.Form):
         label="Leader",
         max_length = 200,
         min_length = 3,
-        required=True,   
+        required=False,   
         error_messages={
             "required" :"Leader is required",
             "max_length" :"Leader is to large",
@@ -144,7 +144,7 @@ class createTeamForm(forms.Form):
     )
     co_Leader = forms.CharField(
         label="Co-Leader's email separated with ','",
-        required=True,
+        required=False,
         error_messages={
             "required" :"Co-Leader is required",
             "max_length" :"Co-Leader is to large",
@@ -153,6 +153,7 @@ class createTeamForm(forms.Form):
     )
     team_members = forms.CharField(
         label="team members email separated with ','",
+        required=False,
         error_messages={
             "required" :"Co-Leader is required",
             "max_length" :"Co-Leader is to large",
@@ -195,6 +196,64 @@ class addEmployeeForm(forms.Form):
             }
         )
     
+
+class ChangeEmployeeRoleInTeam(forms.Form):
+    Name = forms.CharField(
+        label="Name",
+        required=True,   
+        error_messages={
+            "required" :"Name is required",
+        },
+        widget=forms.TextInput(attrs={'readonly': 'readonly'})
+    )
+
+    Position = forms.ChoiceField(
+            choices= (("LEADER" , "LEADER") , ("CO-LEADER" , "CO-LEADER") , ("MEMBER" , "MEMBER")),
+            label="Position",
+            required=True,
+            # empty_label="Select a role",
+            error_messages={
+                "required": "Position is required",
+            }
+        )
+
+    def __init__(self, *args, organization, **kwargs):
+        super(ChangeEmployeeRoleInTeam, self).__init__(*args, **kwargs)
+        print("---------------------------------------------------------------------")
+
+        job_titles = Job_title.objects.filter(Organization=organization)
+        print(job_titles)
+        choices = [(job.title, job.title) for job in job_titles]
+        print(choices)
+        
+        self.fields['role'] = forms.ChoiceField(
+            choices=choices,
+            label="Role",
+            required=True,
+            error_messages={
+                "required": "Role is required",
+            }
+        )
+    
+class addEmployeeToTeam(forms.Form):
+    email = forms.CharField(
+        label="Email",
+        required=True,   
+        error_messages={
+            "required" :"Email of employee is required",
+        },
+        # widget=forms.TextInput(attrs={'readonly': 'readonly'})
+    )
+
+    Position = forms.ChoiceField(
+            choices= (("LEADER" , "LEADER") , ("CO-LEADER" , "CO-LEADER") , ("MEMBER" , "MEMBER")),
+            label="Position",
+            required=True,
+            # empty_label="Select a role",
+            error_messages={
+                "required": "Position is required",
+            }
+        )    
 
 
 class addJobTitleForm(forms.Form):

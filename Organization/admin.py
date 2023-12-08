@@ -22,7 +22,7 @@ class TeamsAdmin(admin.ModelAdmin):
     list_filter = ("name","id","OrganizationId","createdAt","updatedAt")
 
 class TeamMembersAdmin(admin.ModelAdmin):
-    list_display = ("role","TeamId","OrganizationId","userId","createdAt","createdBy","updatedAt") 
+    list_display = ("id","role","TeamId","OrganizationId","userId","createdAt","createdBy","updatedAt") 
     list_filter = ("role","TeamId","OrganizationId","userId","createdAt","updatedAt")
 
 class JobTitleAdmin(admin.ModelAdmin):
@@ -30,7 +30,7 @@ class JobTitleAdmin(admin.ModelAdmin):
     list_filter = ("createdAt","updatedAt")
 
 class EmployeeAdmin(admin.ModelAdmin):
-    list_display = ("_id","employee","jobTitle","createdAt","createdBy","updatedAt") 
+    list_display = ("_id","employee","Organization","jobTitle","createdAt","createdBy","updatedAt") 
     list_filter = ("createdAt","updatedAt")
 
 # Register your models here.

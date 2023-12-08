@@ -51,9 +51,9 @@
     </form> -->
 
 {% block content %}
-<form action="/organization/create-team" method="POST" class=" shadow formContainer">
+<form action="{% if title == "Create Team" %} /organization/teams/{{slug}}/create-team {% else %} /organization/teams/{{slug}}/edit/{{teamId}} {% endif %}" method="POST" class=" shadow formContainer">
     {% csrf_token %}
-    <h1 class="form_title">Create Team</h1>
+    <h1 class="form_title">{{title}}</h1>
     <div class="w-full flex justify-center items-center flex-col">
         {% for field in form %}
         <!-- field.errors -->
@@ -67,7 +67,7 @@
         {% endfor %}
     </div>
     <div class="w-full form_row flex justify-center items-start flex-col">
-        <input type="submit" value="Create">
+        <input type="submit" value="{% if title == "Create Team" %} Create {% else %} Update {% endif %}">
     </div>
 </form>
 {% endblock %}

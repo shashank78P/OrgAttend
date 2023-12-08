@@ -81,15 +81,9 @@ def login(request) :
             print(request.POST)
             password=request.POST["password"]
             email=request.POST["email"]
-            print(email , password)
 
             user = Users.objects.get(email = email)
 
-            print(user)
-            print(user.password)
-            print(os.environ.get('SECRET_KEY'))
-            print("checking password")
-            print(check_password(password , user.password))
             if(check_password(password , user.password)):
                 response = HttpResponseRedirect(f"/users/{user.slug}")
                 render(request ,"Profile.html" , { "slug" : "" })
@@ -99,8 +93,6 @@ def login(request) :
                     os.environ.get('SECRET_KEY'),
                     algorithm='HS256'
                  )
-                print("token")
-                print(token)
                 response.set_signed_cookie(
                         'authorization' , f"Bearer {token}" ,
                         salt="attendance123",

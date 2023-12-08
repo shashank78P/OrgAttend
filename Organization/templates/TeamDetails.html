@@ -86,7 +86,7 @@
 </div>
 
 <div class="title section_title">Employees of Team {{teamName | title}}</div>
-{% with page=page app="organization" data=tableData title=tableTitle action='/organization/employees' slug=slug columnCount=columnCount  %}
+{% with page=page app="organization" data=tableData title=tableTitle action='/organization/teams' slug=slug afterSlug='add' isAutoConstructHref=True columnCount=columnCount  %}
 {% include "table.html" %}
 {% endwith %}
 
