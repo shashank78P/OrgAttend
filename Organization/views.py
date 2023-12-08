@@ -331,6 +331,17 @@ def editTeam(request , slug , teamId):
     except Exception as e:
         return HttpResponseServerError(e)
 
+def delteTeam(request , slug , teamId):
+    try:
+        if(request.method == "POST"):
+            org = getOrgBySlug(request , slug)
+            Team.objects.filter(id = teamId , OrganizationId = org).delete()
+            return HttpResponseRedirect(f"/organization/teams/{slug}")
+        else:
+            return Http404()
+    except Exception as e:
+        return HttpResponseServerError(e)
+
 def getOrgSize(org):
     try:
         owner = OwnerDetails.objects.filter(OrganizationId = org).values_list('userId_id', flat=True).distinct()
@@ -451,6 +462,7 @@ def teams(request , slug):
             "slug" : slug ,
             "org": org ,
             "orgSize":orgSize,
+            "afterSlug":"add",
             "logo" : f"{os.environ.get('FRONTEND')}/media/{org.logo}" ,
             "baseUrl" : os.environ.get('FRONTEND'), 
             "endpoint":"organization",
@@ -494,6 +506,7 @@ def getTeamsMemebesFormatedData(TeamsMembersData , teamId):
 
 def teamMembersDetails(request , slug , id):
     try:
+        print("teamMembersDetails")
         search=""
         rows=10
         page=0
@@ -551,6 +564,7 @@ def teamMembersDetails(request , slug , id):
             "slug" : slug ,
             "org": org ,
             "orgSize":orgSize,
+            "afterSlug":f"add/{id}",
             "logo" : f"{os.environ.get('FRONTEND')}/media/{org.logo}" ,
             "baseUrl" : os.environ.get('FRONTEND'), 
             "endpoint":"organization",
@@ -686,9 +700,185 @@ def deleteTeamMember(request , slug ,teamId, id , employeeId):
     except Exception as e:
         return HttpResponseServerError(e)
 
-def getEmployeeFormatedData(employeeData):
+def getJobTitleFormatedData(jobTitleData):
+    tableTitle = ["Job Title","Created By","Created At"]
+    tableData = []
+    for i in  range(0,len(jobTitleData)):
+        jobs = jobTitleData[i]
+        tableData.append([ 
+            f'{jobs.title}' ,
+            f'{jobs.createdBy.firstName} {jobs.createdBy.middleName} {jobs.createdBy.lastName}' ,
+            f'{jobs.createdAt}',
+            f'{jobs.id}',
+        ])
+    return tableTitle , tableData
+
+def jobTitle(request , slug):
+    try:
+        search=""
+        rows=10
+        page=0
+        data = request.POST
+        print(data)
+
+
+        if(data.get("search" , "") not in [None , "" ]):
+            search = data["search"]
+        
+        
+        if(data.get("rows" ,"") not in [None , "" ]):
+            rows = int(data["rows"])
+        
+        
+        if(data.get("page" , "") not in [None , "" ]):
+            page = int(data["page"])
+        
+
+        print("data ===>")
+        print(search , rows)
+
+        org = getOrgBySlug(request , slug)
+        skip = page*rows
+        orgSize = getOrgSize(org)
+        JobTitleData = Job_title.objects.filter(Q(Organization = org) &
+         (Q(title__icontains=search) |
+          Q(createdBy__firstName__icontains=search) |
+          Q(createdBy__middleName__icontains=search) |
+          Q(createdBy__lastName__icontains=search)
+          )).order_by("-createdAt")
+        
+        tableTitle , tableData = getJobTitleFormatedData(JobTitleData)
+        print(tableTitle)
+        print(tableData)
+
+        openAction = True
+        editAction = True
+        deleteAction = True
+
+        data = { 
+            "slug" : slug ,
+            "org": org ,
+            "orgSize":orgSize,
+            "afterSlug":"add",
+            "logo" : f"{os.environ.get('FRONTEND')}/media/{org.logo}" ,
+            "baseUrl" : os.environ.get('FRONTEND') ,
+            "endpoint":"organization",
+            "page" : "job-title",
+            # "JobTitleData" : tableData
+            "totalJobTitle" : np.arange(0, math.ceil(len(JobTitleData)/10)),
+            'tableTitle':tableTitle,
+            'tableData':tableData[ skip :  skip + rows],
+            "columnCount" : 4,
+            "openAction" : openAction,
+            "editAction" : editAction,
+            "deleteAction" : deleteAction,
+            "pageNo":page,
+            "skip":skip,
+            "rows":rows,
+            "search":search 
+             }
+        print(data)
+        return render(request ,"JobTitle.html" , data)
+    except Exception as e:
+        print(e)
+        return HttpResponseServerError(e)
+
+def jobTitleDetails(request , slug ,jobTitleId):
+    try:
+        search=""
+        rows=10
+        page=0
+        data = request.POST
+        print("======================================================")
+        print(jobTitleId)
+        print(data)
+
+
+        if(data.get("search" , "") not in [None , "" ]):
+            search = data["search"]
+        
+        
+        if(data.get("rows" ,"") not in [None , "" ]):
+            rows = int(data["rows"])
+        
+        
+        if(data.get("page" , "") not in [None , "" ]):
+            page = int(data["page"])
+        
+
+        print("data ===>")
+        print(search , rows)
+
+        org = getOrgBySlug(request , slug)
+        jobTitle= get_object_or_404(Job_title , id=jobTitleId)
+        skip = page*rows
+        orgSize = getOrgSize(org) 
+        employeeData = Employee.objects.filter(Q(Organization = org) & Q(jobTitle = jobTitle) &
+         (Q(jobTitle__title__icontains=search) |
+          Q(employee__firstName__icontains=search) |
+          Q(employee__middleName__icontains=search) |
+          Q(employee__lastName__icontains=search) |
+          Q(employee__email__icontains=search) |
+          Q(employee__DOB__icontains=search) |
+          Q(employee__phoneNumber__icontains=search) |
+          Q(employee__address__city__icontains=search) |
+          Q(employee__address__state__icontains=search) |
+          Q(employee__address__country__icontains=search) |
+          Q(employee__address__code__icontains=search) |
+          Q(createdBy__firstName__icontains=search) |
+          Q(createdBy__middleName__icontains=search) |
+          Q(createdBy__lastName__icontains=search) |
+          Q(createdBy__email__icontains=search) |
+          Q(createdBy__address__city__icontains=search) |
+          Q(createdBy__address__state__icontains=search) |
+          Q(createdBy__address__country__icontains=search) |
+          Q(createdBy__address__code__icontains=search)
+          )).order_by("-createdAt")
+        
+        tableTitle , tableData = getEmployeeFormatedData(employeeData , jobTitleId=jobTitleId)
+        print(tableTitle)
+        print(tableData)
+
+        openAction = False
+        editAction = True
+        deleteAction = True
+
+        data = { 
+            "slug" : slug ,
+            "org": org ,
+            "orgSize":orgSize,
+            "logo" : f"{os.environ.get('FRONTEND')}/media/{org.logo}" ,
+            "baseUrl" : os.environ.get('FRONTEND') ,
+            "endpoint":"organization",
+            "page" : "job-title",
+            'jobTitleDetails':True,
+            'jobTitleId':jobTitleId,
+            'afterSlug': f'add/{jobTitleId}',
+            # "JobTitleData" : tableData
+            "totalJobTitle" : np.arange(0, math.ceil(len(employeeData)/10)),
+            'tableTitle':tableTitle,
+            'tableData':tableData[ skip :  skip + rows],
+            "columnCount" : 8,
+            "openAction" : openAction,
+            "editAction" : editAction,
+            "deleteAction" : deleteAction,
+            "pageNo":page,
+            "skip":skip,
+            "rows":rows,
+            "search":search 
+             }
+        print(data)
+        return render(request ,"JobTitle.html" , data)
+    except Exception as e:
+        print(e)
+        return HttpResponseServerError()
+
+def getEmployeeFormatedData(employeeData , jobTitleId=""):
     tableTitle = ["Name","Job Title","Email","DOB","Phone Number","Address","createdAt"]
     tableData = []
+    if jobTitleId != "":
+        jobTitleId += "/"
+
     for i in  range(0,len(employeeData)):
         emp = employeeData[i]
         address = "-"
@@ -711,7 +901,7 @@ def getEmployeeFormatedData(employeeData):
             f'{phoneNumber}',
             address,
             f'{emp.createdAt}',
-            f'{emp._id}',
+            f'{jobTitleId}{emp._id}',
         ])
     return tableTitle , tableData
 
@@ -768,6 +958,7 @@ def employees(request , slug):
             "slug" : slug ,
             "org": org ,
             "orgSize":orgSize,
+            "afterSlug":"add",
             "logo" : f"{os.environ.get('FRONTEND')}/media/{org.logo}" ,
             "baseUrl" : os.environ.get('FRONTEND') ,
             "endpoint":"organization",
@@ -789,185 +980,49 @@ def employees(request , slug):
         print(e)
         return HttpResponseServerError(e)
 
-def getJobTitleFormatedData(jobTitleData):
-    tableTitle = ["Job Title","Created By","Created At"]
-    tableData = []
-    for i in  range(0,len(jobTitleData)):
-        jobs = jobTitleData[i]
-        tableData.append([ 
-            f'{jobs.title}' ,
-            f'{jobs.createdBy.firstName} {jobs.createdBy.middleName} {jobs.createdBy.lastName}' ,
-            f'{jobs.createdAt}',
-            f'{jobs.id}',
-        ])
-    return tableTitle , tableData
+def saveEmployeeData(request , user, org , redirectUrl,action):
+    print("post method")
+    print(request.POST)
+    form = addEmployeeForm( request.POST, organization=org)
+    if form.is_valid():
+        userToAdd = Users.objects.filter(email = request.POST["email"])
 
-
-def jobTitle(request , slug):
-    try:
-        search=""
-        rows=10
-        page=0
-        data = request.POST
-        print(data)
-
-
-        if(data.get("search" , "") not in [None , "" ]):
-            search = data["search"]
+        if(len(userToAdd) == 0):
+            form.add_error("email" , "User with this email not found")
+            return render(request ,"AddEmployee.html", { 'form' : form , 'action':action})
         
-        
-        if(data.get("rows" ,"") not in [None , "" ]):
-            rows = int(data["rows"])
-        
-        
-        if(data.get("page" , "") not in [None , "" ]):
-            page = int(data["page"])
-        
+        print("userToAdd")
+        print(userToAdd)
 
-        print("data ===>")
-        print(search , rows)
+        role = Job_title.objects.get(id = request.POST["role"])
+            
+        try:
+            employeeDetails = Employee.objects.filter(
+                        Q(employee = userToAdd[0]),
+                        Q(Organization = org),
+                        Q(jobTitle = role)
+            )
+        except Employee.DoesNotExist:
+            pass
 
-        org = getOrgBySlug(request , slug)
-        skip = page*rows
-        orgSize = getOrgSize(org)
-        JobTitleData = Job_title.objects.filter(Q(Organization = org) &
-         (Q(title__icontains=search) |
-          Q(createdBy__firstName__icontains=search) |
-          Q(createdBy__middleName__icontains=search) |
-          Q(createdBy__lastName__icontains=search)
-          )).order_by("-createdAt")
-        
-        tableTitle , tableData = getJobTitleFormatedData(JobTitleData)
-        print(tableTitle)
-        print(tableData)
+        if len(employeeDetails) > 0:
+            form.add_error("email" , "Same Employee with this role is already exist")
+            return render(request ,"AddEmployee.html", { 'form' : form , 'action':action})
 
-        openAction = True
-        editAction = True
-        deleteAction = True
+        print("employeeDetails")
+        print(employeeDetails)
+        emp = Employee(
+            employee = userToAdd[0] , 
+            jobTitle = role,
+            createdBy = Users.objects.get(_id = user["_id"]),
+            Organization = org
+                       )
+        emp.save()
+        return HttpResponseRedirect(redirectUrl)
+    else:
+        return render(request ,"AddEmployee.html", { 'form' : form })
 
-        data = { 
-            "slug" : slug ,
-            "org": org ,
-            "orgSize":orgSize,
-            "logo" : f"{os.environ.get('FRONTEND')}/media/{org.logo}" ,
-            "baseUrl" : os.environ.get('FRONTEND') ,
-            "endpoint":"organization",
-            "page" : "job-title",
-            # "JobTitleData" : tableData
-            "totalJobTitle" : np.arange(0, math.ceil(len(JobTitleData)/10)),
-            'tableTitle':tableTitle,
-            'tableData':tableData[ skip :  skip + rows],
-            "columnCount" : 4,
-            "openAction" : openAction,
-            "editAction" : editAction,
-            "deleteAction" : deleteAction,
-            "pageNo":page,
-            "skip":skip,
-            "rows":rows,
-            "search":search 
-             }
-        print(data)
-        return render(request ,"JobTitle.html" , data)
-    except Exception as e:
-        print(e)
-        return HttpResponseServerError(e)
-
-def jobTitleDetails(request , slug ,id):
-    try:
-        search=""
-        rows=10
-        page=0
-        data = request.POST
-        print("======================================================")
-        print(id)
-        print(data)
-
-
-        if(data.get("search" , "") not in [None , "" ]):
-            search = data["search"]
-        
-        
-        if(data.get("rows" ,"") not in [None , "" ]):
-            rows = int(data["rows"])
-        
-        
-        if(data.get("page" , "") not in [None , "" ]):
-            page = int(data["page"])
-        
-
-        print("data ===>")
-        print(search , rows)
-
-        org = getOrgBySlug(request , slug)
-        jobTitle= get_object_or_404(Job_title , id=id)
-        print(jobTitle) 
-        print(type(jobTitle)) 
-        skip = page*rows
-        print(skip) 
-        orgSize = getOrgSize(org)
-        print(orgSize) 
-        print("orgSize") 
-        # Name","Job Title","Email","DOB","Phone Number","Address","createdAt"
-        employeeData = Employee.objects.filter(Q(Organization = org) & Q(jobTitle = jobTitle) &
-         (Q(jobTitle__title__icontains=search) |
-          Q(employee__firstName__icontains=search) |
-          Q(employee__middleName__icontains=search) |
-          Q(employee__lastName__icontains=search) |
-          Q(employee__email__icontains=search) |
-          Q(employee__DOB__icontains=search) |
-          Q(employee__phoneNumber__icontains=search) |
-          Q(employee__address__city__icontains=search) |
-          Q(employee__address__state__icontains=search) |
-          Q(employee__address__country__icontains=search) |
-          Q(employee__address__code__icontains=search) |
-          Q(createdBy__firstName__icontains=search) |
-          Q(createdBy__middleName__icontains=search) |
-          Q(createdBy__lastName__icontains=search) |
-          Q(createdBy__email__icontains=search) |
-          Q(createdBy__address__city__icontains=search) |
-          Q(createdBy__address__state__icontains=search) |
-          Q(createdBy__address__country__icontains=search) |
-          Q(createdBy__address__code__icontains=search)
-          )).order_by("-createdAt")
-        print("employeeData") 
-        print(employeeData) 
-        
-        tableTitle , tableData = getEmployeeFormatedData(employeeData)
-        print(tableTitle)
-        print(tableData)
-
-        openAction = False
-        editAction = False
-        deleteAction = True
-
-        data = { 
-            "slug" : slug ,
-            "org": org ,
-            "orgSize":orgSize,
-            "logo" : f"{os.environ.get('FRONTEND')}/media/{org.logo}" ,
-            "baseUrl" : os.environ.get('FRONTEND') ,
-            "endpoint":"organization",
-            "page" : "job-title",
-            # "JobTitleData" : tableData
-            "totalJobTitle" : np.arange(0, math.ceil(len(employeeData)/10)),
-            'tableTitle':tableTitle,
-            'tableData':tableData[ skip :  skip + rows],
-            "columnCount" : 4,
-            "openAction" : openAction,
-            "editAction" : editAction,
-            "deleteAction" : deleteAction,
-            "pageNo":page,
-            "skip":skip,
-            "rows":rows,
-            "search":search 
-             }
-        print(data)
-        return render(request ,"JobTitle.html" , data)
-    except Exception as e:
-        print(e)
-        return HttpResponseServerError()
-
-def AddEmployee(request ):
+def AddEmployee(request , slug):
     try:
         print("entered add employee")
         user = request.session["user"]
@@ -975,52 +1030,123 @@ def AddEmployee(request ):
         org = Organization.objects.get(_id = user["currentActiveOrganization"])
         print(org)
         if(request.method == "POST"):
-            print("post method")
-            print(request.POST["email"])
-            form = addEmployeeForm( request.POST, organization=org)
-            if form.is_valid():
-                userToAdd = Users.objects.get(email = request.POST["email"])
-                print(userToAdd)
-                emp = Employee(
-                    employee = userToAdd , 
-                    createdBy = Users.objects.get(_id = user["_id"]),
-                    Organization = org
-                               )
-                emp.save()
-                return HttpResponseRedirect(f"/organization/{org.slug}")
-            else:
-                return render(request ,"AddEmployee.html", { 'form' : form })
+            return saveEmployeeData(request,user,org,f"/organization/employee/{org.slug}",f"/organization/employee/{slug}/add")
         else:
             form = addEmployeeForm(organization=org)
-            return render(request ,"AddEmployee.html", { 'form' : form })
+            return render(request ,"AddEmployee.html", { 'form' : form , 'action':f"/organization/employee/{slug}/add"})
     except Exception as e:
         print(e)
         return HttpResponseServerError(e)
 
-def AddJobTitle(request ):
+def deleteEmployee(request ,slug, jobTitleId , employeeId):
+    try:
+        pass
+    except Exception as e:
+        return HttpResponseServerError(e)
+
+def editEmployee(request, slug , jobTitleId , employeeId):
+    try:
+        user = request.session["user"]
+        print("edit employee")
+        print(user)
+        org = getOrgBySlug(request,slug)
+        if(request.method == "POST"):
+            return saveEmployeeData(request,user,org,f"/organization/job-title/{org.slug}/{jobTitleId}" , f"/organization/job-title/{org.slug}/add/{jobTitleId}")
+        else:
+            form = addEmployeeForm(organization=org)
+            return render(request ,"AddEmployee.html", { 'form' : form ,'action' : f"/organization/job-title/{org.slug}/add/{jobTitleId}"})
+    except Exception as e:
+        return HttpResponseServerError(e)
+
+def addEmployeeViaJobDetails(request , slug , jobTitleId ):
+    try:
+        user = request.session["user"]
+        print("addEmployeeViaJobDetails")
+        print(user)
+        org = getOrgBySlug(request,slug)
+        if(request.method == "POST"):
+            return saveEmployeeData(request,user,org,f"/organization/job-title/{org.slug}/{jobTitleId}" , f"/organization/job-title/{org.slug}/add/{jobTitleId}")
+        else:
+            form = addEmployeeForm(organization=org)
+            return render(request ,"AddEmployee.html", { 'form' : form ,'action' : f"/organization/job-title/{org.slug}/add/{jobTitleId}"})
+    except Exception as e:
+        return HttpResponseServerError(e)
+
+def AddJobTitle(request ,slug):
     try:
         print("entered add job title")
         user = request.session["user"]
         print(user)
-        org = Organization.objects.get(_id = user["currentActiveOrganization"])
+        org = getOrgBySlug(request , slug)
         print(org)
         if(request.method == "POST"):
             form = addJobTitleForm( request.POST)
             print("post method")
             print(request.POST)
             if form.is_valid():
+
+                isDuplicate = Job_title.objects.filter(title = request.POST["title"] , Organization = org)
+
+                if(len(isDuplicate) >= 1):
+                    return HttpResponseNotAllowed(f"Duplicate job title")
+                
                 newJobTitle = Job_title(
                     title = request.POST["title"] ,
                     Organization = org,
                     createdBy = Users.objects.get(_id = user["_id"])
                     )
                 newJobTitle.save()
-                return HttpResponseRedirect(f"/organization/{org.slug}")
+                return HttpResponseRedirect(f"/organization/job-title/{org.slug}")
             else:
                 return render(request ,"AddJobTitle.html", { 'form' : form })
         else:
             form = addJobTitleForm()
-            return render(request ,"AddJobTitle.html", { 'form' : form })
+            return render(request ,"AddJobTitle.html", { 'form' : form , 'slug' : slug })
     except Exception as e:
         print(e)
+        return HttpResponseServerError(e)
+
+def EditJobTitle(request ,slug , id):
+    try:
+        print("entered edit job title")
+        user = request.session["user"]
+        print(user)
+        org = getOrgBySlug(request , slug)
+        jobTitle = get_object_or_404(Job_title , id=id)
+        print(org)
+        if(request.method == "POST"):
+            form = addJobTitleForm( request.POST)
+            print("post method")
+            print(request.POST)
+            if form.is_valid():
+
+                isDuplicate = Job_title.objects.filter(title = request.POST["title"] , Organization = org)
+
+                if(len(isDuplicate) >= 1):
+                    return HttpResponseNotAllowed(f"Duplicate job title")
+                
+                Job_title.objects.filter(id=id).update(title = request.POST["title"])
+                return HttpResponseRedirect(f"/organization/job-title/{org.slug}")
+            else:
+                return render(request ,"AddJobTitle.html", { 'form' : form })
+        else:
+            q = QueryDict(mutable=True)
+            q.appendlist("title" , jobTitle.title)
+            form = addJobTitleForm(q)
+            return render(request ,"AddJobTitle.html", { 'form' : form , 'slug' : slug , 'isEdit' : True , 'jobTitleId' : id})
+    except Exception as e:
+        print(e)
+        return HttpResponseServerError(e)
+    
+def DeleteJobTitle(request , slug , id):
+    try:
+        if request.method == "POST":
+            user = request.session["user"]
+            print(user)
+            org = getOrgBySlug(request , slug)
+            get_object_or_404(Job_title , id=id).delete()
+            return HttpResponseRedirect(f"/organization/job-title/{org.slug}")
+        else:
+            return Http404()
+    except Exception as e:
         return HttpResponseServerError(e)

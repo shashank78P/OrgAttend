@@ -11,7 +11,7 @@
 {% endblock %}
 
 {% block content %}
-<form action="/organization/add-employee" method="POST" class=" shadow formContainer">
+<form action="{{action}}" method="POST" class=" shadow formContainer">
     {% csrf_token %}
     <h1 class="form_title">Add Employee</h1>
     <div class="w-full flex justify-center items-center flex-col">

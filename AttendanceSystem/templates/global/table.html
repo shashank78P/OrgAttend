@@ -64,8 +64,8 @@
                         </a>
                     </span>
                     {% endif %}
-                    {% if editAction %}
                     <span class="endpoint hidden">{{r}}</span>
+                    {% if editAction %}
                     <span class="icon actionIcons">
                         <a href="{{action}}{% if slug %}/{{slug}}/edit/{{r}}{% endif %}" >
                             {% with width=20 height=20 color="#22c55e"%}

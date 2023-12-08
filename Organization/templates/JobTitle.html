@@ -91,7 +91,8 @@
 editAction
 deleteAction -->
 
-{% with page=page app="organization" data=tableData title=tableTitle action='/organization/job-title' editAction=editAction  openAction=openAction deleteAction=deleteAction slug=slug columnCount=columnCount %}
+
+{% with page=page app="organization" data=tableData title=tableTitle action='/organization/job-title'  slug=slug afterSlug=afterSlug isEdit=isEdit jobTitleId=jobTitleId isAutoConstructHref=jobTitleDetails columnCount=columnCount %}
 {% include "table.html" %}
 {% endwith %}
 
