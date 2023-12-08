@@ -145,8 +145,8 @@ class Job_title(models.Model):
 class Employee(models.Model):
     _id = models.AutoField(auto_created=True, primary_key=True)
     employee = models.ForeignKey(Users , on_delete=models.CASCADE , related_name='employee')
-    Organization = models.ForeignKey(Organization , db_index=True , on_delete=models.SET_NULL, null=True)
-    jobTitle = models.ForeignKey(Job_title , db_index=True , on_delete=models.SET_NULL, null=True)
+    Organization = models.ForeignKey(Organization , db_index=True , on_delete=models.CASCADE, null=True)
+    jobTitle = models.ForeignKey(Job_title , db_index=True , on_delete=models.CASCADE, null=True)
     createdBy = models.ForeignKey(Users , on_delete=models.CASCADE , related_name='created_employee' , null=True)
     createdAt = models.DateTimeField(auto_now_add=True , null=True)
     updatedAt = models.DateTimeField(auto_now=True , null=True)

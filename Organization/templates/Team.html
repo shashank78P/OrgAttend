@@ -28,9 +28,9 @@
 {% include "Nav.html" %}
 {% include "Profile/profile.html" %}
 
-<!-- {% with page=page app="organization"%}
+{% with page=page app="organization"%}
 {% include "NavigationOptions.html" %}
-{% endwith %} -->
+{% endwith %}
 
 <!-- stats -->
 <div class="att_chart_sec">
@@ -84,11 +84,12 @@
         {% endwith %}
     </ul>
 </div>
+
 {% with  page=page app="organization"  data=tableData  title=tableTitle  action='/organization/teams'  slug=slug  columnCount=columnCount %}
 {% include "table.html" %}
 {% endwith %}
 
-{% with  app="organization" total=totalTeams action="/organization/teams" slug=slug page=pageNo%}
+{% with  app="organization" total=totalTeams action="/organization/teams" editAction=editAction  openAction=openAction deleteAction=deleteAction slug=slug page=pageNo%}
 {% include "pagination.html" %}
 {% endwith %}
 

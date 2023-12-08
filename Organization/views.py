@@ -1,7 +1,7 @@
 import math
 import os
 from django.http import HttpResponseServerError , HttpResponseNotAllowed, JsonResponse , Http404 , HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import render , get_object_or_404
 import requests
 from Organization.forms import createOrganizationForm, createTeamForm , addEmployeeForm , addJobTitleForm
 from Organization.models import Organization ,OwnerDetails , Team ,TeamMember , Employee , Job_title
@@ -238,6 +238,19 @@ def createTeam(request):
         form = createTeamForm()
         return render(request ,"CreateTeam.html", { 'form' : form })
 
+def getOrgSize(org):
+    try:
+        owner = OwnerDetails.objects.filter(OrganizationId = org).values_list('userId_id', flat=True).distinct()
+        print(owner)
+        member = TeamMember.objects.filter(Q(OrganizationId = org) & ~Q(userId_id__in = owner)).values_list('userId_id', flat=True).distinct()
+        print(member)
+        print("org.contactEmail")
+        print(org.webSiteLink)
+        orgSize = len(owner) + len(member)
+        return orgSize
+    except:
+        return HttpResponseServerError()
+
 def leaveRequest(request , slug):
     try:
         user = request.session["user"]
@@ -290,6 +303,7 @@ def teams(request , slug):
         rows=10
         page=0
         data = request.POST
+        print("=============== teams ==================")
         print(data)
 
 
@@ -302,14 +316,17 @@ def teams(request , slug):
         
         
         if(data.get("page" , "") not in [None , "" ]):
-            page = int(data["page"])
+            page = int(data["page"][0])
         
 
         print("data ===>")
-        print(search , rows)
+        print(f"search= {search} rows= {rows} page= {page}")
 
         org = getOrgBySlug(request , slug)
         skip = page*rows
+        orgSize = getOrgSize(org)
+
+        print(f"skip {skip}")
 
         teamsData = Team.objects.filter(Q(OrganizationId = org) &                                 
          (Q(name__icontains=search) |
@@ -326,25 +343,27 @@ def teams(request , slug):
         Q(createdBy__address__state__icontains=search) |
         Q(createdBy__address__country__icontains=search) |
         Q(createdBy__address__code__icontains=search))
-        )
+        ).order_by("-createdAt")
         
         tableTitle , tableData = getTeamsFormatedData(teamsData)
-        openAction = False
-        editAction = False
-        deleteAction = f"/delete-team-member/{id}"
-        print(tableTitle )
-        print(tableData)
+        print(teamsData)
+        print(len(teamsData))
+
+        openAction = True
+        editAction = True
+        deleteAction = True
 
         # t.objects.annotate(totalMem = Count("teammember")) 
         return render(request ,"Team.html" , { 
             "slug" : slug ,
             "org": org ,
+            "orgSize":orgSize,
             "logo" : f"{os.environ.get('FRONTEND')}/media/{org.logo}" ,
             "baseUrl" : os.environ.get('FRONTEND'), 
             "endpoint":"organization",
             "page" : "teams" ,
             "teamsData" : teamsData[ skip :  skip + rows],
-            "totalTeams" : np.arange(0, math.ceil(len(teamsData)/10)),
+            "totalTeams" : np.arange(0, math.ceil(len(teamsData)/rows)),
             'tableTitle':tableTitle,
             'tableData':tableData[ skip :  skip + rows],
             "openAction":openAction,
@@ -363,8 +382,10 @@ def teams(request , slug):
 def getTeamsMemebesFormatedData(TeamsMembersData):
     tableTitle = ["name","role","createdBy","createdAt"]
     tableData = []
+    print(tableTitle)
     for i in  range(0,len(TeamsMembersData)):
         teamMember = TeamsMembersData[i]
+        print(teamMembersDetails)
     
         tableData.append([ 
             f'{teamMember.userId.firstName} {teamMember.userId.middleName} {teamMember.userId.lastName}',
@@ -397,10 +418,14 @@ def teamMembersDetails(request , slug , id):
         
 
         print("data ===>")
+        print(id)
         print(search , rows)
 
         org = getOrgBySlug(request , slug)
         skip = page*rows
+        orgSize = getOrgSize(org)
+
+        team = get_object_or_404(Team , id=id)
 
         teamsMembersDetails = TeamMember.objects.filter(Q(OrganizationId = org) & Q(TeamId = id) &                                 
          (Q(role__icontains=search) |
@@ -416,23 +441,25 @@ def teamMembersDetails(request , slug , id):
         Q(userId__address__state__icontains=search) |
         Q(userId__address__country__icontains=search) |
         Q(userId__address__code__icontains=search))
-        )
+        ).order_by("-createdAt")
         
         tableTitle , tableData = getTeamsMemebesFormatedData(teamsMembersDetails)
         openAction = False
         editAction = False
-        deleteAction = f"/delete-team-member/{id}"
+        deleteAction = True
         print(tableTitle )
         print(tableData)
 
         # t.objects.annotate(totalMem = Count("teammember")) 
-        return render(request ,"Team.html" , { 
+        return render(request ,"TeamDetails.html" , { 
             "slug" : slug ,
             "org": org ,
+            "orgSize":orgSize,
             "logo" : f"{os.environ.get('FRONTEND')}/media/{org.logo}" ,
             "baseUrl" : os.environ.get('FRONTEND'), 
             "endpoint":"organization",
             "page" : "team-details" ,
+            "teamName": team.name,
             "teamsMembersDetails" : teamsMembersDetails[ skip :  skip + rows],
             "totalMemeberTeams" : np.arange(0, math.ceil(len(teamsMembersDetails)/10)),
             'tableTitle':tableTitle,
@@ -440,7 +467,7 @@ def teamMembersDetails(request , slug , id):
             "openAction":openAction,
             "editAction":editAction,
             "deleteAction":deleteAction,
-            "columnCount":4,
+            "columnCount":5,
             "pageNo":page,
             "skip":skip,
             "rows":rows,
@@ -505,6 +532,8 @@ def employees(request , slug):
 
         org = getOrgBySlug(request , slug)
         skip = page*rows
+        orgSize = getOrgSize(org)
+
         employeeData = Employee.objects.filter(Q(Organization = org) &
          (Q(employee__DOB__icontains=search) |
      Q(employee__phoneNumber__icontains=search) |
@@ -517,18 +546,19 @@ def employees(request , slug):
      Q(employee__address__state__icontains=search) |
      Q(employee__address__country__icontains=search) |
      Q(employee__address__code__icontains=search))
-    )
+    ).order_by("-createdAt")
         
         tableTitle , tableData = getEmployeeFormatedData(employeeData)
         openAction = False
-        editAction = f"/edit-employee/{id}"
-        deleteAction = f"/delete-employee/{id}"
-        print(tableTitle )
-        print(tableData)
+        editAction = True
+        deleteAction = True
+        print(employeeData )
+        print(len(employeeData))
 
         return render(request ,"Employee.html" , { 
             "slug" : slug ,
             "org": org ,
+            "orgSize":orgSize,
             "logo" : f"{os.environ.get('FRONTEND')}/media/{org.logo}" ,
             "baseUrl" : os.environ.get('FRONTEND') ,
             "endpoint":"organization",
@@ -590,20 +620,26 @@ def jobTitle(request , slug):
 
         org = getOrgBySlug(request , slug)
         skip = page*rows
+        orgSize = getOrgSize(org)
         JobTitleData = Job_title.objects.filter(Q(Organization = org) &
          (Q(title__icontains=search) |
           Q(createdBy__firstName__icontains=search) |
           Q(createdBy__middleName__icontains=search) |
           Q(createdBy__lastName__icontains=search)
-          ))
+          )).order_by("-createdAt")
         
         tableTitle , tableData = getJobTitleFormatedData(JobTitleData)
         print(tableTitle)
         print(tableData)
 
+        openAction = True
+        editAction = True
+        deleteAction = True
+
         data = { 
             "slug" : slug ,
             "org": org ,
+            "orgSize":orgSize,
             "logo" : f"{os.environ.get('FRONTEND')}/media/{org.logo}" ,
             "baseUrl" : os.environ.get('FRONTEND') ,
             "endpoint":"organization",
@@ -613,6 +649,9 @@ def jobTitle(request , slug):
             'tableTitle':tableTitle,
             'tableData':tableData[ skip :  skip + rows],
             "columnCount" : 4,
+            "openAction" : openAction,
+            "editAction" : editAction,
+            "deleteAction" : deleteAction,
             "pageNo":page,
             "skip":skip,
             "rows":rows,
@@ -624,6 +663,100 @@ def jobTitle(request , slug):
         print(e)
         return HttpResponseServerError(e)
 
+def jobTitleDetails(request , slug ,id):
+    try:
+        search=""
+        rows=10
+        page=0
+        data = request.POST
+        print("======================================================")
+        print(id)
+        print(data)
+
+
+        if(data.get("search" , "") not in [None , "" ]):
+            search = data["search"]
+        
+        
+        if(data.get("rows" ,"") not in [None , "" ]):
+            rows = int(data["rows"])
+        
+        
+        if(data.get("page" , "") not in [None , "" ]):
+            page = int(data["page"])
+        
+
+        print("data ===>")
+        print(search , rows)
+
+        org = getOrgBySlug(request , slug)
+        jobTitle= get_object_or_404(Job_title , id=id)
+        print(jobTitle) 
+        print(type(jobTitle)) 
+        skip = page*rows
+        print(skip) 
+        orgSize = getOrgSize(org)
+        print(orgSize) 
+        print("orgSize") 
+        # Name","Job Title","Email","DOB","Phone Number","Address","createdAt"
+        employeeData = Employee.objects.filter(Q(Organization = org) & Q(jobTitle = jobTitle) &
+         (Q(jobTitle__title__icontains=search) |
+          Q(employee__firstName__icontains=search) |
+          Q(employee__middleName__icontains=search) |
+          Q(employee__lastName__icontains=search) |
+          Q(employee__email__icontains=search) |
+          Q(employee__DOB__icontains=search) |
+          Q(employee__phoneNumber__icontains=search) |
+          Q(employee__address__city__icontains=search) |
+          Q(employee__address__state__icontains=search) |
+          Q(employee__address__country__icontains=search) |
+          Q(employee__address__code__icontains=search) |
+          Q(createdBy__firstName__icontains=search) |
+          Q(createdBy__middleName__icontains=search) |
+          Q(createdBy__lastName__icontains=search) |
+          Q(createdBy__email__icontains=search) |
+          Q(createdBy__address__city__icontains=search) |
+          Q(createdBy__address__state__icontains=search) |
+          Q(createdBy__address__country__icontains=search) |
+          Q(createdBy__address__code__icontains=search)
+          )).order_by("-createdAt")
+        print("employeeData") 
+        print(employeeData) 
+        
+        tableTitle , tableData = getEmployeeFormatedData(employeeData)
+        print(tableTitle)
+        print(tableData)
+
+        openAction = False
+        editAction = False
+        deleteAction = True
+
+        data = { 
+            "slug" : slug ,
+            "org": org ,
+            "orgSize":orgSize,
+            "logo" : f"{os.environ.get('FRONTEND')}/media/{org.logo}" ,
+            "baseUrl" : os.environ.get('FRONTEND') ,
+            "endpoint":"organization",
+            "page" : "job-title",
+            # "JobTitleData" : tableData
+            "totalJobTitle" : np.arange(0, math.ceil(len(employeeData)/10)),
+            'tableTitle':tableTitle,
+            'tableData':tableData[ skip :  skip + rows],
+            "columnCount" : 4,
+            "openAction" : openAction,
+            "editAction" : editAction,
+            "deleteAction" : deleteAction,
+            "pageNo":page,
+            "skip":skip,
+            "rows":rows,
+            "search":search 
+             }
+        print(data)
+        return render(request ,"JobTitle.html" , data)
+    except Exception as e:
+        print(e)
+        return HttpResponseServerError()
 
 def AddEmployee(request ):
     try:

@@ -1,6 +1,8 @@
 <form action="{{action}}{% if slug %}/{{slug}}{% endif %}" method="post" id="postPagination">
     {% csrf_token %}
     <input type="number" name="page" id="pag_page" class="hidden">
+    <input type="text" name="search" value="{{search}}" class="hidden">
+    <input type="number" name="rows" value="{{rows}}" class="hidden">
     <ul class="pagination">
         <li id="prev" class="flex justify-center items-center pag_btn pag_btn_action" onclick="decrement()">
             {% with width=15 height=15 color="white"%}
@@ -30,11 +32,14 @@
     let pag_btn_num = document.getElementsByClassName("pag_btn_num")
     let postPagination = document.getElementById("postPagination")
     let pag_page = document.getElementById("pag_page")
+    console.log("total")
+    console.log(total)
+    console.log(total.split(" ").length)
 
     function increment() {
         removeActiveClass()
         console.log("increment")
-        currIndex = (currIndex + 1) % total
+        currIndex = (currIndex + 1) % total.split(" ").length
         setActiveClass()
         pag_page.value = currIndex
         postPagination.submit()

@@ -87,7 +87,11 @@
     </ul>
 </div>
 
-{% with page=page app="organization" data=tableData title=tableTitle action='/organization/job-title' slug=slug columnCount=columnCount %}
+<!-- openAction
+editAction
+deleteAction -->
+
+{% with page=page app="organization" data=tableData title=tableTitle action='/organization/job-title' editAction=editAction  openAction=openAction deleteAction=deleteAction slug=slug columnCount=columnCount %}
 {% include "table.html" %}
 {% endwith %}
 

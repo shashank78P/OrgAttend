@@ -1,15 +1,15 @@
 {% load is_last %}
 
-<div class="flex justify-between item-center topSection">
-    <form action="{{action}}{% if slug %}/{{slug}}{% endif %}" method="post">
+<form action="{{action}}{% if slug %}/{{slug}}{% endif %}" method="post" id="searchPaginationParam">
+    <div class="flex justify-between item-center topSection">
+        {% csrf_token %}
+        <input type="submit" value="" class="hidden">
         <ul class="flex justify-center items-center searchContainer">
             <li>
                 <input type="text" name="search" value="{{search}}" placeholder="Search...">
             </li>
             <li class="icon searchIcon">
-                {% csrf_token %}
-                <input type="submit" value="" id="searchSubmit" class="hidden">
-                <label for="searchSubmit">
+                <label for="searchPaginationParam">
                     {% with width=20 height=20 color="#3D4756"%}
                     {% include 'SvgIcon/SearchIco.html' %}
                     {% endwith %}
@@ -19,22 +19,18 @@
                   </svg> -->
             </li>
         </ul>
-    </form>
-    <ul>
-        <form action="{{action}}{% if slug %}/{{slug}}{% endif %}" method="post" id="rowsSubmit">
+        <ul>
             <li class="selectTag">
-                {% csrf_token %}
-                <input type="submit" value="" class="hidden">
-                rows: <select name="rows" id="" onchange="submitRow()">
-                    <option {% if 5  == rows %} selected {% endif %}  for="rows" value="5">5</option>
-                    <option {% if 10 == rows  %} selected {% endif %}  for="rows" value="10">10</option>
-                    <option {% if 15 == rows  %} selected {% endif %}  for="rows" value="15">15</option>
-                    <option {% if 20 == rows  %} selected {% endif %}  for="rows" value="20">20</option>
+                rows: <select name="rows" id="" onchange="searchPaginationParam()">
+                    <option {% if 5 == rows %} selected {% endif %} for="rows" value="5">5</option>
+                    <option {% if 10 == rows %} selected {% endif %} for="rows" value="10">10</option>
+                    <option {% if 15 == rows %} selected {% endif %} for="rows" value="15">15</option>
+                    <option {% if 20 == rows %} selected {% endif %} for="rows" value="20">20</option>
                 </select>
             </li>
-        </form>
-    </ul>
-</div>
+        </ul>
+    </div>
+</form>
 <div class="tableContainer">
     <table class="w-full table">
         <thead>
@@ -48,42 +44,48 @@
         </thead>
         <tbody>
             {% for row in data %}
-            <tr >
+            <tr>
                 <td>{{forloop.counter}}</td>
                 {% for r in row %}
-                    {% if forloop.counter ==  columnCount%}
-                    <td class="flex actionContainer">
-                        <span class="icon actionIcons">
-                        <a href="{{action}}{% if slug %}/{{slug}}/{{r}}{% endif %}" >
+                {% if forloop.counter == columnCount%}
+                <td class="flex justify-center item-center actionContainer">
+                    {% if openAction %}
+                    <span class="icon actionIcons">
+                        <a href="{{action}}{% if slug %}/{{slug}}/{{r}}{% endif %}">
                             {% with width=20 height=20 color="#017BF6"%}
                             {% include 'SvgIcon/OpenIco.html' %}
                             {% endwith %}
                         </a>
-                        </span>
-                        <span class="icon actionIcons">
-                            <form action="{{action}}{% if slug %}/{{slug}}/edit/{{r}}{% endif %}" method="get">
-                                {% with width=20 height=20 color="#22c55e"%}
-                                {% include 'SvgIcon/PencileIco.html' %}
-                                {% endwith %}
-                            </form>
-                        </span>
-                        <span class="icon actionIcons">
-                            <form action="{{action}}{% if slug %}/{{slug}}/delete/{{r}}{% endif %}" method="post">
-                                <input type="text" name="id" value="" class="hidden">
-                                {% with width=20 height=20 color="#ef4444"%}
-                                {% include 'SvgIcon/DeleteIco.html' %}
-                                {% endwith %}
-                            </form>
-                        </span>
-                    </td>
-                    {% else %}
-                    <td>
-                        {{r}}
-                    </td>
+                    </span>
                     {% endif %}
-                    <!-- {{forloop.counter|isLast:columnCount}} -->
+                    {% if editAction %}
+                    <span class="icon actionIcons">
+                        <form action="{{action}}{% if slug %}/{{slug}}/edit/{{r}}{% endif %}" method="get">
+                            {% with width=20 height=20 color="#22c55e"%}
+                            {% include 'SvgIcon/PencileIco.html' %}
+                            {% endwith %}
+                        </form>
+                    </span>
+                    {% endif %}
+                    {% if deleteAction %}
+                    <span class="icon actionIcons">
+                        <form action="{{action}}{% if slug %}/{{slug}}/delete/{{r}}{% endif %}" method="post">
+                            <input type="text" name="id" value="" class="hidden">
+                            {% with width=20 height=20 color="#ef4444"%}
+                            {% include 'SvgIcon/DeleteIco.html' %}
+                            {% endwith %}
+                        </form>
+                    </span>
+                    {% endif %}
+                </td>
+                {% else %}
+                <td>
+                    {{r}}
+                </td>
+                {% endif %}
+                <!-- {{forloop.counter|isLast:columnCount}} -->
                 {% endfor %}
-                
+
             </tr>
             {% endfor %}
         </tbody>
@@ -100,10 +102,10 @@
     const submitDelete = () => {
 
     }
-    const submitRow = () => {
-        const rowsSubmit = document.getElementById("rowsSubmit")
-        console.log(rowsSubmit)
-        rowsSubmit.submit()
+    const searchPaginationParam = () => {
+        const searchPaginationParamForm = document.getElementById("searchPaginationParam")
+        console.log(searchPaginationParamForm)
+        searchPaginationParamForm.submit()
 
     }
 </script>

@@ -84,7 +84,7 @@
         {% endwith %}
     </ul>
 </div>
-{% with page=page app="organization" data=tableData title=tableTitle action='/organization/employees' slug=slug columnCount=columnCount  %}
+{% with page=page app="organization" data=tableData title=tableTitle action='/organization/employees' editAction=editAction  openAction=openAction deleteAction=deleteAction slug=slug columnCount=columnCount  %}
 {% include "table.html" %}
 {% endwith %}
 

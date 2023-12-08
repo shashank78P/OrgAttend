@@ -20,10 +20,15 @@
 
 
 {% endblock %}
+
 {% block content %}
+
 {% include "Nav.html" %}
+
 {% include "Profile/profile.html" %}
+
 {% with page="leave-request" app="organization"%}
 {% include "NavigationOptions.html" %}
 {% endwith %}
+
 {% endblock %}

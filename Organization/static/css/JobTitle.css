@@ -51,3 +51,8 @@
     border-radius: 5px;
     font-size: 16px;
 }
+
+.section_title{
+    font-weight: 500;
+    padding: 10px;
+}

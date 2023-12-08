@@ -1,4 +1,3 @@
-
 <ul class="flex items-center flex-wrap userCard">
     <li class="userImageSec">
         <img src="{{logo}}" class="OrgProfileImage" alt="xc">
@@ -8,7 +7,7 @@
             <li class="userCard-top-section">
                 <ul class="flex items-center userName-section">
                     <li class="userName">
-                        <h1>{{org.name}}</h1>
+                        <h1>{{org.name | title}}</h1>
                     </li>
                 </ul>
             </li>
@@ -29,17 +28,37 @@
                 <span>{{org.address.city | title}} {{org.address.state | title}} {{org.address.country | title}}
                     {{org.address.code | title}}</span>
             </li>
+            {% if orgSize %}
+                <li class="flex items-center">
+                    <span class="icon userCardIcon">
+                        {% with width=20 height=20 color="#3D4756"%}
+                        {% include 'SvgIcon/OrganizationIco.html' %}
+                        {% endwith %}
+                    </span>
+                    <span>{{orgSize}} Employees Working</span>
+                </li>
+            {% endif %}
+            {% if teamName %}
+                <li class="flex items-center">
+                    <span class="icon userCardIcon">
+                        {% with width=20 height=20 color="#3D4756"%}
+                        {% include 'SvgIcon/UserGroupIco.html' %}
+                        {% endwith %}
+                    </span>
+                    <span>{{teamName | title}}</span>
+                </li>
+            {% endif %}
+            {% if org.description %}
+                <li class="flex items-center">
+                    <span class="icon userCardIcon">
+                        {% with width=20 height=20 color="#3D4756"%}
+                        {% include 'SvgIcon/NoteIco.html' %}
+                        {% endwith %}
+                    </span>
+                    <span class="profileDescription">{{org.description | title}}</span>
+                </li>
+            {% endif %}
             <li class="flex items-center">
-                <span class="icon userCardIcon">
-                    {% with width=20 height=20 color="#3D4756"%}
-                    {% include 'SvgIcon/OrganizationIco.html' %}
-                    {% endwith %}
-                </span>
-                <span>{{orgSize}} employee working</span>
-            </li>
-        </ul>
-        <ul>
-            <li>
                 <ul class="flex items-center mediaIco">
                     <li>
                         <a href={{org.webSiteLink}}>
@@ -57,7 +76,6 @@
                     </li>
                 </ul>
             </li>
-            <li class="profileDescription">{{org.description}}</li>
         </ul>
     </li>
 </ul>
