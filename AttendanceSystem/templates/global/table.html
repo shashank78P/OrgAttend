@@ -21,7 +21,7 @@
         </ul>
         
         <ul class="flex items-center ">
-            <li class="table_add_btn">
+            <li class="table_add_btn" id="table_add_btn">
                 <a id="link_to_add" href="{{action}}{% if slug %}/{{slug}}{% endif %}{%if afterSlug %}/{{afterSlug}}{% endif %}">
                     Add +
                 </a>
@@ -54,7 +54,7 @@
                 <td>{{forloop.counter}}</td>
                 {% for r in row %}
                 {% if forloop.counter == columnCount%}
-                <td class="flex justify-center item-center actionContainer">
+                <td class="flex justify-center item-center actionContainer ">
                     {% if openAction %}
                     <span class="icon actionIcons">
                         <a href="{{action}}{% if slug %}/{{slug}}/{{r}}{% endif %}">
@@ -89,7 +89,7 @@
                     {% endif %}
                 </td>
                 {% else %}
-                <td>
+                <td class="truncate">
                     {{r}}
                 </td>
                 {% endif %}
@@ -105,10 +105,18 @@
 <script>
     const endpoint = document.getElementsByClassName("endpoint")
     const link_to_add = document.getElementById("link_to_add")
+    const table_add_btn = document.getElementById("table_add_btn")
     url_path = endpoint[0].innerText
     url_path = url_path.split("/")
 
+    if("{{showAdd}}" == "false"){
+        table_add_btn.classList.add("hidden")
+    }else{
+        table_add_btn.classList.remove("hidden")
+    }
+
     console.log("isAutoConstructHref")
+    console.log("{{showAdd}}")
     console.log("{{isAutoConstructHref}}")
 
     if( "{{isAutoConstructHref}}" == 'True' && Array.isArray(url_path) && url_path.length > 0){

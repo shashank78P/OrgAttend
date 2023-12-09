@@ -5,11 +5,12 @@ from django.http import HttpResponseServerError , HttpResponseNotAllowed, JsonRe
 from django.shortcuts import render , get_object_or_404
 import requests
 from Organization.forms import createOrganizationForm, createTeamForm , addEmployeeForm , addJobTitleForm , ChangeEmployeeRoleInTeam , addEmployeeToTeam, editEmployeeForm
-from Organization.models import Organization ,OwnerDetails , Team ,TeamMember , Employee , Job_title
+from Organization.models import LeaveRequest, Organization ,OwnerDetails , Team ,TeamMember , Employee , Job_title
+from Users.forms import LeaveRequestForm
 from Users.models import Address, Users
-from Users.views import getUserByEmail
+from Users.views import formateLeaveRequest, getUserByEmail
 from django.db.models import Q
-from datetime import datetime
+from datetime import date, datetime
 from django.db.models import Count
 import numpy as np
 
@@ -355,33 +356,6 @@ def getOrgSize(org):
     except:
         return HttpResponseServerError()
 
-def leaveRequest(request , slug):
-    try:
-        user = request.session["user"]
-        org = Organization.objects.get(slug = slug)
-        owner = OwnerDetails.objects.filter(OrganizationId = org).values_list('userId_id', flat=True).distinct()
-        print(owner)
-        member = TeamMember.objects.filter(Q(OrganizationId = org) & ~Q(userId_id__in = owner)).values_list('userId_id', flat=True).distinct()
-        print(member)
-        print("org.contactEmail")
-        print(org.webSiteLink)
-        orgSize = len(owner) + len(member)
-        return render(request ,"LeaveRequest.html" , 
-                       { 
-                "slug" : slug ,
-                "user" : user,
-                "org": org ,
-                "page" : "leave-request" ,
-                "logo" : f"{os.environ.get('FRONTEND')}/media/{org.logo}" ,
-                "orgSize" : orgSize,
-                "endpoint":"organization",
-                "baseUrl" : os.environ.get('FRONTEND')
-                    } 
-                      )
-    except Exception as e:
-        print(e)
-        return HttpResponseServerError(e)
-
 def getTeamsFormatedData(TeamsData):
     tableTitle = ["name","Organization","checkInTime" , "checkOutTime","description","createdBy","createdAt"]
     tableData = []
@@ -403,6 +377,7 @@ def getTeamsFormatedData(TeamsData):
 
 def teams(request , slug):
     try:
+        user = request.session["user"]
         search=""
         rows=10
         page=0
@@ -461,6 +436,7 @@ def teams(request , slug):
         return render(request ,"Team.html" , { 
             "slug" : slug ,
             "org": org ,
+            "user" : user,
             "orgSize":orgSize,
             "afterSlug":"add",
             "logo" : f"{os.environ.get('FRONTEND')}/media/{org.logo}" ,
@@ -507,6 +483,7 @@ def getTeamsMemebesFormatedData(TeamsMembersData , teamId):
 def teamMembersDetails(request , slug , id):
     try:
         print("teamMembersDetails")
+        user = request.session["user"]
         search=""
         rows=10
         page=0
@@ -563,6 +540,7 @@ def teamMembersDetails(request , slug , id):
         return render(request ,"TeamDetails.html" , { 
             "slug" : slug ,
             "org": org ,
+            "user" : user,
             "orgSize":orgSize,
             "afterSlug":f"add/{id}",
             "logo" : f"{os.environ.get('FRONTEND')}/media/{org.logo}" ,
@@ -720,6 +698,7 @@ def jobTitle(request , slug):
         page=0
         data = request.POST
         print(data)
+        user = request.session["user"]
 
 
         if(data.get("search" , "") not in [None , "" ]):
@@ -758,6 +737,7 @@ def jobTitle(request , slug):
         data = { 
             "slug" : slug ,
             "org": org ,
+            "user" : user,
             "orgSize":orgSize,
             "afterSlug":"add",
             "logo" : f"{os.environ.get('FRONTEND')}/media/{org.logo}" ,
@@ -785,6 +765,7 @@ def jobTitle(request , slug):
 
 def jobTitleDetails(request , slug ,jobTitleId):
     try:
+        user = request.session["user"]
         search=""
         rows=10
         page=0
@@ -846,6 +827,7 @@ def jobTitleDetails(request , slug ,jobTitleId):
         data = { 
             "slug" : slug ,
             "org": org ,
+            "user" : user,
             "orgSize":orgSize,
             "logo" : f"{os.environ.get('FRONTEND')}/media/{org.logo}" ,
             "baseUrl" : os.environ.get('FRONTEND') ,
@@ -907,6 +889,7 @@ def getEmployeeFormatedData(employeeData , jobTitleId=""):
 
 def employees(request , slug):
     try:
+        user = request.session["user"]
         search=""
         rows=10
         page=0
@@ -957,6 +940,7 @@ def employees(request , slug):
         return render(request ,"Employee.html" , { 
             "slug" : slug ,
             "org": org ,
+            "user" : user,
             "orgSize":orgSize,
             "afterSlug":"add",
             "logo" : f"{os.environ.get('FRONTEND')}/media/{org.logo}" ,
@@ -1054,15 +1038,36 @@ def editEmployee(request, slug , jobTitleId , employeeId):
         print("edit employee")
         print(user)
         org = getOrgBySlug(request,slug)
-        emp = get_object_or_404(Employee , _id = employeeId)
-        print(emp.employee.email)
         job = get_object_or_404(Job_title , id=jobTitleId)
         print(job)
+        emp = get_object_or_404(Employee , _id = employeeId ,jobTitle = job )
+        userData = get_object_or_404(Users, _id = emp.employee._id)
+
+        print(userData)
+        print(emp.employee.email)
 
         if(request.method == "POST"):
+            print("request.POST")
             print(request.POST)
             form = editEmployeeForm(request.POST["role"] , organization=org)
-            return render(request ,"AddEmployee.html", { 'form' : form ,'action' : f"/organization/job-title/{org.slug}/edit/{jobTitleId}/{employeeId}" , "isEdit" : True })
+
+            if form.is_valid:
+                print("valid ")
+                newJob = get_object_or_404(Job_title , id=request.POST["role"])
+                print(job)
+                print(type(emp))
+                print(userData)
+                print(org)
+                print(newJob)
+                Employee.objects.filter( 
+                    employee = userData,
+                    Organization = org,
+                    jobTitle = job,
+                 ).update(jobTitle = newJob)
+                
+                return HttpResponseRedirect(f"/organization/job-title/{org.slug}")
+            else:
+                return render(request ,"AddEmployee.html", { 'form' : form ,'action' : f"/organization/job-title/{org.slug}/edit/{jobTitleId}/{employeeId}" , "isEdit" : True })
             # return saveEmployeeData(request,user,org,f"/organization/job-title/{org.slug}/{jobTitleId}" , f"/organization/job-title/{org.slug}/add/{jobTitleId}" , True)
         else:    
             q = QueryDict(mutable=True)
@@ -1163,5 +1168,142 @@ def DeleteJobTitle(request , slug , id):
             return HttpResponseRedirect(f"/organization/job-title/{org.slug}")
         else:
             return Http404()
+    except Exception as e:
+        return HttpResponseServerError(e)
+    
+def AddLeaveRequest(request):
+    try:
+        print("Add leave request")
+        if request.method == "POST":
+            currentUser = request.session["user"]
+            print(request.POST)
+            form  = LeaveRequestForm(request.POST)
+            if( request.POST["From"] < date.today().strftime('%Y-%m-%d') or request.POST["From"] > request.POST["To"]):
+                form.add_error("From" , "Invalid from date")
+            
+            if not form.is_valid():
+                return render(request , "AddLeaveRequest.html" , {
+                        'form' : form
+                        })
+            
+            else:
+                 leaveType = request.POST["LeaveType"]
+                 fromDate = request.POST["From"]
+                 toDate = request.POST["To"]
+                 reason = request.POST["reason"]
+                 org = get_object_or_404( Organization, _id = currentUser["currentActiveOrganization"])
+                 createdBy = get_object_or_404(Users ,_id = currentUser["_id"])
+                 leaveRequest = LeaveRequest(
+                     leaveType = leaveType,
+                     fromDate = fromDate,
+                     toDate = toDate,
+                     reason = reason,
+                     Organization = org,
+                     createdBy = createdBy,
+                 )
+                 leaveRequest.save()
+                 return HttpResponseRedirect(f"/users/leave-request/{currentUser["slug"]}")
+        else:
+            return Http404()
+    except Exception as e:
+        return HttpResponseServerError(e)
+    
+
+def leaveRequest(request , slug):
+    try:
+        user = request.session["user"]
+        org = Organization.objects.get(slug = slug)
+        owner = OwnerDetails.objects.filter(OrganizationId = org).values_list('userId_id', flat=True).distinct()
+        print(owner)
+        member = TeamMember.objects.filter(Q(OrganizationId = org) & ~Q(userId_id__in = owner)).values_list('userId_id', flat=True).distinct()
+        print(member)
+        print("org.contactEmail")
+        print(org.webSiteLink)
+        orgSize = len(owner) + len(member)
+
+        userData = get_object_or_404(Users , _id = user["_id"])
+        org = get_object_or_404( Organization, _id = user["currentActiveOrganization"])
+        print("leaveRequest")
+        search=""
+        rows=10
+        page=0
+        data = request.POST
+        print(data)
+
+
+        if(data.get("search" , "") not in [None , "" ]):
+            search = data["search"]
+        
+        
+        if(data.get("rows" ,"") not in [None , "" ]):
+            rows = int(data["rows"])
+        
+        
+        if(data.get("page" , "") not in [None , "" ]):
+            page = int(data["page"])
+        
+
+        print(search , rows)
+
+        skip = page*rows
+        print(userData)
+        print(org)
+
+        leaveReq = LeaveRequest.objects.filter(Q(createdBy = userData) & Q(Organization = org) &
+         (
+        Q(status__icontains=search) |
+        Q(reason__icontains=search) |
+        Q(leaveType__icontains=search) |
+        Q(fromDate__icontains=search) |
+        Q(toDate__icontains=search) 
+        )).order_by("-createdAt")
+        
+        openAction = True
+        editAction = False
+        deleteAction = True
+
+        print("leaveReq===>")
+        print(leaveReq)
+
+        tableTitle , tableData  = formateLeaveRequest(leaveReq)
+        
+
+        return render(request ,"LeaveRequest.html" , 
+                       {
+                "slug" : slug ,
+                "user" : user,
+                "org": org ,
+                "page" : "leave-request" ,
+                "logo" : f"{os.environ.get('FRONTEND')}/media/{org.logo}" ,
+                "orgSize" : orgSize,
+                "endpoint":"organization",
+                "baseUrl" : os.environ.get('FRONTEND'),
+                "totalRequests" : np.arange(0, math.ceil(len(leaveReq)/10)),
+                'tableTitle':tableTitle,
+                'tableData':tableData[ skip :  skip + rows],
+                "openAction":openAction,
+                "editAction":editAction,
+                "deleteAction":deleteAction,
+                "columnCount":7,
+                "pageNo":page,
+                "skip":skip,
+                "rows":rows,
+                "search":search
+                    } 
+                      )
+    except Exception as e:
+        print(e)
+        return HttpResponseServerError(e)
+
+def LeaveRequestDetails(request , slug , id):
+    try:
+        currentUser = request.session["user"]
+        userData = get_object_or_404(Users , _id = currentUser["_id"])
+
+        leaveReq = get_object_or_404(LeaveRequest , id = id , createdBy = userData)
+
+        return render(request , "LeaveRequestDetails.html" , {
+            'data' : leaveReq
+        })
     except Exception as e:
         return HttpResponseServerError(e)

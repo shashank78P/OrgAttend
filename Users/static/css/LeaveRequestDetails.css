@@ -1,0 +1,36 @@
+.lightText{
+    font-size: 14px;
+    color: var(--slate-500);
+    font-weight: 500;
+}
+
+.leaveReqTags{
+    text-transform: uppercase;
+}
+
+.leaveReqTags select{
+    border: 0;
+    font-size: 16px;
+}
+
+.darkText{
+    font-weight: 500;
+}
+
+.sec_row{
+    margin-bottom: 10px;
+}
+
+.leaveRequestContainer{
+    width: 80vw;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.leaveReqRow{
+    padding: 15px 0;
+}
+
+.secondRow , .firstRow{
+    border-bottom: 1px solid var(--slate-200);
+}

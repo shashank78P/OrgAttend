@@ -1,3 +1,4 @@
+from datetime import date
 from django import forms
 from django.core.exceptions import ValidationError
 
@@ -80,5 +81,45 @@ class logInForm(forms.Form):
             "required" :"Password is required",
             "max_length" :"Password is to large",
             "min_length" :"Password must have atleast 8 character"
+        }
+    )
+    
+class LeaveRequestForm(forms.Form):
+    LeaveType = forms.ChoiceField(
+            choices= (
+                ("Privilege Leave","Privilege Leave"),
+                ("Casual Leave","Casual Leave"),
+                ("Sick Leave","Sick Leave"),
+                ("Maternity Leave","Maternity Leave"),
+            ),
+            label="LeaveType",
+            required=True,
+            error_messages={
+                "required": "Leave type is required",
+            }
+    )
+    From = forms.DateField(
+        label="From",
+        widget=forms.DateInput(attrs={'type': 'date' , 'min' : date.today().strftime('%Y-%m-%d')} ),
+        error_messages={
+            "required" :"From Date is required",
+        }
+    )
+    To = forms.DateField(
+        label="To",
+        widget=forms.DateInput(attrs={'type': 'date'} ),
+        error_messages={
+            "required" :"To Date is required",
+        }
+    )
+    reason = forms.CharField(
+        label="Reason",
+        widget=forms.Textarea(attrs={'placeholder': 'Reason for leave'} ),
+        max_length=10000,
+        min_length=3,
+        error_messages={
+            "required" :"reason is required",
+            "max_length" :"reason is too large",
+            "min_length" :"reason must have atleast 3 character"
         }
     )

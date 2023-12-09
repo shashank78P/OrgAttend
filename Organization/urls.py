@@ -4,7 +4,10 @@ from . import views
 urlpatterns = [
     path("create-organization" , views.createOrganization),
     path("get-all-organization-list" , views.getAllOrganizationList),
+    
+    path("leave-request/add" , views.AddLeaveRequest),
     path("leave-request/<slug:slug>" , views.leaveRequest),
+    path("leave-request/<slug:slug>/<id>" , views.LeaveRequestDetails),
 
     path("teams/<slug:slug>" , views.teams),
     path("teams/<slug:slug>/create-team" , views.createTeam),
@@ -28,6 +31,8 @@ urlpatterns = [
     path("employees/<slug:slug>" , views.employees),
     path("employees/<slug:slug>/add" , views.AddEmployee),
     path("<slug:slug>" , views.companyProfile),
+
+
 ]
     # path("add-job-title" , views.AddJobTitle),
     # path("job-title/<slug:slug>/<id>" , views.jobTitleDetails),

@@ -14,6 +14,8 @@
 <link rel="stylesheet" href={% static "css/CreateOrganization.css" %}>
 <link rel="stylesheet" href={% static "css/UserInfo.css" %}>
 <link rel="stylesheet" href={% static "css/NavigationOptions.css" %}>
+<link rel="stylesheet" href={% static "css/Pagination.css" %}>
+
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src={% static 'js/script.js' %}></script>
@@ -31,4 +33,25 @@
 {% include "NavigationOptions.html" %}
 {% endwith %}
 
+
+{% with page=page app="organization" data=tableData title=tableTitle action='/organization/leave-request'  slug=slug afterSlug=afterSlug isEdit=isEdit isAutoConstructHref="false" showAdd="false" columnCount=columnCount %}
+{% include "table.html" %}
+{% endwith %}
+
+{% with app="organization" total=totalRequests action="/organization/leave-request" slug=slug page=pageNo%}
+{% include "pagination.html" %}
+{% endwith %}
+
+
 {% endblock %}
+
+<script>
+    // let leave = {
+    //    "Privilege Leave" :"#017BF6",
+    //    "Casual Leave" :"#CC6EE3", 
+    //    "Sick Leave" :"#FF6EB4",
+    //    "Maternity Leave" :"#FF9181"
+    // }
+    console.log('leave["Maternity Leave"]')
+    console.log(leave["Maternity Leave"])
+</script>

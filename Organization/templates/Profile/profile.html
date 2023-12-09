@@ -1,3 +1,4 @@
+{% load static %}
 <ul class="flex items-center flex-wrap userCard">
     <li class="userImageSec">
         <img src="{{logo}}" class="OrgProfileImage" alt="xc">
@@ -79,3 +80,23 @@
         </ul>
     </li>
 </ul>
+<script>
+    console.log("{{slug}}")
+    window.addEventListener("load", async () => {
+    console.log("loading data")
+    console.log("{{slug}}")
+    
+    await fetch("/users/set-current-active-organization", {
+        method: "POST", 
+        credentials: "same-origin", 
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken" : document.cookie.split('; ').find(row => row.startsWith('csrftoken=')).split('=')[1]
+        },
+        body: JSON.stringify({
+            slug  : "{{slug}}",
+            // csrftoken : document.cookie.split('; ').find(row => row.startsWith('csrftoken=')).split('=')[1]
+        }),
+    });
+})
+</script>

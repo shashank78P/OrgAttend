@@ -12,4 +12,9 @@ urlpatterns = [
     path("" , views.homePage),
     path("<slug:slug>" , views.home),
     path("profile/<slug:slug>" , views.index , name="user-profile"),
+
+    path("leave-request/<slug:slug>" , views.leaveRequest),
+    path("leave-request/<slug:slug>/add" , views.addLeaveRequest),
+    path("leave-request/<slug:slug>/<id>" , views.editLeaveRequest),
+    path("leave-request/<slug:slug>/delete/<id>" , views.deleteLeaveRequest),
 ]

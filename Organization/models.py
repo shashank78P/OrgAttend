@@ -155,5 +155,20 @@ class Employee(models.Model):
         return f"{self.employee.firstName} {self.employee.lastName}"
 
 
+class LeaveRequest(models.Model):
+    leaveType = models.CharField(max_length=50 , null=True)
+    status = models.CharField(max_length=50 , null=True , default="Pending")
+    fromDate = models.DateField(max_length=50 , null=True)
+    toDate = models.DateField(null=True)
+    reason = models.CharField(max_length=10000 , null=True)
+    Organization = models.ForeignKey(Organization , db_index=True , on_delete=models.CASCADE, null=True)
+    createdBy = models.ForeignKey(Users , on_delete=models.CASCADE , null=True)
+    createdAt = models.DateTimeField(auto_now_add=True , null=True)
+    updatedAt = models.DateTimeField(auto_now=True , null=True)
+
+    def __str__(self):
+        return f"{self.createdBy.firstName} {self.createdBy.middleName} {self.createdBy.lastName} ({self.fromDate}-{self.toDate}) ({self.leaveType})"
+
+
 # tm.objects.filter(OrganizationId = o , TeamId_id__in = teamDetails) 
 #>>> teamMem = t.objects.annotate(count = Count('teammember'))                          

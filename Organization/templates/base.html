@@ -16,22 +16,5 @@
 <body>
     {% block content %}
     {% endblock %}
-    <script>
-        window.addEventListener("load", async () => {
-        console.log("loading data")
-        await fetch("/users/set-current-active-organization", {
-            method: "POST", 
-            credentials: "same-origin", 
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken" : document.cookie.split('; ').find(row => row.startsWith('csrftoken=')).split('=')[1]
-            },
-            body: JSON.stringify({
-                slug  : "{{slug}}",
-                // csrftoken : document.cookie.split('; ').find(row => row.startsWith('csrftoken=')).split('=')[1]
-            }),
-        });
-    })
-    </script>
 </body>
 </html>

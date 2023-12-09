@@ -1,136 +1,133 @@
 <ul class="attendance_calendar shadow">
-        <li>
-            <ul class="flex justify-center items-center">
-                <li class="calender_year_decrement_icon calender_year_decrement" id="calender_year_decrement "
-                    onclick="currentYearDecrement()"
-                >
-                {% with width=15 height=15 color="#64748B"%}
-                {% include 'SvgIcon/HalfArrowUp.html' %}
-                {% endwith %}
-                </li>
-                <li class="calender_year_filter" id="calender_year_filter">2021</li>
-                <li class="calender_year_increment_icon calender_year_increment" id="calender_year_increment calender_year_increment_icon"
-                onclick="currentYearIncrement()"
-                >
-                {% with width=15 height=15 color="#64748B"%}
-                {% include 'SvgIcon/HalfArrowUp.html' %}
-                {% endwith %}
-                </li>
-            </ul>
-        </li>
-        <li>
-            <ul class="flex justify-center items-center flex-wrap month_box" id="month_box">
-                <li>
-                    <ul>
-                        <li class="month_title">Jan</li>
-                        <li>
-                            <ul class="days_container">
-                            </ul>
-                        </li>
-                    </ul>
-                </li>
-                <li>
-                    <ul>
-                        <li class="month_title">Feb</li>
-                        <li>
-                            <ul class="days_container">
-                            </ul>
-                        </li>
-                    </ul>
-                </li>
-                <li>
-                    <ul>
-                        <li class="month_title">Mar</li>
-                        <li>
-                            <ul class="days_container">
-                            </ul>
-                        </li>
-                    </ul>
-                </li>
-                <li>
-                    <ul>
-                        <li class="month_title">Apr</li>
-                        <li>
-                            <ul class="days_container">
-                            </ul>
-                        </li>
-                    </ul>
-                </li>
-                <li>
-                    <ul>
-                        <li class="month_title">May</li>
-                        <li>
-                            <ul class="days_container">
-                            </ul>
-                        </li>
-                    </ul>
-                </li>
-                <li>
-                    <ul>
-                        <li class="month_title">Jun</li>
-                        <li>
-                            <ul class="days_container">
-                            </ul>
-                        </li>
-                    </ul>
-                </li>
-                <li>
-                    <ul>
-                        <li class="month_title">Jul</li>
-                        <li>
-                            <ul class="days_container">
-                            </ul>
-                        </li>
-                    </ul>
-                </li>
-                <li>
-                    <ul>
-                        <li class="month_title">Aug</li>
-                        <li>
-                            <ul class="days_container">
-                            </ul>
-                        </li>
-                    </ul>
-                </li>
-                <li>
-                    <ul>
-                        <li class="month_title">Sep</li>
-                        <li>
-                            <ul class="days_container">
-                            </ul>
-                        </li>
-                    </ul>
-                </li>
-                <li>
-                    <ul>
-                        <li class="month_title">Oct</li>
-                        <li>
-                            <ul class="days_container">
-                            </ul>
-                        </li>
-                    </ul>
-                </li>
-                <li>
-                    <ul>
-                        <li class="month_title">Nov</li>
-                        <li>
-                            <ul class="days_container">
-                            </ul>
-                        </li>
-                    </ul>
-                </li>
-                <li>
-                    <ul>
-                        <li class="month_title">Dec</li>
-                        <li>
-                            <ul class="days_container">
-                            </ul>
-                        </li>
-                    </ul>
-                </li>
+    <li>
+        <ul class="flex justify-center items-center flex-wrap month_box" id="month_box">
+            <li>
+                <ul>
+                    <li class="month_title">Jan</li>
+                    <li>
+                        <ul class="days_container">
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <ul>
+                    <li class="month_title">Feb</li>
+                    <li>
+                        <ul class="days_container">
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <ul>
+                    <li class="month_title">Mar</li>
+                    <li>
+                        <ul class="days_container">
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <ul>
+                    <li class="month_title">Apr</li>
+                    <li>
+                        <ul class="days_container">
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <ul>
+                    <li class="month_title">May</li>
+                    <li>
+                        <ul class="days_container">
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <ul>
+                    <li class="month_title">Jun</li>
+                    <li>
+                        <ul class="days_container">
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <ul>
+                    <li class="month_title">Jul</li>
+                    <li>
+                        <ul class="days_container">
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <ul>
+                    <li class="month_title">Aug</li>
+                    <li>
+                        <ul class="days_container">
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <ul>
+                    <li class="month_title">Sep</li>
+                    <li>
+                        <ul class="days_container">
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <ul>
+                    <li class="month_title">Oct</li>
+                    <li>
+                        <ul class="days_container">
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <ul>
+                    <li class="month_title">Nov</li>
+                    <li>
+                        <ul class="days_container">
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <ul>
+                    <li class="month_title">Dec</li>
+                    <li>
+                        <ul class="days_container">
+                        </ul>
+                    </li>
+                </ul>
+            </li>
 
-            </ul>
-        </li>
+        </ul>
+    </li>
+    <li>
+        <ul class="flex justify-center items-center">
+            <li class="calender_year_decrement_icon calender_year_decrement" id="calender_year_decrement "
+                onclick="currentYearDecrement()">
+                {% with width=15 height=15 color="#64748B"%}
+                {% include 'SvgIcon/HalfArrowUp.html' %}
+                {% endwith %}
+            </li>
+            <li class="calender_year_filter" id="calender_year_filter">2021</li>
+            <li class="calender_year_increment_icon calender_year_increment"
+                id="calender_year_increment calender_year_increment_icon" onclick="currentYearIncrement()">
+                {% with width=15 height=15 color="#64748B"%}
+                {% include 'SvgIcon/HalfArrowUp.html' %}
+                {% endwith %}
+            </li>
+        </ul>
+    </li>
+
 </ul>
-
- 

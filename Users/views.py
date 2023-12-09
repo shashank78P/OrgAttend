@@ -1,15 +1,18 @@
+import math
+import numpy as np
 import json
 import os
 from django.shortcuts import render , get_object_or_404
 from django.http import HttpResponse ,HttpResponseServerError , HttpResponseRedirect, JsonResponse ,Http404
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password , check_password
-from .forms import signUpForm , logInForm
+from .forms import LeaveRequestForm, signUpForm , logInForm
 from .models import Users 
-from Organization.models import Organization
+from Organization.models import LeaveRequest, Organization
 from datetime import datetime , timedelta
 import jwt
 from dotenv import load_dotenv
+from django.db.models import Q
 
 # Create your views here.
 
@@ -198,3 +201,144 @@ def getUserByEmail(email):
         # })
     except Exception as e:
         return JsonResponse({ 'error' : True , 'message' : e})
+
+def formateLeaveRequest(leaveRequestData):
+    try:
+        tableTitle = ["name","status","leaveType","fromDate","toDate","reason"]
+        tableData = []
+        print(tableTitle)
+        for i in  range(0,len(leaveRequestData)):
+            data = leaveRequestData[i]
+            print(data)
+
+            tableData.append([ 
+                f'{data.createdBy.firstName} {data.createdBy.middleName} {data.createdBy.lastName}',
+                f'{data.status}',
+                f'{data.leaveType}',
+                f'{data.fromDate}',
+                f'{data.toDate}',
+                f'{data.reason}',
+                f'{data.id}',
+            ])
+        return tableTitle , tableData
+    except Exception as e:
+        return HttpResponseServerError(e)
+
+def leaveRequest(request , slug): 
+    try:
+        currentUser = request.session["user"]
+        userData = get_object_or_404(Users , _id = currentUser["_id"])
+        org = get_object_or_404( Organization, _id = currentUser["currentActiveOrganization"])
+        print("leaveRequest")
+        search=""
+        rows=10
+        page=0
+        data = request.POST
+        print(data)
+
+
+        if(data.get("search" , "") not in [None , "" ]):
+            search = data["search"]
+        
+        
+        if(data.get("rows" ,"") not in [None , "" ]):
+            rows = int(data["rows"])
+        
+        
+        if(data.get("page" , "") not in [None , "" ]):
+            page = int(data["page"])
+        
+
+        print(search , rows)
+
+        skip = page*rows
+        print(userData)
+        print(org)
+
+        leaveReq = LeaveRequest.objects.filter(Q(createdBy = userData) & Q(Organization = org) &
+         (
+        Q(status__icontains=search) |
+        Q(reason__icontains=search) |
+        Q(leaveType__icontains=search) |
+        Q(fromDate__icontains=search) |
+        Q(toDate__icontains=search) 
+        )).order_by("-createdAt")
+        
+        openAction = True
+        editAction = False
+        deleteAction = True
+
+        print("leaveReq===>")
+        print(leaveReq)
+
+        tableTitle , tableData  = formateLeaveRequest(leaveReq)
+        
+        # t.objects.annotate(totalMem = Count("teammember")) 
+        return render(request ,"UserLeaveRequest.html" , { 
+            "slug" : slug ,
+            # "org": org ,
+            "user" : currentUser,
+            # "orgSize":orgSize,
+            "afterSlug":"add",
+            # "logo" : f"{os.environ.get('FRONTEND')}/media/{org.logo}" ,
+            "baseUrl" : os.environ.get('FRONTEND'), 
+            "endpoint":"users",
+            "page" : "leave-request" ,
+            "totalRequests" : np.arange(0, math.ceil(len(leaveReq)/10)),
+            'tableTitle':tableTitle,
+            'tableData':tableData[ skip :  skip + rows],
+            "openAction":openAction,
+            "editAction":editAction,
+            "deleteAction":deleteAction,
+            "columnCount":7,
+            "pageNo":page,
+            "skip":skip,
+            "rows":rows,
+            "search":search
+             })
+        
+    except Exception as e:
+        return HttpResponseServerError(e)
+    
+def addLeaveRequest(request , slug):
+    try:
+        currentUser = request.session["user"]
+
+        userData = get_object_or_404(Users , _id = currentUser["_id"])
+        form = LeaveRequestForm()
+        return render(request , "AddLeaveRequest.html" , {
+            'slug' : slug,
+            'form' : form
+            })
+    except Exception as e:
+        return HttpResponse(e)
+    
+def editLeaveRequest(request , slug , id):
+    try:
+        currentUser = request.session["user"]
+        userData = get_object_or_404(Users , _id = currentUser["_id"])
+
+        leaveReq = get_object_or_404(LeaveRequest , id = id , createdBy = userData)
+
+        return render(request , "LeaveRequestDetails.html" , {
+            'data' : leaveReq
+        })
+    except Exception as e:
+        return HttpResponseServerError(e)
+
+def editLeaveRequestStatus(request , slug , id):
+    try:
+        status 
+        pass
+    except Exception as e:
+        return HttpResponse(e)
+
+def deleteLeaveRequest(request ,slug , id):
+    try:
+        currentUser = request.session["user"]
+        userData = get_object_or_404(Users , _id = currentUser["_id"])
+
+        LeaveRequest.objects.filter(id = id , createdBy = userData).delete()
+        return HttpResponseRedirect(f"/users/leave-request/{slug}")
+    except Exception as e:
+        return HttpResponseServerError(e)
