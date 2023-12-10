@@ -4,9 +4,10 @@ from .models import LeaveRequest, OwnerDetails, Organization , Team , TeamMember
 
 class OrganizationAdmin(admin.ModelAdmin):
     list_display = (
-        "_id","name","address","webSiteLink","socialMediaLink","contactEmail","logo","description","createdAt","updatedAt", "slug",
+        "_id","name","address","webSiteLink","logo","socialMediaLink","contactEmail",
+        "description","createdAt","updatedAt", "slug",
     ) 
-    list_display_links = ("_id", "name",)  # Make '_id' clickable
+    list_display_links = ("_id", "name",) 
     list_filter = ("_id","name","createdAt","updatedAt")
 
 class OwnerDetailsAdmin(admin.ModelAdmin):
@@ -34,7 +35,7 @@ class EmployeeAdmin(admin.ModelAdmin):
     list_filter = ("createdAt","updatedAt")
 
 class LeaveRequestAdmin(admin.ModelAdmin):
-    list_display = ("leaveType","status","fromDate","toDate","reason","Organization","createdBy","createdAt","updatedAt") 
+    list_display = ("leaveType","TeamId","status","fromDate","toDate","reason","Organization","createdBy","createdAt","updatedAt") 
     list_filter = ("createdAt","updatedAt")
 
 # Register your models here.

@@ -14,6 +14,11 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 
+import pymysql
+
+# pymysql.version_info = (1,4,5,'final',0)
+# pymysql.install_as_MySQLdb()
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -95,6 +100,16 @@ DATABASES = {
     }
 }
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'stayInTimeTracker',
+#         'USER': "root",
+#         'PASSWORD': "root",
+#         'HOST': '127.0.0.1',
+#         'PORT': "3306",
+#     }
+# }
 # DATABASES = {
 #     'default': {
 #         'ENGINE': os.environ.get('ENGINE'),

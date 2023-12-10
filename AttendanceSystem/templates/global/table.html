@@ -21,11 +21,13 @@
         </ul>
         
         <ul class="flex items-center ">
+            {% if addAction %}
             <li class="table_add_btn" id="table_add_btn">
                 <a id="link_to_add" href="{{action}}{% if slug %}/{{slug}}{% endif %}{%if afterSlug %}/{{afterSlug}}{% endif %}">
                     Add +
                 </a>
             </li>
+            {% endif %}
             <li class="selectTag">
                 rows: <select name="rows" id="" onchange="searchPaginationParam()">
                     <option {% if 5 == rows %} selected {% endif %} for="rows" value="5">5</option>
@@ -45,7 +47,9 @@
                 {% for t in title %}
                 <th>{{t | title}}</th>
                 {% endfor %}
+                {% if openAction and deleteAction and editAction %}
                 <th>Actions</th>
+                {% endif %}
             </tr>
         </thead>
         <tbody>

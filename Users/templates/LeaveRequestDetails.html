@@ -34,12 +34,20 @@
             <ul class="w-full flex iteams-center justify-between">
                 <li class="darkText leaveReqTags">{{data.leaveType}}</li>
                 <li class="darkText leaveReqTags">
-                    <select name="status" id="">
-                        <option value="Pending">PENDING</option>
-                        <option value="Accepted">ACCEPTED</option>
-                        <option value="Rejected">REJECTED</option>
-                    </select>
-                    <!-- {{data.status}} -->
+                    {% if showChangeStatus %}
+                        <form action="/organization/leave-request/{{slug}}/edit/{{id}}" id="changeStatus" method="post">
+                            {% csrf_token %}
+                            <select name="status" id=""
+                                onchange="changeLeaveRequestStatus()"
+                            >
+                                <option {% if data.status == 'PENDING' %} selected {% endif %} value="PENDING">PENDING</option>
+                                <option {% if data.status ==  'ACCEPTED' %} selected {% endif %} value="ACCEPTED">ACCEPTED</option>
+                                <option {% if data.status ==  'REJECTED' %} selected {% endif %} value="REJECTED">REJECTED</option>
+                            </select>
+                        </form>
+                    {% else %}
+                        {{data.status}}
+                        {% endif %}
                 </li>
             </ul>
         </li>
@@ -70,5 +78,14 @@
         </li>
     </ul>
 </div>
+
+<script>
+    console.log("gdfgdfg")
+    function changeLeaveRequestStatus(){
+        let changeStatus = document.getElementById("changeStatus")
+        changeStatus.submit()
+        console.log("gdfgdfg")
+    }
+</script>
 
 {% endblock %}

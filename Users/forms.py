@@ -1,6 +1,9 @@
 from datetime import date
 from django import forms
 from django.core.exceptions import ValidationError
+from django.shortcuts import get_object_or_404
+
+from Organization.models import Team , TeamMember
 
 class signUpForm(forms.Form):
     firstName = forms.CharField(
@@ -123,3 +126,41 @@ class LeaveRequestForm(forms.Form):
             "min_length" :"reason must have atleast 3 character"
         }
     )
+
+    def __init__(self, *args, organization , user, **kwargs):
+        super(LeaveRequestForm, self).__init__(*args, **kwargs)
+
+        # Query the job titles for the specific organization
+        teamMem = TeamMember.objects.filter(OrganizationId=organization ,userId = user)
+
+        team = Team.objects.filter(id__in=teamMem.values_list('TeamId', flat=True))
+
+        print(team)
+        
+        self.fields['team'] = forms.ModelChoiceField(
+            queryset=team,
+            label="Team",
+            required=True,
+            empty_label="Select a Team",
+            error_messages={
+                "required": "Team is required",
+            }
+        )
+
+        new_fields = {
+            'LeaveType': self.fields['LeaveType'],
+            'From': self.fields['From'],
+            'To': self.fields['To'],
+            'team': forms.ModelChoiceField(
+                queryset=team,
+                label="Team",
+                required=True,
+                empty_label="Select a Team",
+                error_messages={
+                    "required": "Team is required",
+                }
+            ),
+            'reason': self.fields['reason'],
+        }
+
+        self.fields = new_fields

@@ -45,6 +45,14 @@ class Users(models.Model):
         null=True,
         validators=[isValidDate]
     )
+    logo = models.ImageField(
+        upload_to="organizationLogo",
+        default="organization.png",
+        max_length=20000 , 
+        error_messages={
+            'invalid': 'Invalid file (file is not acceptable).'
+        },
+    )
     createdAt = models.DateTimeField(auto_now_add=True)
     updatedAt = models.DateTimeField(auto_now=True)
     password = models.CharField(

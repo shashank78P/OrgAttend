@@ -15,6 +15,6 @@ urlpatterns = [
 
     path("leave-request/<slug:slug>" , views.leaveRequest),
     path("leave-request/<slug:slug>/add" , views.addLeaveRequest),
-    path("leave-request/<slug:slug>/<id>" , views.editLeaveRequest),
+    path("leave-request/<slug:slug>/<id>" , views.seeLeaveRequest),
     path("leave-request/<slug:slug>/delete/<id>" , views.deleteLeaveRequest),
 ]

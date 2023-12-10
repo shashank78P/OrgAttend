@@ -161,8 +161,10 @@ class LeaveRequest(models.Model):
     fromDate = models.DateField(max_length=50 , null=True)
     toDate = models.DateField(null=True)
     reason = models.CharField(max_length=10000 , null=True)
+    TeamId = models.ForeignKey(Team , db_index=True , on_delete=models.CASCADE, null=True)
     Organization = models.ForeignKey(Organization , db_index=True , on_delete=models.CASCADE, null=True)
-    createdBy = models.ForeignKey(Users , on_delete=models.CASCADE , null=True)
+    createdBy = models.ForeignKey(Users , on_delete=models.CASCADE , null=True , related_name="leaveRequestCreatedBy")
+    verifiedBy = models.ForeignKey(Users , on_delete=models.CASCADE , null=True , related_name="verifiedBy")
     createdAt = models.DateTimeField(auto_now_add=True , null=True)
     updatedAt = models.DateTimeField(auto_now=True , null=True)
 
@@ -172,3 +174,11 @@ class LeaveRequest(models.Model):
 
 # tm.objects.filter(OrganizationId = o , TeamId_id__in = teamDetails) 
 #>>> teamMem = t.objects.annotate(count = Count('teammember'))                          
+
+# def runQuery(query):
+    # cursor = connection.cursor()
+    # cursor.execute(query)
+    # return cursor.fetchall()
+# 
+# from django.db import connection                                                                                 
+# runQuery("select * from Users_users") 

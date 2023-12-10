@@ -255,7 +255,8 @@ def leaveRequest(request , slug):
         print(userData)
         print(org)
 
-        leaveReq = LeaveRequest.objects.filter(Q(createdBy = userData) & Q(Organization = org) &
+        leaveReq = LeaveRequest.objects.filter(
+            Q(createdBy = userData) & Q(Organization = org) &
          (
         Q(status__icontains=search) |
         Q(reason__icontains=search) |
@@ -276,11 +277,8 @@ def leaveRequest(request , slug):
         # t.objects.annotate(totalMem = Count("teammember")) 
         return render(request ,"UserLeaveRequest.html" , { 
             "slug" : slug ,
-            # "org": org ,
             "user" : currentUser,
-            # "orgSize":orgSize,
             "afterSlug":"add",
-            # "logo" : f"{os.environ.get('FRONTEND')}/media/{org.logo}" ,
             "baseUrl" : os.environ.get('FRONTEND'), 
             "endpoint":"users",
             "page" : "leave-request" ,
@@ -303,9 +301,9 @@ def leaveRequest(request , slug):
 def addLeaveRequest(request , slug):
     try:
         currentUser = request.session["user"]
-
+        org = get_object_or_404( Organization, _id = currentUser["currentActiveOrganization"])
         userData = get_object_or_404(Users , _id = currentUser["_id"])
-        form = LeaveRequestForm()
+        form = LeaveRequestForm( organization = org,user = userData)
         return render(request , "AddLeaveRequest.html" , {
             'slug' : slug,
             'form' : form
@@ -313,7 +311,7 @@ def addLeaveRequest(request , slug):
     except Exception as e:
         return HttpResponse(e)
     
-def editLeaveRequest(request , slug , id):
+def seeLeaveRequest(request , slug , id):
     try:
         currentUser = request.session["user"]
         userData = get_object_or_404(Users , _id = currentUser["_id"])
@@ -321,18 +319,13 @@ def editLeaveRequest(request , slug , id):
         leaveReq = get_object_or_404(LeaveRequest , id = id , createdBy = userData)
 
         return render(request , "LeaveRequestDetails.html" , {
-            'data' : leaveReq
+            'data' : leaveReq,
+            "slug" : slug,
+            'id' : id
         })
     except Exception as e:
         return HttpResponseServerError(e)
-
-def editLeaveRequestStatus(request , slug , id):
-    try:
-        status 
-        pass
-    except Exception as e:
-        return HttpResponse(e)
-
+    
 def deleteLeaveRequest(request ,slug , id):
     try:
         currentUser = request.session["user"]

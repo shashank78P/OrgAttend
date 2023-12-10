@@ -14,32 +14,40 @@
             </ul>
         </a>
         {% endif %}
-        <a href="{{baseUrl}}/{{endpoint}}/leave-request/{{slug}}">
-            <ul class="nav_link_card  {% if page == 'leave-request' %} active_nav_link_card  {% endif %}">
-                <li class="icon"></li>
-                <li class="w-full truncate navText">Leave Request</li>
-            </ul>
-        </a>
+        {% if navOptions.leave_request %}
+            <a href="{{baseUrl}}/{{endpoint}}/leave-request/{{slug}}">
+                <ul class="nav_link_card  {% if page == 'leave-request' %} active_nav_link_card  {% endif %}">
+                    <li class="icon"></li>
+                    <li class="w-full truncate navText">Leave Request</li>
+                </ul>
+            </a>
+        {% endif %}
         {% if app == 'organization' %}
-        <a href="{{baseUrl}}/{{endpoint}}/job-title/{{slug}}">
-            <ul class="nav_link_card  {% if page == 'job-title' %} active_nav_link_card  {% endif %}">
-                <li class="icon">
-                </li>
-                <li class="w-full truncate navText">Job Title</li>
-            </ul>
-        </a>  
-        <a href="{{baseUrl}}/{{endpoint}}/teams/{{slug}}">
-            <ul class="nav_link_card  {% if page == 'teams' %} active_nav_link_card  {% endif %}">
-                <li class="icon"></li>
-                <li class="w-full truncate navText">Teams</li>
-            </ul>
-        </a>
-        <a href="{{baseUrl}}/{{endpoint}}/employees/{{slug}}">
-            <ul class="nav_link_card  {% if page == 'employees' %} active_nav_link_card  {% endif %}">
-                <li class="icon"></li>
-                <li class="w-full truncate navText">Employees</li>
-            </ul>
-        </a>
+            {% if navOptions.job_title %}
+                <a href="{{baseUrl}}/{{endpoint}}/job-title/{{slug}}">
+                    <ul class="nav_link_card  {% if page == 'job-title' %} active_nav_link_card  {% endif %}">
+                        <li class="icon">
+                        </li>
+                        <li class="w-full truncate navText">Job Title</li>
+                    </ul>
+                </a>  
+            {% endif %}
+            {% if navOptions.teams %}
+                <a href="{{baseUrl}}/{{endpoint}}/teams/{{slug}}">
+                    <ul class="nav_link_card  {% if page == 'teams' %} active_nav_link_card  {% endif %}">
+                        <li class="icon"></li>
+                        <li class="w-full truncate navText">Teams</li>
+                    </ul>
+                </a>
+            {% endif %}
+            {% if navOptions.employees %}
+                <a href="{{baseUrl}}/{{endpoint}}/employees/{{slug}}">
+                    <ul class="nav_link_card  {% if page == 'employees' %} active_nav_link_card  {% endif %}">
+                        <li class="icon"></li>
+                        <li class="w-full truncate navText">Employees</li>
+                    </ul>
+                </a>
+            {% endif %}
         {% endif %}
     </li>
 </ul>

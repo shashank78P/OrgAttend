@@ -7,8 +7,8 @@ class AddressAdmin(admin.ModelAdmin):
 
 class UserAdmin(admin.ModelAdmin):
     readonly_fields = ("password","passwordReSetId","slug")
-    list_display = ("_id","firstName","middleName","lastName","DOB","address","createdAt","updatedAt","password","passwordReSetId","email","phoneNumber","address","currentActiveOrganization","slug",) 
-    list_display_links = ("_id", "firstName", "middleName", "lastName")  # Make '_id' clickable
+    list_display = ("_id","firstName","middleName","lastName","DOB","address","logo","createdAt","updatedAt","password","passwordReSetId","email","phoneNumber","address","currentActiveOrganization","slug",) 
+    list_display_links = ("_id", "firstName", "middleName", "lastName")  
     list_filter = ("_id","firstName","middleName","lastName","DOB","createdAt","updatedAt","email","phoneNumber")
 
 # Register your models here.
