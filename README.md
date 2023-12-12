@@ -44,5 +44,3 @@ Here are some key features:
 - **Email:** your_email@example.com
 - **LinkedIn:** [Your LinkedIn Profile](link_to_linkedin)
 - **GitHub:** [Your GitHub Profile](link_to_github)
-
-Feel free to customize the content based on the specifics of your project. Include screenshots, links, or any other details that showcase your work effectively. This will provide a clear understanding of your contributions and the project's scope to potential employers or collaborators.
