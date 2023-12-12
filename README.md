@@ -41,6 +41,4 @@ Here are some key features:
 
 ## Contact Me
 
-- **Email:** your_email@example.com
-- **LinkedIn:** [Your LinkedIn Profile](link_to_linkedin)
-- **GitHub:** [Your GitHub Profile](link_to_github)
+- **Email:** 19.shashank.p@gmail.com
