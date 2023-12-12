@@ -5,7 +5,7 @@ from django.http import HttpResponseServerError , HttpResponseNotAllowed, JsonRe
 from django.shortcuts import render , get_object_or_404
 import requests
 from Organization.forms import createOrganizationForm, createTeamForm , addEmployeeForm , addJobTitleForm , ChangeEmployeeRoleInTeam , addEmployeeToTeam, editEmployeeForm
-from Organization.models import LeaveRequest, Organization ,OwnerDetails , Team ,TeamMember , Employee , Job_title
+from Organization.models import Attendance, LeaveRequest, Organization ,OwnerDetails , Team ,TeamMember , Employee , Job_title
 from Users.forms import LeaveRequestForm
 from Users.models import Address, Users
 from Users.views import formateLeaveRequest, getUserByEmail
@@ -634,6 +634,8 @@ def teamMembersDetails(request , slug , id):
             "org": org ,
             "user" : user,
             "orgSize":orgSize,
+            "takeAttendance" : True,
+            "teamId" : id,
             "afterSlug":f"add/{id}",
             "logo" : f"{os.environ.get('FRONTEND')}/media/{org.logo}" ,
             "baseUrl" : os.environ.get('FRONTEND'), 
@@ -643,6 +645,7 @@ def teamMembersDetails(request , slug , id):
             "teamsMembersDetails" : teamsMembersDetails[ skip :  skip + rows],
             "totalMemeberTeams" : np.arange(0, math.ceil(len(teamsMembersDetails)/10)),
             'tableTitle':tableTitle,
+            'navOptions' :navOptions,
             'tableData':tableData[ skip :  skip + rows],
             "openAction":openAction,
             "editAction":editAction,
@@ -1630,5 +1633,58 @@ def editLeaveRequestStatus(request , slug , id):
                 return HttpResponseRedirect(f"/organization/leave-request/{slug}")
         else:
             return Http404()
+    except Exception as e:
+        return HttpResponseServerError(e)
+
+
+def takeAttendance(request , slug , teamId):
+    try:
+        user = request.session["user"]
+        userData = get_object_or_404(Users , _id = user["_id"])
+        data = Attendance.objects.raw('SELECT a.*, COUNT(a.id) AS total_days, SUM(CASE WHEN a.attendance = 1 THEN 1 ELSE 0 END) AS days_present, SUM(CASE WHEN a.attendance = 0 THEN 1 ELSE 0 END) AS days_absent FROM Organization_attendance a , Users_users as u WHERE a.TeamId_id = 45 and u._id = userId_id GROUP BY a.userId_id ORDER BY u.firstName, u.middleName ,u.lastName;')
+        att_data = []
+        for d in data:
+            user = {
+                'userId' : d.userId._id,
+                'name' : f"{d.userId.firstName} {d.userId.middleName} {d.userId.lastName}",
+                'percentage' : math.ceil((d.days_present / d.total_days) * 100)
+            }
+            att_data.append(user)
+        print(att_data)
+
+        return render(request , "Attendance.html", {
+            "att_data" : att_data,
+            "slug" : slug,
+            "teamId" : teamId
+        })
+    except Exception as e:
+        return HttpResponseServerError(e)
+
+def saveAttendance(request , slug , teamId):
+    try:
+        if request.method == "POST":
+            user = request.session["user"]
+            userData = get_object_or_404(Users , _id = user["_id"])
+            data = request.POST
+            org = getOrgBySlug(request,slug)
+            team = get_object_or_404(Team , id = teamId)
+            teamMembers = TeamMember.objects.filter(
+                TeamId = team,
+                OrganizationId = org
+            )
+            for teamMem in teamMembers:
+                isPresent = False
+                if(data.get(f'{teamMem.userId._id}') == 'on'):
+                    isPresent = True
+                
+                att = Attendance(
+                    attendance = isPresent,
+                    TeamId = team,
+                    Organization = org, 
+                    createdBy = userData,
+                    userId = teamMem.userId
+                )
+                att.save()
+            return HttpResponseRedirect(f"/organization/teams/{slug}/{teamId}")
     except Exception as e:
         return HttpResponseServerError(e)

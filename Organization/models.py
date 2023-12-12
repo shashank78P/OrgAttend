@@ -171,6 +171,19 @@ class LeaveRequest(models.Model):
     def __str__(self):
         return f"{self.createdBy.firstName} {self.createdBy.middleName} {self.createdBy.lastName} ({self.fromDate}-{self.toDate}) ({self.leaveType})"
 
+class Attendance(models.Model):
+    note = models.CharField(max_length=10000 , null=True)
+    attendance = models.BooleanField(default=False)
+    TeamId = models.ForeignKey(Team , db_index=True , on_delete=models.CASCADE, null=True)
+    Organization = models.ForeignKey(Organization , db_index=True , on_delete=models.CASCADE, null=True)
+    createdBy = models.ForeignKey(Users , on_delete=models.CASCADE , null=True , related_name="attendanceTaken")
+    userId = models.ForeignKey(Users , on_delete=models.CASCADE , null=True , related_name="user_employee")
+    createdAt = models.DateTimeField(auto_now_add=True , null=True)
+    updatedAt = models.DateTimeField(auto_now=True , null=True)
+
+    def __str__(self):
+        return f"{self.userId.firstName} {self.userId.middleName} {self.userId.lastName} ({self.createdAt}) ({self.attendance})"
+
 
 # tm.objects.filter(OrganizationId = o , TeamId_id__in = teamDetails) 
 #>>> teamMem = t.objects.annotate(count = Count('teammember'))                          

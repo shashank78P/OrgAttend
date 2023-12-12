@@ -117,7 +117,10 @@ def home(request , slug) :
     try:    
         user = request.session["user"]
         print(user)
-        return render(request ,"Home.html" , { 'slug' : slug , "user" : user , "endpoint":"users" , "baseUrl" : os.environ.get('FRONTEND')})
+        navOptions = {
+            "leave_request" : True,
+        }
+        return render(request ,"Home.html" , {"navOptions" : navOptions, 'slug' : slug , "user" : user , "endpoint":"users" , "baseUrl" : os.environ.get('FRONTEND')})
     except Exception as e:
         print('Internal Server error')
         return HttpResponseServerError(e)
@@ -155,7 +158,10 @@ def setCurrentActiveOrganization(request):
 def attendanceHistory(request , slug) :
     try:
         user = request.session["user"]
-        return render(request ,"AttendanceHistory.html" , { 'slug' : slug , "user" : user , "endpoint":"users" , "baseUrl" : os.environ.get('FRONTEND')})
+        navOptions = {
+            "leave_request" : True,
+        }
+        return render(request ,"AttendanceHistory.html" , {"navOptions" : navOptions, 'slug' : slug , "user" : user , "endpoint":"users" , "baseUrl" : os.environ.get('FRONTEND')})
     except Exception as e:
             print(e)
             HttpResponseServerError(e)
@@ -268,6 +274,9 @@ def leaveRequest(request , slug):
         openAction = True
         editAction = False
         deleteAction = True
+        navOptions = {
+            "leave_request" : True,
+        }
 
         print("leaveReq===>")
         print(leaveReq)
@@ -288,6 +297,7 @@ def leaveRequest(request , slug):
             "openAction":openAction,
             "editAction":editAction,
             "deleteAction":deleteAction,
+            "navOptions" : navOptions,
             "columnCount":7,
             "pageNo":page,
             "skip":skip,

@@ -30,9 +30,19 @@
 
 <div class="flex justify-center iteams-center leaveRequestFrame">
     <ul class="w-full shadow leaveRequestContainer">
+        <li class="title leaveReqDetails" style="text-align: center;">Leave Detailed Page</li>
         <li class="w-full leaveReqRow firstRow">
             <ul class="w-full flex iteams-center justify-between">
-                <li class="darkText leaveReqTags">{{data.leaveType}}</li>
+                <li class="darkText leaveReqTags">
+                    <ul>
+                        <li></li>
+                        <li>
+                            <ul>
+                                <li>{{ data.createdBy.firstName }} {{data.createdBy.middleName}} {{data.createdBy.lastName}}</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
                 <li class="darkText leaveReqTags">
                     {% if showChangeStatus %}
                         <form action="/organization/leave-request/{{slug}}/edit/{{id}}" id="changeStatus" method="post">
@@ -47,28 +57,44 @@
                         </form>
                     {% else %}
                         {{data.status}}
-                        {% endif %}
+                    {% endif %}
                 </li>
             </ul>
         </li>
         <li class="w-full leaveReqRow secondRow">
-            <ul class="w-full flex iteams-center justify-between">
+            <ul class="w-full secondRowUl">
                 <li class="w-full ">
-                    <ul class="w-full ">
+                    <ul class="w-full mini_card">
                         <li class="w-full lightText sec_row">From Date</li>
                         <li class="w-full darkText ">{{data.fromDate}}</li>
                     </ul>
                 </li>
                 <li class="w-full ">
-                    <ul class="w-full ">
-                        <li class="w-full lightText sec_row">From Date</li>
+                    <ul class="w-full mini_card">
+                        <li class="w-full lightText sec_row">To Date</li>
                         <li class="w-full darkText ">{{data.toDate}}</li>
                     </ul>
                 </li>
                 <li class="w-full ">
-                    <ul class="w-full ">
-                        <li class="w-full lightText sec_row">Total</li>
-                        <li class="w-full darkText ">3</li>
+                    <ul class="w-full mini_card">
+                        <li class="w-full lightText sec_row">Team Name</li>
+                        <li class="w-full darkText ">{{data.TeamId.name}}</li>
+                    </ul>
+                </li>
+                <li class="w-full ">
+                    <ul class="w-full mini_card">
+                        <li class="w-full lightText sec_row">Leave Type</li>
+                        <li class="w-full darkText ">{{data.leaveType}}</li>
+                    </ul>
+                </li>
+                <li class="w-full ">
+                    <ul class="w-full mini_card">
+                        <li class="w-full lightText sec_row">Verified By</li>
+                        <li class="w-full darkText ">
+                            {{data.verifiedBy.firstName}}
+                            {{data.verifiedBy.middleName}}
+                            {{data.verifiedBy.lastName}}
+                        </li>
                     </ul>
                 </li>
             </ul>

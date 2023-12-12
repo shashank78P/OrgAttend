@@ -34,3 +34,42 @@
 .secondRow , .firstRow{
     border-bottom: 1px solid var(--slate-200);
 }
+
+.leaveReqDetails{
+    margin: 10px 0;
+}
+/* .mini_card{
+    min-width: 50px;
+} */
+
+.secondRowUl{
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    place-content: center;
+    gap: 20px;
+}
+
+.secondRowUl li{
+}
+
+@media screen and (max-width : 700px) {
+    .secondRowUl{
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media screen and (max-width : 500px) {
+    .secondRowUl{
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .leaveRequestContainer{
+        width: 95vw;
+        padding: 5px;
+        border-radius: 5px;
+    }
+    
+    .leaveReqRow{
+        padding: 10px 0;
+    }
+}

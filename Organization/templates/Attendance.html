@@ -13,8 +13,10 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src={% static 'js/script.js' %}></script>
+{% endblock %}
 
-
+{% block content %}
+{{data}}
 <div class="att_container">
 
     <div>
@@ -174,71 +176,35 @@
     </div>
 
     <div>
-        <ul class="flex justify-between items-center box-shadow att_row">
-            <li class="att_user_img">
-                <img src="../../static/images/tempImage.png" alt="">
-            </li>
-            <li class="w-full">
-                <ul class="w-full flex flex-col justify-evenly att_user_info">
-                    <li>Temp user</li>
-                    <li class="text-sm att_percentage">75%</li>
-                </ul>
-            </li>
-            <li>
-                <div id="1" class="checkBox flex items-center" onclick="MarkCheck(1)">
-                    <span id="1ring" class="checkBox_ring"></span>
-                </div>
-            </li>
-        </ul>
+        <form action="/organization/teams/{{slug}}/attendance/{{teamId}}/save" method="post">
+            {% csrf_token %}
+            {% for t in att_data %}
+            <ul class="flex justify-between items-center box-shadow att_row">
+                <li class="att_user_img">
+                    <img src="../../static/images/tempImage.png" alt="">
+                </li>
+                <li class="w-full">
+                    <ul class="w-full flex flex-col justify-evenly att_user_info">
+                        <li>{{t.name}}</li>
+                        <li class="text-sm att_percentage">
+                            {{t.percentage}}%
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    <label for="{{t.userId}}">
+                        <input type="checkbox" name="{{t.userId}}" id="{{t.userId}}">
+                        <div id="{{t.userId}}div" class="checkBox att_check_box flex items-center"
+                            onclick="MarkCheck('{{t.userId}}')">
+                            <span id="{{t.userId}}ring" class="checkBox_ring"></span>
+                        </div>
+                    </label>
+                </li>
+            </ul>
+            {% endfor %}
+            <input type="submit" value="Save">
+        </form>
 
-        <ul class="flex justify-between items-center box-shadow att_row">
-            <li class="att_user_img">
-                <img src="../../static/images/tempImage.png" alt="">
-            </li>
-            <li class="w-full">
-                <ul class="w-full flex flex-col justify-evenly att_user_info">
-                    <li>Temp user</li>
-                    <li class="text-sm att_percentage">75%</li>
-                </ul>
-            </li>
-            <li>
-                <div id="2" class="checkBox flex items-center" onclick="MarkCheck(2)">
-                    <span id="2ring" class="checkBox_ring"></span>
-                </div>
-            </li>
-        </ul>
-        <ul class="flex justify-between items-center box-shadow att_row">
-            <li class="att_user_img">
-                <img src="../../static/images/tempImage.png" alt="">
-            </li>
-            <li class="w-full">
-                <ul class="w-full flex flex-col justify-evenly att_user_info">
-                    <li>Temp user</li>
-                    <li class="text-sm att_percentage">75%</li>
-                </ul>
-            </li>
-            <li>
-                <div id="3" class="checkBox flex items-center" onclick="MarkCheck(3)">
-                    <span id="3ring" class="checkBox_ring"></span>
-                </div>
-            </li>
-        </ul>
-        <ul class="flex justify-between items-center box-shadow att_row">
-            <li class="att_user_img">
-                <img src="../../static/images/tempImage.png" alt="">
-            </li>
-            <li class="w-full">
-                <ul class="w-full flex flex-col justify-evenly att_user_info">
-                    <li>Temp user</li>
-                    <li class="text-sm att_percentage">75%</li>
-                </ul>
-            </li>
-            <li>
-                <div id="4" class="checkBox flex items-center" onclick="MarkCheck(4)">
-                    <span id="4ring" class="checkBox_ring"></span>
-                </div>
-            </li>
-        </ul>
     </div>
 </div>
 
@@ -282,8 +248,6 @@
     });
 </script>
 
-
-
 <script>
     console.log('{{id}}')
     new Chart(document.getElementById('{{id}}'), {
@@ -319,18 +283,27 @@
 
 <script>
     const AttendanceData = {}
+
+    // let att_check_box = document.getElementsByClassName("att_check_box")
+    // for (let i of att_check_box) {
+    //     console.log(i)
+    //     let userId = i.getAttribute("id");
+    //     AttendanceData[userId] = false
+    // }
+
     function MarkCheck(userId) {
-        const ele = document.getElementById(userId)
+        const ele = document.getElementById(`${userId}div`)
         const ring = document.getElementById(`${userId}ring`)
         if (AttendanceData[userId]) {
             ele.classList.remove("activeCheckBox")
             ring.classList.remove("activeCheckBox_ring")
-            AttendanceData[userId] = false
+            // AttendanceData[userId] = false
         } else {
             ele.classList.add("activeCheckBox")
             ring.classList.add("activeCheckBox_ring")
-            AttendanceData[userId] = true
+            // AttendanceData[userId] = true
         }
-        console.log(AttendanceData)
+        // console.log(AttendanceData)
     }
 </script>
+{% endblock %}

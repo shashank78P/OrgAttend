@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import LeaveRequest, OwnerDetails, Organization , Team , TeamMember , Employee ,Job_title
+from .models import Attendance, LeaveRequest, OwnerDetails, Organization , Team , TeamMember , Employee ,Job_title
 
 class OrganizationAdmin(admin.ModelAdmin):
     list_display = (
@@ -35,7 +35,11 @@ class EmployeeAdmin(admin.ModelAdmin):
     list_filter = ("createdAt","updatedAt")
 
 class LeaveRequestAdmin(admin.ModelAdmin):
-    list_display = ("leaveType","TeamId","status","fromDate","toDate","reason","Organization","createdBy","createdAt","updatedAt") 
+    list_display = ("leaveType","TeamId","status","verifiedBy","fromDate","toDate","reason","Organization","createdBy","createdAt","updatedAt") 
+    list_filter = ("createdAt","updatedAt")
+
+class AttendanceAdmin(admin.ModelAdmin):
+    list_display = ("id","note","attendance","TeamId","Organization","createdBy","userId","createdAt","updatedAt",) 
     list_filter = ("createdAt","updatedAt")
 
 # Register your models here.
@@ -46,3 +50,4 @@ admin.site.register(TeamMember , TeamMembersAdmin)
 admin.site.register(Employee , EmployeeAdmin)
 admin.site.register(Job_title , JobTitleAdmin)
 admin.site.register(LeaveRequest , LeaveRequestAdmin)
+admin.site.register(Attendance , AttendanceAdmin)

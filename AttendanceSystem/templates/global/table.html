@@ -21,6 +21,13 @@
         </ul>
         
         <ul class="flex items-center ">
+            {% if takeAttendance %}
+            <li class="table_add_btn" id="table_add_btn">
+                <a href="{{action}}{% if slug %}/{{slug}}/attendance/{{teamId}}{% endif %}">
+                    Take Attendance +
+                </a>
+            </li>
+            {% endif %}
             {% if addAction %}
             <li class="table_add_btn" id="table_add_btn">
                 <a id="link_to_add" href="{{action}}{% if slug %}/{{slug}}{% endif %}{%if afterSlug %}/{{afterSlug}}{% endif %}">
