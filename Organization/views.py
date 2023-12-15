@@ -1640,14 +1640,49 @@ def editLeaveRequestStatus(request , slug , id):
 def takeAttendance(request , slug , teamId):
     try:
         user = request.session["user"]
+        org = getOrgBySlug(request,slug)
+        team = get_object_or_404(Team , id = teamId)
         userData = get_object_or_404(Users , _id = user["_id"])
-        data = Attendance.objects.raw('SELECT a.*, COUNT(a.id) AS total_days, SUM(CASE WHEN a.attendance = 1 THEN 1 ELSE 0 END) AS days_present, SUM(CASE WHEN a.attendance = 0 THEN 1 ELSE 0 END) AS days_absent FROM Organization_attendance a , Users_users as u WHERE a.TeamId_id = 45 and u._id = userId_id GROUP BY a.userId_id ORDER BY u.firstName, u.middleName ,u.lastName;')
+
+        team_data = {
+            "orgName" : org.name,
+            "teamTitle" : team.name,
+            "checkInTime" : team.checkInTime,
+            "OrganizationId" : team.OrganizationId,
+            "checkOutTime" : team.checkOutTime,
+            "description" : team.description,
+        }
+        query = f"""
+                SELECT
+                    tm.*,
+                    a.*,
+                    COUNT(a.id) AS total_days,
+                    SUM(CASE WHEN a.attendance = 1 THEN 1 ELSE 0 END) AS days_present,
+                    SUM(CASE WHEN a.attendance = 0 THEN 1 ELSE 0 END) AS days_absent
+                FROM
+                    Organization_teammember tm
+                LEFT JOIN
+                    Users_users AS u ON tm.userId_id = u._id
+                LEFT JOIN
+                    Organization_attendance AS a ON a.userId_id = u._id AND a.TeamId_id = tm.TeamId_id
+                WHERE
+                    tm.TeamId_id = {teamId}
+                GROUP BY
+                    tm.userId_id
+                ORDER BY
+                    u.firstName, u.middleName, u.lastName;
+        """
+        print(query)
+        data = Attendance.objects.raw(query)
         att_data = []
-        for d in data:
+        for d in data: 
+            percentage = 0
+            if(d.days_present != 0 and d.total_days != 0):
+                percentage = math.ceil((d.days_present / d.total_days) * 100)
             user = {
                 'userId' : d.userId._id,
                 'name' : f"{d.userId.firstName} {d.userId.middleName} {d.userId.lastName}",
-                'percentage' : math.ceil((d.days_present / d.total_days) * 100)
+                'percentage' : percentage
             }
             att_data.append(user)
         print(att_data)
@@ -1655,7 +1690,8 @@ def takeAttendance(request , slug , teamId):
         return render(request , "Attendance.html", {
             "att_data" : att_data,
             "slug" : slug,
-            "teamId" : teamId
+            "teamId" : teamId,
+            "team_data" : team_data
         })
     except Exception as e:
         return HttpResponseServerError(e)
@@ -1672,6 +1708,9 @@ def saveAttendance(request , slug , teamId):
                 TeamId = team,
                 OrganizationId = org
             )
+            print("=============================================")
+            print("request.POST['date']")
+            date = request.POST["date"]
             for teamMem in teamMembers:
                 isPresent = False
                 if(data.get(f'{teamMem.userId._id}') == 'on'):
@@ -1682,7 +1721,8 @@ def saveAttendance(request , slug , teamId):
                     TeamId = team,
                     Organization = org, 
                     createdBy = userData,
-                    userId = teamMem.userId
+                    userId = teamMem.userId,
+                    takenAt = datetime.strptime(date, '%Y-%m-%d').date()
                 )
                 att.save()
             return HttpResponseRedirect(f"/organization/teams/{slug}/{teamId}")

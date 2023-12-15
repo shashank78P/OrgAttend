@@ -39,7 +39,7 @@ class LeaveRequestAdmin(admin.ModelAdmin):
     list_filter = ("createdAt","updatedAt")
 
 class AttendanceAdmin(admin.ModelAdmin):
-    list_display = ("id","note","attendance","TeamId","Organization","createdBy","userId","createdAt","updatedAt",) 
+    list_display = ("id","note","attendance","TeamId","Organization","createdBy","userId","takenAt","createdAt","updatedAt",) 
     list_filter = ("createdAt","updatedAt")
 
 # Register your models here.

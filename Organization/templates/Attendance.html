@@ -11,6 +11,14 @@
 <link rel="stylesheet" href={% static "css/Global.css" %}>
 <link rel="stylesheet" href={% static "css/Attendance.css" %}>
 
+<!-- <link rel="stylesheet" href={% static 'css/homeNav.css' %}> -->
+<!-- <link rel="stylesheet" href={% static "css/CreateOrganization.css" %}> -->
+<!-- <link rel="stylesheet" href={% static "css/UserInfo.css" %}> -->
+<!-- <link rel="stylesheet" href={% static "css/NavigationOptions.css" %}> -->
+<!-- <link rel="stylesheet" href={% static "css/JobTitle.css" %}> -->
+<link rel="stylesheet" href={% static "css/Dotnut.css" %}>
+<!-- <link rel="stylesheet" href={% static "css/Pagination.css" %}> -->
+<!-- <link rel="stylesheet" href={% static "css/Attendance.css" %}> -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src={% static 'js/script.js' %}></script>
 {% endblock %}
@@ -19,12 +27,14 @@
 {{data}}
 <div class="att_container">
 
-    <div>
-        <ul>
-            <li class="att_main_title">Team</li>
+   <div class="att_nav_container p-10">
+        <ul class="flex items-center">
+            <li class="title att_title mr-5">{{team_data.teamTitle}}</li>
+            <li class="light">({{team_data.orgName}})</li>
         </ul>
-    </div>
-    <!-- stats -->
+   </div>
+   
+   <!-- stats -->
     <div class="att_chart_sec">
         <ul class="att_chart_sec1">
             <li class="att_cards box-shadow border-light">
@@ -65,8 +75,25 @@
                     </li>
                 </ul>
             </li>
+            <li class="att_cards box-shadow border-light">
+                <ul>
+                    <li class="title title_card">Check-in Time</li>
+                    <li class="flex justify-end items-center att_card_stat">
+                        <span>{{team_data.checkInTime | title}}</span>
+                    </li>
+                </ul>
+            </li>
+            <li class="att_cards box-shadow border-light">
+                <ul>
+                    <li class="title title_card">Check-out Time</li>
+                    <li class="flex justify-end items-center att_card_stat">
+                        <span>{{team_data.checkOutTime | title}}</span>
+                    </li>
+                </ul>
+            </li>
         </ul>
-        <ul class="att_chart_sec2">
+        
+        <ul class="att_chart_sec2 p-10">
             <li class="">
                 <div class="flex flex-col items-center  chartContainer box-shadow border-light">
                     <ul class="flex justify-between items-center flex-wrap chart-top-nav">
@@ -158,25 +185,16 @@
         </ul>
     </div>
 
-    <div class="att_nav_container">
-        <ul class="flex justify-between items-center">
-            <li class="">
-                <ul class="att_date_time_section">
-                    <li class="title att_title">Title </li>
-                    <li class="">1st company</li>
-                </ul>
-            </li>
-            <li>
-                <ul class=" flex flex-col items-end att_date_time_section">
-                    <li>05-12-2023</li>
-                    <li>11:00 AM to 12:00 AM</li>
-                </ul>
-            </li>
-        </ul>
-    </div>
-
-    <div>
+    <div class="p-10">
         <form action="/organization/teams/{{slug}}/attendance/{{teamId}}/save" method="post">
+            <ul class="flex justify-between items-center att_date_row">
+                <li class="title att_title mb-5 ">Attendance</li>
+                <li>
+                    <label for="date">Date 
+                        <input type="date" required name="date" id="date">
+                    </label>
+                </li>
+            </ul>
             {% csrf_token %}
             {% for t in att_data %}
             <ul class="flex justify-between items-center box-shadow att_row">
@@ -193,7 +211,7 @@
                 </li>
                 <li>
                     <label for="{{t.userId}}">
-                        <input type="checkbox" name="{{t.userId}}" id="{{t.userId}}">
+                        <input type="checkbox" name="{{t.userId}}" class="hidden" id="{{t.userId}}">
                         <div id="{{t.userId}}div" class="checkBox att_check_box flex items-center"
                             onclick="MarkCheck('{{t.userId}}')">
                             <span id="{{t.userId}}ring" class="checkBox_ring"></span>
@@ -202,7 +220,9 @@
                 </li>
             </ul>
             {% endfor %}
-            <input type="submit" value="Save">
+            <div class="flex justify-end">
+                <input type="submit" value="Save" class="savebtn">
+            </div>
         </form>
 
     </div>
@@ -294,15 +314,15 @@
     function MarkCheck(userId) {
         const ele = document.getElementById(`${userId}div`)
         const ring = document.getElementById(`${userId}ring`)
-        if (AttendanceData[userId]) {
-            ele.classList.remove("activeCheckBox")
-            ring.classList.remove("activeCheckBox_ring")
-            // AttendanceData[userId] = false
-        } else {
-            ele.classList.add("activeCheckBox")
-            ring.classList.add("activeCheckBox_ring")
-            // AttendanceData[userId] = true
-        }
+        ele.classList.toggle("activeCheckBox")
+        ring.classList.toggle("activeCheckBox_ring")
+        // if (AttendanceData[userId]) {
+        //     // AttendanceData[userId] = false
+        // } else {
+        //     ele.classList.add("activeCheckBox")
+        //     ring.classList.add("activeCheckBox_ring")
+        //     // AttendanceData[userId] = true
+        // }
         // console.log(AttendanceData)
     }
 </script>

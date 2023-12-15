@@ -73,8 +73,24 @@
                 </li>
             </ul>
         </li>
+        <li class="att_cards box-shadow border-light">
+            <ul>
+                <li class="title title_card">Check-in Time</li>
+                <li class="flex justify-end items-center att_card_stat">
+                    <span>10:00 AM</span>
+                </li>
+            </ul>
+        </li>
+        <li class="att_cards box-shadow border-light">
+            <ul>
+                <li class="title title_card">Check-out Time</li>
+                <li class="flex justify-end items-center att_card_stat">
+                    <span>05:00 PM</span>
+                </li>
+            </ul>
+        </li>
     </ul>
-    <ul class="att_chart_sec2">
+    <ul class="att_chart_sec2 p-10">
         {% with id="chart1" %}
         {% include "dotnut.html" %}
         {% endwith %}
@@ -85,7 +101,7 @@
     </ul>
 </div>
 
-<div class="title section_title">Employees of Team {{teamName | title}}</div>
+<div class="title section_title p-10">Employees of Team {{teamName | title}}</div>
 {% with page=page app="organization" data=tableData title=tableTitle action='/organization/teams' slug=slug afterSlug=afterSlug isAutoConstructHref=True columnCount=columnCount  %}
 {% include "table.html" %}
 {% endwith %}

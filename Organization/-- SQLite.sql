@@ -1,25 +1,18 @@
-SELECT a.*, COUNT(a.id) AS total_days,
-SUM(CASE WHEN a.attendance = 1 THEN 1 ELSE 0 END) AS days_present,
-SUM(CASE WHEN a.attendance = 0 THEN 1 ELSE 0 END) AS days_absent
-FROM Organization_attendance a 
- WHERE a.TeamId_id = 45 GROUP BY a.userId_id ORDER BY a.userId_id;
--- SELECT
---     u._id AS user_id
-
---     u.firstName AS user_first_name
-
---     COUNT(a.id) AS total_days,
---     SUM(CASE WHEN a.attendance = 1 THEN 1 ELSE 0 END) AS days_present,
---     SUM(CASE WHEN a.attendance = 0 THEN 1 ELSE 0 END) AS days_absent,
---     MIN(a.createdAt) AS first_attendance_date,
---     MAX(a.updatedAt) AS last_attendance_date
--- FROM
---     Users_users u
--- LEFT JOIN
---     Organization_attendance a ON u._id = a.userId_id
--- WHERE
---     a.TeamId_id = 45
--- GROUP BY
---     u._id, u.firstName
--- ORDER BY
---     u.firstName;
+SELECT
+    tm.*,
+    a.*,
+    COUNT(a.id) AS total_days,
+    SUM(CASE WHEN a.attendance = 1 THEN 1 ELSE 0 END) AS days_present,
+    SUM(CASE WHEN a.attendance = 0 THEN 1 ELSE 0 END) AS days_absent
+FROM
+    Organization_teammember tm
+LEFT JOIN
+    Users_users AS u ON tm.userId_id = u._id
+LEFT JOIN
+    Organization_attendance AS a ON a.userId_id = u._id AND a.TeamId_id = tm.TeamId_id
+WHERE
+    tm.TeamId_id = 48
+GROUP BY
+    tm.userId_id
+ORDER BY
+    u.firstName, u.middleName, u.lastName;

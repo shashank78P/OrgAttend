@@ -178,6 +178,7 @@ class Attendance(models.Model):
     Organization = models.ForeignKey(Organization , db_index=True , on_delete=models.CASCADE, null=True)
     createdBy = models.ForeignKey(Users , on_delete=models.CASCADE , null=True , related_name="attendanceTaken")
     userId = models.ForeignKey(Users , on_delete=models.CASCADE , null=True , related_name="user_employee")
+    takenAt = models.DateField(null=True)
     createdAt = models.DateTimeField(auto_now_add=True , null=True)
     updatedAt = models.DateTimeField(auto_now=True , null=True)
 
