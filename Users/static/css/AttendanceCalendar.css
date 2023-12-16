@@ -32,8 +32,20 @@
     border: 1px solid var(--slate-500);
 }
 
-.present {
-    background-color: var(--green-primary) !important;
+.present25 {
+    background-color: var(--green-100) !important;
+}
+
+.present50 {
+    background-color: var(--green-300) !important;
+}
+
+.present75 {
+    background-color: var(--green-600) !important;
+}
+
+.present100 {
+    background-color: var(--green-800) !important;
 }
 
 .month_title{

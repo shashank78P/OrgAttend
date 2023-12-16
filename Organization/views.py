@@ -10,7 +10,7 @@ from Users.forms import LeaveRequestForm
 from Users.models import Address, Users
 from Users.views import formateLeaveRequest, getUserByEmail
 from django.db.models import Q
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from django.db.models import Count
 import numpy as np
 
@@ -628,6 +628,17 @@ def teamMembersDetails(request , slug , id):
         print(tableTitle )
         print(tableData)
 
+        today = datetime.today()
+        year = today.year
+        print("===============year========================")
+
+        if (request.method == "POST" and request.POST["year"] is not None):
+            print("request.POST['year'']")
+            print(request.POST["year"])
+            year = int(request.POST["year"])
+
+        attendanceDataOfTeam = getAttendance(request , slug , teamId=id ,year=year)
+
         # t.objects.annotate(totalMem = Count("teammember")) 
         return render(request ,"TeamDetails.html" , { 
             "slug" : slug ,
@@ -655,7 +666,9 @@ def teamMembersDetails(request , slug , id):
             "pageNo":page,
             "skip":skip,
             "rows":rows,
-            "search":search
+            "search":search,
+            "att_data" : attendanceDataOfTeam,
+            "year" : year
              })
     except Exception as e:
         print(e)
@@ -1636,6 +1649,94 @@ def editLeaveRequestStatus(request , slug , id):
     except Exception as e:
         return HttpResponseServerError(e)
 
+def getAttendance(request , slug , teamId , year):
+    try:
+        print("getAttendance")
+        print(year)
+        DayInNumber = {
+            'Sun': 0, 'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, 'Sat': 6
+        }
+
+
+
+        att_data = {1 : {},2: {},3: {},4: {},5: {},6: {},7: {},8: {},9: {},10: {},11: {},12: {}}
+
+            # a.TeamId_id as TeamId,
+        fromDate = datetime(year, 1, 1).strftime("%Y-%m-%d")
+        toDate = datetime(year+1, 1, 1) - timedelta(days=1)
+        toDate = toDate.strftime("%Y-%m-%d")
+        print(f"from => {fromDate} to => {toDate}")
+        query  = f"""
+        SELECT  
+            takenAt AS takenAt,
+            SUM(CASE WHEN attendance = 1 THEN 1 ELSE 0 END) AS present,
+            SUM(CASE WHEN attendance = 0 THEN 1 ELSE 0 END) AS absent,
+            COUNT(takenAt) AS total,
+            id
+        FROM 
+            Organization_attendance AS a 
+        where 
+            id <> -1 and
+            takenAt between '{fromDate}' and '{toDate}'
+        GROUP BY 
+            takenAt ORDER BY takenAt;
+        """
+
+        print(query)
+        data = Attendance.objects.raw(query)
+
+        print(data)
+        print("data")
+        for d in data:
+            print(d)
+            # x = date(d.takenAt)
+            print(f"date => {d.takenAt.day} month => {d.takenAt.month} year => {d.takenAt.year}")
+            att_data[d.takenAt.month][d.takenAt.day] = {
+                    'percentage' : math.ceil(d.present / d.total) * 100,
+            }
+
+        print(att_data)
+        
+        finalCalendarData = {"1": {},"2": {},"3": {},"4": {},"5": {},"6": {},"7": {},"8": {},"9": {},"10": {},"11": {},"12": {}}
+
+        # i is for month
+        for i in range(12):
+            start_date = datetime(year, i + 1, 1)
+            last_date = "";
+            
+            if(i == 11):
+                last_date = datetime(year+1, 1, 1) - timedelta(days=1)
+            else:
+                last_date = datetime(year, i + 2, 1) - timedelta(days=1)
+
+            start_day = start_date.strftime('%a')
+            last_day = last_date.strftime('%a')
+
+            number_of_days_in_month = last_date.day
+            total_number_of_div = DayInNumber[(start_day)] + number_of_days_in_month + abs(DayInNumber[last_day] - 6)
+
+            print(f"Month: {i + 1}, Year: {year}")
+            print(f"start day=> {start_day}, last Day => {last_day}")
+            print(f"total div => {total_number_of_div}")
+
+            defaultAttenance = { 'percentage' : 0 }
+            # print("=============================")
+            # print(DayInNumber[start_day])
+            # print(total_number_of_div -(6 - DayInNumber[last_day]))
+            # print("=============================")
+            day = 1;
+            for j in range(total_number_of_div):
+                if (j >= DayInNumber[start_day] and j < (total_number_of_div -(6 - DayInNumber[last_day]))):
+                    finalCalendarData[str(i+1)][str(j)] = att_data[i+1].get(day , defaultAttenance)
+                    day = day +1
+                else:
+                    finalCalendarData[str(i+1)][str(j)] = defaultAttenance
+        print("finalCalendarData.items()")
+        print(finalCalendarData)
+        return finalCalendarData
+    except Exception as e:
+        print(e)
+        return HttpResponseServerError(e)
 
 def takeAttendance(request , slug , teamId):
     try:

@@ -18,6 +18,7 @@
 <link rel="stylesheet" href={% static "css/Dotnut.css" %}>
 <link rel="stylesheet" href={% static "css/Pagination.css" %}>
 <link rel="stylesheet" href={% static "css/Attendance.css" %}>
+<link rel="stylesheet" href={% static "css/AttendanceCalendar.css" %}>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src={% static 'js/script.js' %}></script>
@@ -101,6 +102,11 @@
     </ul>
 </div>
 
+<div class="title section_title p-10">Attendance of Team {{teamName | title}}</div>
+{{year}}
+{% with page=page app="organization" data=tableData title=tableTitle action='/organization/teams' slug=slug afterSlug=teamId year=year %}
+{% include "AttendanceCalendar.html" %}
+{% endwith %}
 <div class="title section_title p-10">Employees of Team {{teamName | title}}</div>
 {% with page=page app="organization" data=tableData title=tableTitle action='/organization/teams' slug=slug afterSlug=afterSlug isAutoConstructHref=True columnCount=columnCount  %}
 {% include "table.html" %}

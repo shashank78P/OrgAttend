@@ -1,18 +1,13 @@
 SELECT
-    tm.*,
-    a.*,
-    COUNT(a.id) AS total_days,
-    SUM(CASE WHEN a.attendance = 1 THEN 1 ELSE 0 END) AS days_present,
-    SUM(CASE WHEN a.attendance = 0 THEN 1 ELSE 0 END) AS days_absent
-FROM
-    Organization_teammember tm
-LEFT JOIN
-    Users_users AS u ON tm.userId_id = u._id
-LEFT JOIN
-    Organization_attendance AS a ON a.userId_id = u._id AND a.TeamId_id = tm.TeamId_id
-WHERE
-    tm.TeamId_id = 48
-GROUP BY
-    tm.userId_id
-ORDER BY
-    u.firstName, u.middleName, u.lastName;
+            takenAt AS takenAt,
+            SUM(CASE WHEN attendance = 1 THEN 1 ELSE 0 END) AS present,
+            SUM(CASE WHEN attendance = 0 THEN 1 ELSE 0 END) AS absent,
+            COUNT(takenAt) AS total,
+            id
+        FROM
+            Organization_attendance AS a
+        where
+            id <> -1 and
+            takenAt between '2023-01-01' and '2023-12-31'
+        GROUP BY
+            takenAt ORDER BY takenAt;
