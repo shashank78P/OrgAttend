@@ -1,9 +1,11 @@
 let DayInNumber = {
     Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6,
 }
+
 let attendance_calendar_form = document.getElementById("attendance_calendar_form");
 let calender_year_filter = document.getElementById("calender_year_filter");
 let calender_year_filter_inpt = document.getElementById("calender_year_filter_inpt");
+let month_title = document.getElementsByClassName("month_title");
 
 let currentYear = calender_year_filter_inpt.value
 console.log(calender_year_filter_inpt)

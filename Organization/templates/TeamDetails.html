@@ -103,7 +103,6 @@
 </div>
 
 <div class="title section_title p-10">Attendance of Team {{teamName | title}}</div>
-{{year}}
 {% with page=page app="organization" data=tableData title=tableTitle action='/organization/teams' slug=slug afterSlug=teamId year=year %}
 {% include "AttendanceCalendar.html" %}
 {% endwith %}

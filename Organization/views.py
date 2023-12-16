@@ -1674,9 +1674,10 @@ def getAttendance(request , slug , teamId , year):
             COUNT(takenAt) AS total,
             id
         FROM 
-            Organization_attendance AS a 
+            Organization_attendance AS a
         where 
-            id <> -1 and
+            id <> -1 and 
+            TeamId_id = {teamId} and
             takenAt between '{fromDate}' and '{toDate}'
         GROUP BY 
             takenAt ORDER BY takenAt;
@@ -1693,6 +1694,7 @@ def getAttendance(request , slug , teamId , year):
             print(f"date => {d.takenAt.day} month => {d.takenAt.month} year => {d.takenAt.year}")
             att_data[d.takenAt.month][d.takenAt.day] = {
                     'percentage' : math.ceil(d.present / d.total) * 100,
+                    "validCell" : True , "noAttendance" : False
             }
 
         print(att_data)
@@ -1719,7 +1721,7 @@ def getAttendance(request , slug , teamId , year):
             print(f"start day=> {start_day}, last Day => {last_day}")
             print(f"total div => {total_number_of_div}")
 
-            defaultAttenance = { 'percentage' : 0 }
+            defaultAttenance = { 'percentage' : 0 , "validCell" : False , "noAttendance" : False}
             # print("=============================")
             # print(DayInNumber[start_day])
             # print(total_number_of_div -(6 - DayInNumber[last_day]))
@@ -1727,12 +1729,12 @@ def getAttendance(request , slug , teamId , year):
             day = 1;
             for j in range(total_number_of_div):
                 if (j >= DayInNumber[start_day] and j < (total_number_of_div -(6 - DayInNumber[last_day]))):
-                    finalCalendarData[str(i+1)][str(j)] = att_data[i+1].get(day , defaultAttenance)
+                    finalCalendarData[str(i+1)][str(j)] = att_data[i+1].get(day , { 'percentage' : 0 ,  "validCell" : True , "noAttendance" : True })
                     day = day +1
                 else:
                     finalCalendarData[str(i+1)][str(j)] = defaultAttenance
         print("finalCalendarData.items()")
-        print(finalCalendarData)
+        print(finalCalendarData["1"])
         return finalCalendarData
     except Exception as e:
         print(e)

@@ -4,15 +4,32 @@
 <ul class="attendance_calendar shadow">
     <li>
         <ul class="flex justify-center items-center flex-wrap month_box" id="month_box">
-            {% for month , month_value in att_data.items%}
+            {% for month , month_value in att_data.items %}
             <li>
                 <ul>
-                    <li class="month_title">{{month}}</li>
+                    <li class="month_title">
+                        {% if month == "1" %} Jan
+                        {% elif month == "2" %} Feb
+                        {% elif month == "3" %} Mar
+                        {% elif month == "4" %} Apr
+                        {% elif month == "5" %} May
+                        {% elif month == "6" %} Jun
+                        {% elif month == "7" %} Jul
+                        {% elif month == "8" %} Aug
+                        {% elif month == "9" %} Sep
+                        {% elif month == "10" %} Oct
+                        {% elif month == "11" %} Nov
+                        {% elif month == "12" %} Dec
+                        {% endif %}
+                    </li>
                     <li>
                         <ul class="days_container">
                             {% for date , date_value in month_value.items%}
                             <li class="day_box 
-                                {% if date_value.percentage == 0 %}
+                                {% if date_value.validCell == False %}
+                                    hidden
+                                {% elif date_value.noAttendance == True %}
+                                    noAttendance
                                 {% elif date_value.percentage <= 25 %}
                                     present25
                                 {% elif date_value.percentage <= 50 %}
@@ -32,30 +49,55 @@
 
         </ul>
     </li>
-    <li>
-        <form action="{{action}}{% if slug %}/{{slug}}{% endif %}{% if afterSlug %}/{{afterSlug}}{% endif %}" id="attendance_calendar_form" method="post">
-            {% csrf_token %}
-            <ul class="flex justify-center items-center">
-                <li class="calender_year_decrement_icon calender_year_decrement" id="calender_year_decrement "
-                    onclick="currentYearDecrement()">
-                    {% with width=15 height=15 color="#64748B"%}
-                    {% include 'SvgIcon/HalfArrowUp.html' %}
-                    {% endwith %}
-                </li>
-                <li class="hidden">
-                    <input type="text" type="number" value="{{year}}" name="year" id="calender_year_filter_inpt">
-                </li>
-                <li class="calender_year_filter" id="calender_year_filter">{{year}}</li>
-                <li class="calender_year_increment_icon calender_year_increment"
-                    id="calender_year_increment calender_year_increment_icon" onclick="currentYearIncrement()">
-                    {% with width=15 height=15 color="#64748B"%}
-                    {% include 'SvgIcon/HalfArrowUp.html' %}
-                    {% endwith %}
-                </li>
-            </ul>
-        </form>
+    <li class="bottomSecCalender">
+        <ul class="flex justify-between items-center flex-wrap">
+            <li class="flex justify-center items-center flex-wrap calender_label">
+                <ul class="flex items-center">
+                    <li class="day_box noAttendance border"></li>
+                    <li>No Attendance</li>
+                </ul>
+                <ul class="flex items-center">
+                    <li class="day_box present25 border"></li>
+                    <li>25%</li>
+                </ul>
+                <ul class="flex items-center">
+                    <li class="day_box present50 border"></li>
+                    <li>50%</li>
+                </ul>
+                <ul class="flex items-center">
+                    <li class="day_box present75 border"></li>
+                    <li>75%</li>
+                </ul>
+                <ul class="flex items-center">
+                    <li class="day_box present100 border"></li>
+                    <li>100%</li>
+                </ul>
+            </li>
+            <li>
+                <form action="{{action}}{% if slug %}/{{slug}}{% endif %}{% if afterSlug %}/{{afterSlug}}{% endif %}" id="attendance_calendar_form" method="post">
+                    {% csrf_token %}
+                    <ul class="flex justify-center items-center">
+                        <li class="calender_year_decrement_icon calender_year_decrement" id="calender_year_decrement "
+                            onclick="currentYearDecrement()">
+                            {% with width=15 height=15 color="#64748B"%}
+                            {% include 'SvgIcon/HalfArrowUp.html' %}
+                            {% endwith %}
+                        </li>
+                        <li class="hidden">
+                            <input type="text" type="number" value="{{year}}" name="year" id="calender_year_filter_inpt">
+                        </li>
+                        <li class="calender_year_filter" id="calender_year_filter">{{year}}</li>
+                        <li class="calender_year_increment_icon calender_year_increment"
+                            id="calender_year_increment calender_year_increment_icon" onclick="currentYearIncrement()">
+                            {% with width=15 height=15 color="#64748B"%}
+                            {% include 'SvgIcon/HalfArrowUp.html' %}
+                            {% endwith %}
+                        </li>
+                    </ul>
+                </form>
+            </li>
+        </ul>
     </li>
-
 </ul>
 <script src={% static 'js/AttendanceCalendar.js' %}></script>
 

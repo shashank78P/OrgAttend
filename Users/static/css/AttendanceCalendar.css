@@ -18,7 +18,7 @@
     grid-auto-flow: column;
     place-items: center;
     gap: 5px;
-    margin: 5px;
+    margin: 10px;
 }
 
 .day_box {
@@ -32,12 +32,16 @@
     border: 1px solid var(--slate-500);
 }
 
+.noAttendance{
+    background-color: var(--slate-100);
+}
+
 .present25 {
-    background-color: var(--green-100) !important;
+    background-color: var(--green-200) !important;
 }
 
 .present50 {
-    background-color: var(--green-300) !important;
+    background-color: var(--green-400) !important;
 }
 
 .present75 {
@@ -46,6 +50,20 @@
 
 .present100 {
     background-color: var(--green-800) !important;
+}
+
+.calender_label{
+    margin: auto;
+    margin: 10px 0;
+}
+
+.calender_label ul{
+    margin-right: 10px;
+}
+
+.calender_label ul li{
+    margin-left: 5px;
+    font-size: 14px;
 }
 
 .month_title{
@@ -73,6 +91,10 @@
     font-size: 16px;
     font-weight: 500;
     padding: 10px;
+}
+
+.bottomSecCalender{
+    padding: 20px;
 }
 
 @media screen and (max-width : 500px) {
