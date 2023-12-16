@@ -21,6 +21,10 @@
     margin: 10px;
 }
 
+.weekSec{
+    grid-template-rows: repeat(7, 10px);
+}
+
 .day_box {
     width: 10px;
     height: 10px;
@@ -85,6 +89,11 @@
 }
 .calender_year_increment_icon{
     transform: rotate(90deg);
+}
+
+.weekText{
+    font-size: 10px;
+    text-align: start !important;
 }
 
 .calender_year_filter{
