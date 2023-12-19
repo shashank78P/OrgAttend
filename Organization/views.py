@@ -420,6 +420,115 @@ def getTeamsFormatedData(TeamsData):
         ])
     return tableTitle , tableData
 
+def leaveTypeInsight(request , slug , teamId):
+    try:
+        print("leaveTypeInsight")
+        user = request.session["user"]
+        userData = get_object_or_404(Users , _id = user["_id"])
+        print(user)
+        org = getOrgBySlug( request , slug)
+        print(org)
+        team = get_object_or_404(Team , id = teamId)
+        print(team)
+        isHeOwner = isOwner(org , userData)
+        print(isHeOwner)
+        isHeLeaderOrCoLeader = isLeaderOrCoLeader(org=org , team=team , user=userData)
+        print(isHeLeaderOrCoLeader)
+
+        if(not (isHeOwner | isHeLeaderOrCoLeader)):
+            return HttpResponseNotAllowed("You don't have an access.")
+        
+        fromDate = request.POST.get("fromDate" , None)
+        print("fromDate")
+        toDate = request.POST.get("toDate" , None)
+        print("toDate")
+
+        print(fromDate)
+        print(toDate)
+
+        if(fromDate is None or toDate is None):
+            return HttpResponseServerError("Invalid from date and to date")
+
+        fromDate = fromDate.strftime("%Y-%m-%d")
+        toDate = toDate.strftime("%Y-%m-%d")
+        query = f"""
+        SELECT 
+        count(*) as total,
+        l.leaveType
+        FROM Organization_leaverequest as l
+        where 
+        id <> -1 and
+        TeamId_id = {teamId} AND
+        Organization_id = {org._id} AND
+        fromDate BETWEEN '{fromDate}' AND '{toDate}'
+        AND
+        toDate BETWEEN '{fromDate}' AND '{toDate}'
+        GROUP BY leaveType;
+    """
+        
+        print(query)
+        data = LeaveRequest.objects.raw(query)
+        print(data)
+        return JsonResponse(data=data)
+    except Exception as e:
+        print(e)
+        return HttpResponseServerError(e)
+
+def getParticipantsAsPerJobTitle(request , slug):
+    try:
+        user = request.session["user"]
+        userData = get_object_or_404(Users , _id = user["_id"])
+        print(user)
+        org = getOrgBySlug( request , slug)
+        print(org)
+        team = get_object_or_404(Team , id = teamId)
+        print(team)
+        isHeOwner = isOwner(org , userData)
+        print(isHeOwner)
+        isHeLeaderOrCoLeader = isLeaderOrCoLeader(org=org , team=team , user=userData)
+        print(isHeLeaderOrCoLeader)
+
+        if(not (isHeOwner | isHeLeaderOrCoLeader)):
+            return HttpResponseNotAllowed("You don't have an access.")
+        
+        fromDate = request.POST.get("fromDate" , None)
+        print("fromDate")
+        toDate = request.POST.get("toDate" , None)
+        print("toDate")
+    
+        teamId = request.POST.get(["teamId"] , -1)
+
+        print(fromDate)
+        print(toDate)
+
+        if(fromDate is None or toDate is None):
+            return HttpResponseServerError("Invalid from date and to date")
+
+        fromDate = fromDate.strftime("%Y-%m-%d")
+        toDate = toDate.strftime("%Y-%m-%d")
+
+        query = f"""
+            SELECT
+                count(e._id) as total,
+                jt.title
+                FROM Organization_employee as e,
+                Organization_job_title as jt,
+                Organization_teammember as tm
+                where
+                e._id <> -1 and
+                e.Organization_id = {org._id} AND
+                jt.id = e.jobTitle_id AND
+                tm.TeamId_id = {teamId} AND
+                tm.OrganizationId_id = e.Organization_id AND
+                e.createdAt BETWEEN {fromDate} AND {toDate}
+                GROUP BY jt.title;
+        """
+        data = LeaveRequest.objects.raw(query)
+        print(data)
+        return JsonResponse(data=data)
+
+    except Exception as e:
+        return HttpResponseServerError(e)
 
 def teams(request , slug):
     try:

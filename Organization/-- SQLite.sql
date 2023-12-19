@@ -28,15 +28,19 @@
 -- GROUP BY takenAt;
 
 
-SELECT * FROM Organization_attendance a
+SELECT * FROM Organization_employee e;
+
 SELECT
-id,
-sum(case when attendance = 1 then 1 else 0 end) as present,
-sum(case when attendance = 0 then 1 else 0 end) as absent,
-count(*) as total
-FROM Organization_attendance a
-WHERE
-id <> -1 and
-Organization_id = 2 AND
-TeamId_id = 48
-GROUP BY takenAt;
+        count(e._id) as total,
+        jt.title
+        FROM Organization_employee as e,
+        Organization_job_title as jt,
+        Organization_teammember as tm
+        where
+        e._id <> -1 and
+        e.Organization_id = 2 AND
+        jt.id = e.jobTitle_id AND
+        tm.TeamId_id = 48 AND
+        tm.OrganizationId_id = e.Organization_id AND
+        e.createdAt BETWEEN '2023-12-03' AND '2023-12-21'
+        GROUP BY jt.title;

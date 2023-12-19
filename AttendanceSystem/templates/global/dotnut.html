@@ -1,9 +1,8 @@
-
 <div class="flex flex-col items-center justify-center chartContainer box-shadow border-light">
-    <ul class="flex justify-between items-center flex-wrap chart-top-nav" >
+    <ul class="flex justify-between items-center flex-wrap chart-top-nav">
         <li class="chart-title">Attendance Report</li>
-        <li class=" date-filter-container " >
-            <ul class="flex justify-center items-center chart-filter" >
+        <li class=" date-filter-container ">
+            <ul class="flex justify-center items-center chart-filter">
                 <li>
                     <span>From</span>
                     <input type="date" name="" id="">
@@ -69,14 +68,9 @@
     new Chart(document.getElementById('{{id}}'), {
         type: 'doughnut',
         data: data = {
-            // labels: [
-            //     'Red',
-            //     'Blue',
-            //     'Yellow'
-            // ],
             datasets: [{
                 label: 'My First Dataset',
-                data: [300,12],
+                data: [300, 12],
                 backgroundColor: [
                     // 'rgb(255, 99, 132)',
                     // 'rgb(54, 162, 235)',
