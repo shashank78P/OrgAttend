@@ -36,6 +36,13 @@
     border: 1px solid var(--slate-500);
 }
 
+.noAttendanceCardToDisplay{
+    background-color: white;
+}
+.noAttendanceCardToDisplay:hover{
+    border: white;
+}
+
 .noAttendance{
     background-color: var(--slate-100);
 }

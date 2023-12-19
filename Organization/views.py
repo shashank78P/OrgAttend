@@ -597,6 +597,12 @@ def teamMembersDetails(request , slug , id):
         isHeLeaderOrCoLeader = isLeaderOrCoLeader(team , org , userData)
         if( not ( isHeOwner | isHeLeaderOrCoLeader)):
             return HttpResponseNotAllowed("You don't an access")
+        
+        avgAtt = getTeamAvgAttendance( request , slug , id , org._id )
+        teamInsight = getTeamInsights( request , slug , id , org._id )
+        print("teamInsight")
+        print(teamInsight)
+        print(avgAtt)
 
         teamsMembersDetails = TeamMember.objects.filter(Q(OrganizationId = org) & Q(TeamId = id) &                                 
          (Q(role__icontains=search) |
@@ -655,6 +661,13 @@ def teamMembersDetails(request , slug , id):
             "teamName": team.name,
             "teamsMembersDetails" : teamsMembersDetails[ skip :  skip + rows],
             "totalMemeberTeams" : np.arange(0, math.ceil(len(teamsMembersDetails)/10)),
+            "AvgAttendance" : avgAtt,
+            "checkInTime" : teamInsight.get("checkInTime" , 0),
+            "checkOutTime" : teamInsight.get("checkOutTime" , 0),
+            "leaderCount" : teamInsight.get("leaderCount" , 0),
+            "coLeaderCount" : teamInsight.get("coLeaderCount" , 0),
+            "memberCount" : teamInsight.get("memberCount" , 0),
+            "totalParticipantsCount" : teamInsight.get("totalParticipantsCount" , 0),
             'tableTitle':tableTitle,
             'navOptions' :navOptions,
             'tableData':tableData[ skip :  skip + rows],
@@ -803,6 +816,97 @@ def deleteTeamMember(request , slug ,teamId, id , employeeId):
     except Exception as e:
         return HttpResponseServerError(e)
 
+def getTeamInsights(request , slug , teamId , orgId):
+    try:
+        queryToGetTeamMembersCountBasedOnRole = f"""
+        SELECT 
+                tm.id as id,
+                sum(case WHEN role = "LEADER" then 1 else 0 END) as leaderCount,
+                sum(case when role = "CO-LEADER" THEN 1 else 0 END) as coLeaderCount,
+                sum(case when role = "MEMBER" THEN 1 else 0 END) as memberCount,
+                count(*) as total,
+                t.checkInTime,
+                t.checkOutTime
+                FROM Organization_teammember as tm,
+                Organization_team as t
+
+                WHERE 
+                tm.id <> -1 AND
+                t.OrganizationId_id = {orgId} AND
+                TeamId_id = {teamId} AND
+                t.OrganizationId_id = tm.OrganizationId_id AND
+                t.id = tm.TeamId_id;
+        """
+        d1 = TeamMember.objects.raw(queryToGetTeamMembersCountBasedOnRole)
+
+        checkInTime=0
+        checkOutTime=0
+        leaderCount = 0
+        coLeaderCount = 0
+        memberCount = 0
+        totalParticipantsCount = 0
+
+        print("team insight")
+        print(d1)
+        print(len(d1))
+
+        for d in d1:
+            print(d)
+            checkInTime = d.checkInTime
+            checkOutTime = d.checkOutTime
+            leaderCount = d.leaderCount
+            coLeaderCount = d.coLeaderCount
+            memberCount = d.memberCount
+            totalParticipantsCount = d.total
+
+        return {
+            "checkInTime" : checkInTime,
+            "checkOutTime" : checkOutTime,
+            "leaderCount" : leaderCount,
+            "coLeaderCount" : coLeaderCount,
+            "memberCount" : memberCount,
+            "totalParticipantsCount" : totalParticipantsCount,
+        }
+    except Exception as e:
+        print(e)
+        return HttpResponseServerError(e)
+
+def getTeamAvgAttendance(request , slug , teamId , orgId):
+    try:
+        print("getTeamAvgAttendance")
+        queryToGetAttendanceOfTeam = f"""
+                SELECT 
+                id,
+                sum(case when attendance = 1 then 1 else 0 end) as present,
+                sum(case when attendance = 0 then 1 else 0 end) as absent,
+                count(*) as total
+                FROM Organization_attendance a
+                WHERE 
+                id <> -1 and
+                Organization_id = {orgId} AND
+                TeamId_id = {teamId}
+                GROUP BY takenAt;
+        """ 
+        d2 = Attendance.objects.raw(queryToGetAttendanceOfTeam)
+
+        Attendancedata = 0
+        print(d2)
+        print(f"length of d2 = {len(d2)}")
+        for d in d2:
+            print(d.present , d.total)
+            if(d.present == 0 or d.total == 0):
+                continue
+            Attendancedata += d.present / d.total
+            print(Attendancedata)
+
+        if(len(d2) != 0):
+            Attendancedata = ( Attendancedata / len(d2) ) * 100
+
+
+        return Attendancedata
+    except Exception as e:
+        print(e)
+        return HttpResponseServerError(e)
 
 def getJobTitleFormatedData(jobTitleData):
     tableTitle = ["Job Title","Created By","Created At"]
@@ -1734,7 +1838,9 @@ def getAttendance(request , slug , teamId , year):
                 else:
                     finalCalendarData[str(i+1)][str(j)] = defaultAttenance
         print("finalCalendarData.items()")
-        print(finalCalendarData["1"])
+        for i in range(1,13):
+            print("i => ",i)
+            print(len(finalCalendarData[f"{i}"]))
         return finalCalendarData
     except Exception as e:
         print(e)

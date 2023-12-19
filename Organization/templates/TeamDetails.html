@@ -34,15 +34,22 @@
 {% endwith %} -->
 
 <!-- stats -->
+<!-- AvgAttendance
+checkInTime
+checkOutTime
+leaderCount
+coLeaderCount
+memberCount
+totalParticipantsCount -->
 <div class="att_chart_sec">
     <ul class="att_chart_sec1">
         <li class="att_cards box-shadow border-light">
             <ul>
                 <li class="title title_card">Leaders</li>
                 <li class="flex justify-end items-center att_card_stat">
-                    <span>2</span>
+                    <span>{{leaderCount}}</span>
                     <span>/</span>
-                    <span>10</span>
+                    <span>{{totalParticipantsCount}}</span>
                 </li>
             </ul>
         </li>
@@ -50,9 +57,9 @@
             <ul>
                 <li class="title title_card">Co-Leaders</li>
                 <li class="flex justify-end items-center att_card_stat">
-                    <span>2</span>
+                    <span>{{coLeaderCount}}</span>
                     <span>/</span>
-                    <span>10</span>
+                    <span>{{totalParticipantsCount}}</span>
                 </li>
             </ul>
         </li>
@@ -60,9 +67,9 @@
             <ul>
                 <li class="title title_card">Members</li>
                 <li class="flex justify-end items-center att_card_stat">
-                    <span>6</span>
+                    <span>{{memberCount}}</span>
                     <span>/</span>
-                    <span>10</span>
+                    <span>{{totalParticipantsCount}}</span>
                 </li>
             </ul>
         </li>
@@ -70,7 +77,7 @@
             <ul>
                 <li class="title title_card">Avg Attendance</li>
                 <li class="flex justify-end items-center att_card_stat">
-                    <span>60%</span>
+                    <span>{{AvgAttendance}}%</span>
                 </li>
             </ul>
         </li>

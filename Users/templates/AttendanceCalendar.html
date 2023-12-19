@@ -35,6 +35,7 @@
                 </ul>
             </li>
             {% for month , month_value in att_data.items %}
+            <!-- {{month_value}} -->
             <li>
                 <ul>
                     <li class="month_title">
@@ -57,7 +58,7 @@
                             {% for date , date_value in month_value.items%}
                             <li class="day_box 
                                 {% if date_value.validCell == False %}
-                                    hidden
+                                    noAttendanceCardToDisplay
                                 {% elif date_value.noAttendance == True %}
                                     noAttendance
                                 {% elif date_value.percentage <= 25 %}
