@@ -18,7 +18,7 @@ urlpatterns = [
     path("teams/<slug:slug>/attendance/<teamId>/save" , views.saveAttendance),
 # api
     path("teams/<slug:slug>/get-leave-type-insight/<teamId>/<fromDate>/<toDate>" , views.leaveTypeInsight),
-    path("teams/<slug:slug>/get-leave-type-insight/<fromDate>/<toDate>" , views.leaveTypeInsightOfOrg),
+    path("teams/<slug:slug>/get-leave-type-insight-of-org/<fromDate>/<toDate>" , views.leaveTypeInsightOfOrg),
 
     path("teams/<slug:slug>/<id>" , views.teamMembersDetails),
     path("teams/<slug:slug>/add/<teamId>" , views.addTeamMember),
@@ -44,6 +44,8 @@ urlpatterns = [
 
     path("<slug:slug>" , views.companyProfile),
 
+    path("get-employee-count-per-job-title-org/<slug:slug>/<fromDate>/<toDate>" , views.getEmployeePerJobTitle),
+    path("get-employee-count-per-job-title-team/<slug:slug>/<teamId>/<fromDate>/<toDate>" , views.getEmployeePerJobTitleByTeam),
 
 ]
     # path("add-job-title" , views.AddJobTitle),

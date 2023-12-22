@@ -21,6 +21,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src={% static 'js/script.js' %}></script>
+<script src={% static 'js/Fetch.js' %}></script>
 
 
 {% endblock %}
@@ -79,7 +80,7 @@
         {% include "dotnut.html" %}
         {% endwith %}
 
-        {% with id="chart2" %}
+        {% with chatName="Employees per job-title" id="chart2" url="/organization/get-employee-count-per-job-title-org" slug=slug afterSlug=''%}
         {% include "LineChart.html" %}
         {% endwith %}
     </ul>

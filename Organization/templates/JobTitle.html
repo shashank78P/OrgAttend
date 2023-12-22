@@ -23,6 +23,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src={% static 'js/script.js' %}></script>
+<script src={% static 'js/Fetch.js' %}></script>
 
 
 {% endblock %}
@@ -30,6 +31,8 @@
 {% include "Nav.html" %}
 {% include "Profile/profile.html" %}
 
+
+{% if isStatsToShow %}
 {% with page="job-title" app="organization"%}
 {% include "NavigationOptions.html" %}
 {% endwith %}
@@ -81,20 +84,23 @@
         {% include "dotnut.html" %}
         {% endwith %}
 
-        {% with id="chart2" %}
+        {% with chatName="Employees per job-title" id="chart2" url="/organization/get-employee-count-per-job-title-org" slug=slug afterSlug='' %}
         {% include "LineChart.html" %}
         {% endwith %}
     </ul>
 </div>
+{% else %}
+<div class="title section_title p-10">Employees working as {{jobTitle | title}}</div>
+{% endif %}
 
 <!-- openAction
 editAction
 deleteAction -->
 
-
 {% with page=page app="organization" data=tableData title=tableTitle action='/organization/job-title'  slug=slug afterSlug=afterSlug isEdit=isEdit jobTitleId=jobTitleId isAutoConstructHref=jobTitleDetails columnCount=columnCount %}
 {% include "table.html" %}
 {% endwith %}
+
 
 {% with app="organization" total=totalJobTitle action="/organization/job-title" slug=slug page=pageNo%}
 {% include "pagination.html" %}

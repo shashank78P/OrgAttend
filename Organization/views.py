@@ -425,31 +425,19 @@ def leaveTypeInsightOfOrg(request , slug , fromDate , toDate):
         print("leaveTypeInsight")
         user = request.session["user"]
         userData = get_object_or_404(Users , _id = user["_id"])
-        print(user)
         org = getOrgBySlug( request , slug)
-        print(org)
         isHeOwner = isOwner(org , userData)
-        print(isHeOwner)
         teamIds = getTeamIdList(org , userData)
-        print("teamIds")
-        print(teamIds)
-        print(list(teamIds))
-        # isHeLeaderOrCoLeader = isLeaderOrCoLeader(org=org , team=team , user=userData)
-        # print(isHeLeaderOrCoLeader)
 
-        if((not (isHeOwner) )or len(teamIds) == 0):
+        if((not (isHeOwner)) or len(teamIds) == 0):
             return HttpResponseNotAllowed("You don't have an access.")
         
         interQuery = ""
         if(not isOwner):
-            print("not owner")
-            interQuery = f" teamId_id in {teamIds} AND"
-        print(fromDate)
-        print(toDate)
+            interQuery = f" teamId_id in {tuple(teamIds)} AND"
+
         fromDate = fromDate.split("T")[0]
         toDate = toDate.split("T")[0]
-        print(fromDate)
-        print(toDate)
         
         query = f"""
         SELECT 
@@ -460,7 +448,7 @@ def leaveTypeInsightOfOrg(request , slug , fromDate , toDate):
         where 
         id <> -1 and
         Organization_id = {org._id} AND
-        f{interQuery}
+        {interQuery}
         status = "ACCEPTED" AND
         fromDate BETWEEN '{fromDate}' AND '{toDate}'
         AND
@@ -471,62 +459,46 @@ def leaveTypeInsightOfOrg(request , slug , fromDate , toDate):
         print(query)
         data = LeaveRequest.objects.raw(query)
         print(data)
-        result = {}
-        resultPercentage = {}
-        totalLeaves = 0;
-        for i in data:
-            totalLeaves = totalLeaves + i.total
-            result[i.leaveType] = i.total
-        if(totalLeaves != 0):
-            for i in data:
-                resultPercentage[i.leaveType] = round(((i.total / totalLeaves) * 100))
-        print("result")
-        print(result)
-        print(resultPercentage)
-        return JsonResponse({
-            "result" : result,
-            "percentage" : resultPercentage
-        })
+
+        return calculatePercentageForLeaveTye(data)
+        
     except Exception as e:
         print(e)
         return HttpResponseServerError(e)
     
+def calculatePercentageForLeaveTye(data):
+    result = {}
+    resultPercentage = {}
+    totalLeaves = 0;
+    for i in data:
+        totalLeaves = totalLeaves + i.total
+        result[i.leaveType] = i.total
+    if(totalLeaves != 0):
+        for i in data:
+            resultPercentage[i.leaveType] = round(((i.total / totalLeaves) * 100))
+    print("result")
+    print(result)
+    print(resultPercentage)
+    return JsonResponse({
+        "result" : result,
+        "percentage" : resultPercentage
+    })
+
 def leaveTypeInsight(request , slug , teamId , fromDate , toDate):
     try:
-        print("leaveTypeInsight")
         user = request.session["user"]
         userData = get_object_or_404(Users , _id = user["_id"])
-        print(user)
         org = getOrgBySlug( request , slug)
-        print(org)
         team = get_object_or_404(Team , id = teamId)
-        print(team)
         isHeOwner = isOwner(org , userData)
-        print(isHeOwner)
         isHeLeaderOrCoLeader = isLeaderOrCoLeader(org=org , team=team , user=userData)
-        print(isHeLeaderOrCoLeader)
 
         if(not (isHeOwner | isHeLeaderOrCoLeader)):
             return HttpResponseNotAllowed("You don't have an access.")
         
-        # fromDate = request.POST.get("fromDate" , None)
-        # print("fromDate")
-        # toDate = request.POST.get("toDate" , None)
-        # print("toDate")
-
-        # print(fromDate)
-        # print(toDate)
-
-        # if(fromDate is None or toDate is None):
-        #     return HttpResponseServerError("Invalid from date and to date")
-        print(fromDate)
-        print(toDate)
-        # fromDate = date(fromDate)
-        # toDate = date(toDate)
         fromDate = fromDate.split("T")[0]
         toDate = toDate.split("T")[0]
-        print(fromDate)
-        print(toDate)
+
         query = f"""
         SELECT 
         count(*) as total,
@@ -547,80 +519,10 @@ def leaveTypeInsight(request , slug , teamId , fromDate , toDate):
         print(query)
         data = LeaveRequest.objects.raw(query)
         print(data)
-        result = {}
-        resultPercentage = {}
-        totalLeaves = 0;
-        for i in data:
-            totalLeaves = totalLeaves + i.total
-            result[i.leaveType] = i.total
-        if(totalLeaves != 0):
-            for i in data:
-                resultPercentage[i.leaveType] = round(((i.total / totalLeaves) * 100))
-        print("result")
-        print(result)
-        print(resultPercentage)
-        return JsonResponse({
-            "result" : result,
-            "percentage" : resultPercentage
-        })
+        
+        return calculatePercentageForLeaveTye(data)
     except Exception as e:
         print(e)
-        return HttpResponseServerError(e)
-
-def getParticipantsAsPerJobTitle(request , slug):
-    try:
-        user = request.session["user"]
-        userData = get_object_or_404(Users , _id = user["_id"])
-        print(user)
-        org = getOrgBySlug( request , slug)
-        print(org)
-        team = get_object_or_404(Team , id = teamId)
-        print(team)
-        isHeOwner = isOwner(org , userData)
-        print(isHeOwner)
-        isHeLeaderOrCoLeader = isLeaderOrCoLeader(org=org , team=team , user=userData)
-        print(isHeLeaderOrCoLeader)
-
-        if(not (isHeOwner | isHeLeaderOrCoLeader)):
-            return HttpResponseNotAllowed("You don't have an access.")
-        
-        fromDate = request.POST.get("fromDate" , None)
-        print("fromDate")
-        toDate = request.POST.get("toDate" , None)
-        print("toDate")
-    
-        teamId = request.POST.get(["teamId"] , -1)
-
-        print(fromDate)
-        print(toDate)
-
-        if(fromDate is None or toDate is None):
-            return HttpResponseServerError("Invalid from date and to date")
-
-        fromDate = fromDate.strftime("%Y-%m-%d")
-        toDate = toDate.strftime("%Y-%m-%d")
-
-        query = f"""
-            SELECT
-                count(e._id) as total,
-                jt.title
-                FROM Organization_employee as e,
-                Organization_job_title as jt,
-                Organization_teammember as tm
-                where
-                e._id <> -1 and
-                e.Organization_id = {org._id} AND
-                jt.id = e.jobTitle_id AND
-                tm.TeamId_id = {teamId} AND
-                tm.OrganizationId_id = e.Organization_id AND
-                e.createdAt BETWEEN {fromDate} AND {toDate}
-                GROUP BY jt.title;
-        """
-        data = LeaveRequest.objects.raw(query)
-        print(data)
-        return JsonResponse(data=data)
-
-    except Exception as e:
         return HttpResponseServerError(e)
 
 def teams(request , slug):
@@ -953,7 +855,7 @@ def editTeamMember(request , slug ,teamId, id , employeeId):
 
         userData = get_object_or_404(Users , _id = user["_id"])
         isHeOwner = isOwner(org , userData)
-        if( not ( isHeOwner | isLeaderOrCoLeader(org , userData))):
+        if( not ( isHeOwner | isLeaderOrCoLeader(team ,org, userData))):
             return HttpResponseNotAllowed("You don't an access")
 
         if(request.method == "POST"):
@@ -1102,7 +1004,7 @@ def getTeamAvgAttendance(request , slug , teamId , orgId):
             print(Attendancedata)
 
         if(len(d2) != 0):
-            Attendancedata = ( Attendancedata / len(d2) ) * 100
+            Attendancedata = round((Attendancedata / len(d2) ) * 100)
 
 
         return Attendancedata
@@ -1202,7 +1104,8 @@ def jobTitle(request , slug):
             "pageNo":page,
             "skip":skip,
             "rows":rows,
-            "search":search 
+            "search":search ,
+            "isStatsToShow":True
              }
         print(data)
         return render(request ,"JobTitle.html" , data)
@@ -1310,7 +1213,9 @@ def jobTitleDetails(request , slug ,jobTitleId):
             "pageNo":page,
             "skip":skip,
             "rows":rows,
-            "search":search 
+            "search":search ,
+            "isStatsToShow":False,
+            "jobTitle" : jobTitle.title
              }
         print(data)
         return render(request ,"JobTitle.html" , data)
@@ -1387,9 +1292,10 @@ def employees(request , slug):
 
             # Q(employee = userData)
         userList = getAllUserIdListOfOrgForUser(org , userData)
+            # &
+            # Q(employee__in = userList)
         employeeData = Employee.objects.filter(
-            Q(Organization = org) &
-            Q(employee__in = userList)
+            Q(Organization = org) 
             &
          (Q(employee__DOB__icontains=search) |
             Q(employee__phoneNumber__icontains=search) |
@@ -1509,7 +1415,7 @@ def AddEmployee(request , slug):
             return HttpResponseNotAllowed()
         
         if(request.method == "POST"):
-            return saveEmployeeData(request,user,org,f"/organization/employee/{org.slug}",f"/organization/employees/{slug}/add")
+            return saveEmployeeData(request,user,org,f"/organization/employees/{org.slug}",f"/organization/employees/{slug}/add")
         else:
             form = addEmployeeForm(organization=org)
             return render(request ,"AddEmployee.html", { 'form' : form , 'action':f"/organization/employees/{slug}/add"})
@@ -1572,7 +1478,7 @@ def editEmployee(request, slug , id):
                     Organization = org
                  ).update(jobTitle = newJob)
                 
-                return HttpResponseRedirect(f"/organization/employee/{org.slug}")
+                return HttpResponseRedirect(f"/organization/employees/{org.slug}")
             else:
                 return render(request ,"AddEmployee.html", { 'form' : form ,'action' : f"/organization/employees/{org.slug}/edit/{id}" , "isEdit" : True })
             # return saveEmployeeData(request,user,org,f"/organization/job-title/{org.slug}/{jobTitleId}" , f"/organization/job-title/{org.slug}/add/{jobTitleId}" , True)
@@ -2138,5 +2044,114 @@ def saveAttendance(request , slug , teamId):
                 )
                 att.save()
             return HttpResponseRedirect(f"/organization/teams/{slug}/{teamId}")
+    except Exception as e:
+        return HttpResponseServerError(e)
+    
+def getEmployeePerJobTitle(request , slug , fromDate , toDate):
+    try:
+        user = request.session["user"]
+        org = getOrgBySlug(request,slug)
+        userData = get_object_or_404(Users , _id = user["_id"])
+
+        isHeOwner = isOwner(org , userData)
+
+        if(not isHeOwner):
+            return HttpResponseNotAllowed("You don't have any access")
+        
+        fromDate = fromDate.split("T")[0]
+        toDate = toDate.split("T")[0]
+        
+        query = f"""
+                SELECT 
+                    jt.title as jobTitle,
+                    count(e.employee_id) as total,
+                    id
+                FROM 
+                    Organization_job_title as jt
+                LEFT JOIN 
+                    Organization_employee as e ON 
+                    e.jobTitle_id = jt.id AND 
+                    e.Organization_id = {org._id} AND
+                    e.createdAt BETWEEN '{fromDate}' AND '{toDate}'
+                WHERE
+                        jt.Organization_id = {org._id}
+                GROUP BY 
+                    jt.title;
+        """
+        data = Job_title.objects.raw(query)
+
+        label = []
+        total = []
+
+        for job in data:
+            label.append(job.jobTitle)
+            total.append(job.total)
+
+        return JsonResponse(
+            {
+                "label" : label,
+                "total" : total
+            } 
+        )
+    except Exception as e:
+        return HttpResponseServerError(e)
+    
+def getEmployeePerJobTitleByTeam(request , slug , teamId, fromDate , toDate):
+    try:
+        user = request.session["user"]
+        userData = get_object_or_404(Users , _id = user["_id"])
+        
+        org = getOrgBySlug( request , slug)
+        
+        team = get_object_or_404(Team , id = teamId)
+
+        isHeOwner = isOwner(org , userData)
+        print(isHeOwner)
+
+        isHeLeaderOrCoLeader = isLeaderOrCoLeader(org=org , team=team , user=userData)
+        print(isHeLeaderOrCoLeader)
+
+        if(not (isHeOwner | isHeLeaderOrCoLeader)):
+            return HttpResponseNotAllowed("You don't have an access.")
+        
+        fromDate = fromDate.split("T")[0]
+        toDate = toDate.split("T")[0]
+        
+        query = f"""
+                SELECT
+                    jt.title as jobTitle,
+                    count(e.employee_id) as total,
+                    jt.id
+                FROM
+                    Organization_job_title as jt,
+                    Organization_teammember as tm
+                LEFT JOIN
+                    Organization_employee as e ON
+                    e.jobTitle_id = jt.id AND
+                    e.Organization_id = {org._id} AND
+                    e.employee_id = tm.userId_id AND
+                    tm.TeamId_id = {teamId} AND
+                    e.createdAt BETWEEN '{fromDate}' AND '{toDate}'
+                WHERE
+                        jt.Organization_id = {org._id} 
+                GROUP BY
+                    jt.title;
+        """
+        data = Job_title.objects.raw(query)
+
+        label = []
+        total = []
+
+        for job in data:
+            label.append(job.jobTitle)
+            total.append(job.total)
+
+        return JsonResponse(
+            {
+                "label" : label,
+                "total" : total
+            } 
+        )
+
     except Exception as e:
         return HttpResponseServerError(e)

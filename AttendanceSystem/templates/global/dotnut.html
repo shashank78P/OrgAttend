@@ -45,7 +45,7 @@
                 <li class="marker" style="background-color:#FF6EB4"></li>
                 <li>
                     <ul class="">
-                        <li>Priviledge Leave</li>
+                        <li>Privilege Leave</li>
                         <li class="result" id="PriviledgeLeave">0%</li>
                     </ul>
                 </li>
@@ -115,10 +115,14 @@
     }
 
 
-
+    console.log(`{"afterSlug2/afterslug2}}" : ""}`)
+    console.log("{{afterSlug2}}")
+    console.log(`${"{{afterSlug2}}" ? "/{{afterSlug2}}" : ""}`)
+    console.log("{% if afterSlug2 %} {{afterSlug2}} {% endif %} ")
     function constructUrl(fromDate, toDate) {
-        const url = "{{url}}/{{slug}}/{{afterSlug1}}" + `${"{{afterSlug2}}" ? "/{{afterslug2}}" : ""}` + `/${fromDate}/${toDate}`
-        console.log(url)
+
+        const url = "{{url}}/{{slug}}/{{afterSlug1}}" + `${"{{afterSlug2}}" ? "/{{afterSlug2}}" : ""}` + "/" + fromDate + "/" + toDate
+        console.log(url)  
         getDataForChat(url)
     }
 
@@ -128,12 +132,12 @@
         let graphData = [
             result["Sick Leave"] ?? 0,
             result["Casual Leave"] ?? 0,
-            result["Priviledge Leave"] ?? 0,
+            result["Privilege Leave"] ?? 0,
             result["Meternity Leave"] ?? 0,
         ]
         SickLeave.innerText = `${percentage["Sick Leave"] ?? 0}%`
         CasualLeave.innerText = `${percentage["Casual Leave"] ?? 0}%`
-        PriviledgeLeave.innerText = `${percentage["Priviledge Leave"] ?? 0}%`
+        PriviledgeLeave.innerText = `${percentage["Privilege Leave"] ?? 0}%`
         MeternityLeave.innerText = `${percentage["Meternity Leave"] ?? 0}%`
         drawGraph(graphData)
     }

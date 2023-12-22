@@ -92,13 +92,12 @@
             </ul>
         </li>
     </ul>
-    
     <ul class="att_chart_sec2 p-10">
         {% with chatName="Leave Types" id="chart1" url="/organization/teams" slug=slug afterSlug1="get-leave-type-insight" afterSlug2=teamId %}
         {% include "dotnut.html" %}
         {% endwith %}
 
-        {% with id="chart2" %}
+        {% with chatName="Employees per job-title" id="chart2" url="/organization/get-employee-count-per-job-title-team" slug=slug afterSlug=teamId %}
         {% include "LineChart.html" %}
         {% endwith %}
     </ul>

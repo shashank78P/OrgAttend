@@ -1,51 +1,100 @@
 <div class="flex flex-col items-center  chartContainer box-shadow border-light">
     <ul class="flex justify-between items-center flex-wrap chart-top-nav">
-            <li class="chart-title">Attendance Report</li>
-            <li class=" date-filter-container ">
-                <ul class="flex justify-center items-center chart-filter">
-                    <li>
-                        <span>From</span>
-                        <input type="date" name="" id="">
-                    </li>
-                    <li>
-                        <span>To</span>
-                        <input type="date" name="" id="">
-                    </li>
-                </ul>
-            </li>
+        <li class="chart-title">{{chatName}}</li>
+        <li class=" date-filter-container ">
+            <ul class="flex justify-center items-center chart-filter">
+                <li>
+                    <span>From</span>
+                    <input
+                    onchange="fromDateChangedLineGraph(event)"
+                    type="date" name="" id="lineGraphFromDate">
+                </li>
+                <li>
+                    <span>To</span>
+                    <input 
+                    onchange="toDateChangedLineGraph(event)"
+                    type="date" name="" id="lineGraphToDate">
+                </li>
+            </ul>
+        </li>
     </ul>
     <div class="lineChart">
         <canvas id="id1"></canvas>
     </div>
 </div>
 <script>
-        // console.log('{{id}}')
-        new Chart(document.getElementById('id1'), {
+    // console.log('{{id}}')
+    let existingLineChart;
+    let lineGraphToDate = document.getElementById("lineGraphToDate")
+    let lineGraphFromDate = document.getElementById("lineGraphFromDate")
+
+    let fromDate2 = new Date()
+    fromDate2.setDate(1)
+    fromDate2 = fromDate2.toISOString()
+    lineGraphFromDate.value = fromDate2.split('T')[0]
+    
+    let toDate2 = new Date();
+    toDate2.setMonth(toDate2.getMonth() + 1, 1);
+    toDate2.setDate(toDate2.getDate() - 1);
+    toDate2 = toDate2.toISOString()
+    lineGraphToDate.value = toDate2.split('T')[0]
+    constructUrl(fromDate2, toDate2)
+
+    function fromDateChangedLineGraph(e) {
+        // newDate = new Date()
+        console.log("date changed")
+        fromDate2 = new Date(e.target.value)
+        fromDate2 = fromDate2.toISOString()
+        console.log(fromDate2)
+        if (fromDate2 <= toDate2) {
+            console.log("calling construct url")
+            console.log(existingLineChart)
+            if (existingLineChart) {
+                existingLineChart.destroy();
+            }
+            constructUrl(fromDate2, toDate2)
+        }
+    }
+    function toDateChangedLineGraph(e) {
+        // newDate = new Date()
+        console.log("date changed")
+        toDate2 = new Date(e.target.value)
+        toDate2 = toDate2.toISOString()
+        console.log(toDate2)
+        if (toDate2 >= fromDate2) {
+            console.log("calling construct url")
+            console.log(existingLineChart)
+            if (existingLineChart) {
+                existingLineChart.destroy();
+            }
+            constructUrl(fromDate2, toDate2)
+        }
+    }
+
+    function constructUrl(fromDate , toDate2){
+        const url = "{{url}}/{{slug}}" + `${"{{afterSlug}}" ? "/{{afterSlug}}" : ""}`  +"/"+ fromDate2 + "/" + toDate2
+        getDataForChat(url);
+    }
+
+    async function getDataForChat(url) {
+        const { label, total } = await fetchData("GET", url, {})
+        const backgroundColor = []
+
+        for(let i=0; i< label.length; i++){
+            backgroundColor.push(`rgba(${Math.ceil((Math.random() * 1000) % 255)}, ${Math.ceil((Math.random() * 1000) % 255)}, ${Math.ceil((Math.random() * 1000) % 255)}, 0.7)`)
+        }
+        drawLineGraph(label , total , backgroundColor)
+    }
+
+    function drawLineGraph(label , total , backgroundColor) {
+        existingLineChart = new Chart(document.getElementById('id1'), {
             type: 'bar',
             data: {
-                labels: [1, 2, 3, 4, 5, 6, 7],
+                labels: label,
                 datasets: [{
-                    label: 'My First Dataset', 
-                    data: [65, 59, 80, 81, 56, 55, 40],
-                    backgroundColor: [
-                        'rgba(255, 99, 132, 0.2)',
-                        'rgba(255, 159, 64, 0.2)',
-                        'rgba(255, 205, 86, 0.2)',
-                        'rgba(75, 192, 192, 0.2)',
-                        'rgba(54, 162, 235, 0.2)',
-                        'rgba(153, 102, 255, 0.2)',
-                        'rgba(201, 203, 207, 0.2)'
-                    ],
-                    borderColor: [
-                        'rgb(255, 99, 132)',
-                        'rgb(255, 159, 64)',
-                        'rgb(255, 205, 86)',
-                        'rgb(75, 192, 192)',
-                        'rgb(54, 162, 235)',
-                        'rgb(153, 102, 255)',
-                        'rgb(201, 203, 207)'
-                    ],
-                    borderWidth: 1
+                    label: "",
+                    data: total,
+                    backgroundColor: backgroundColor
                 }]
             },
             options: {
@@ -56,4 +105,7 @@
                 }
             },
         });
+    
+    }
+
 </script>
