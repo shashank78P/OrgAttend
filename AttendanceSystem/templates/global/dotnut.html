@@ -1,15 +1,17 @@
 <div class="flex flex-col items-center justify-center chartContainer box-shadow border-light">
     <ul class="flex justify-between items-center flex-wrap chart-top-nav">
-        <li class="chart-title">Attendance Report</li>
+        <li class="chart-title">{{chatName}}</li>
         <li class=" date-filter-container ">
             <ul class="flex justify-center items-center chart-filter">
                 <li>
                     <span>From</span>
-                    <input type="date" name="" id="">
+                    <input type="date" name="" id="dotnutFromDate" onchange="fromDateChanged(event)">
                 </li>
                 <li>
                     <span>To</span>
-                    <input type="date" name="" id="">
+                    <input type="date" name="" id="dotnutToDate" 
+                    onchange="toDateChanged(event)"
+                    >
                 </li>
             </ul>
         </li>
@@ -23,8 +25,8 @@
                 <li class="marker" style="background-color:#017BF6"></li>
                 <li>
                     <ul class="">
-                        <li>In Office</li>
-                        <li class="result">65%</li>
+                        <li>Sick Leave</li>
+                        <li class="result" id="SickLeave">0%</li>
                     </ul>
                 </li>
             </ul>
@@ -33,8 +35,8 @@
                 <li class="marker" style="background-color:#CC6EE3"></li>
                 <li>
                     <ul class="">
-                        <li>Half Day</li>
-                        <li class="result">6%</li>
+                        <li>Casual Leave</li>
+                        <li class="result" id="CasualLeave">0%</li>
                     </ul>
                 </li>
             </ul>
@@ -43,8 +45,8 @@
                 <li class="marker" style="background-color:#FF6EB4"></li>
                 <li>
                     <ul class="">
-                        <li>Work From Home</li>
-                        <li class="result">22%</li>
+                        <li>Priviledge Leave</li>
+                        <li class="result" id="PriviledgeLeave">0%</li>
                     </ul>
                 </li>
             </ul>
@@ -53,40 +55,115 @@
                 <li class="marker" style="background-color:#FF9181"></li>
                 <li>
                     <ul class="">
-                        <li>On Leave</li>
-                        <li class="result">9%</li>
+                        <li>Meternity Leave</li>
+                        <li class="result" id="MeternityLeave">0%</li>
                     </ul>
                 </li>
             </ul>
-
         </div>
     </div>
 </div>
-
 <script>
-    console.log('{{id}}')
-    new Chart(document.getElementById('{{id}}'), {
-        type: 'doughnut',
-        data: data = {
-            datasets: [{
-                label: 'My First Dataset',
-                data: [300, 12],
-                backgroundColor: [
-                    // 'rgb(255, 99, 132)',
-                    // 'rgb(54, 162, 235)',
-                    // 'rgb(255, 205, 86)'
-                    "#017BF6", "#CC6EE3", "#FF6EB4", "#FF9181", "#FE674C", "#F9D600", "#F9F871", "#5CB616"
-                ],
-                hoverOffset: 4
-            }]
-        },
-        // options: {
-        //     scales: {
-        //         y: {
-        //             beginAtZero: true
-        //         }
-        //     }
-        // }
-    });
+    let existingChart;
+    let MeternityLeave = document.getElementById("MeternityLeave")
+    let PriviledgeLeave = document.getElementById("PriviledgeLeave")
+    let CasualLeave = document.getElementById("CasualLeave")
+    let SickLeave = document.getElementById("SickLeave")
+    let dotnutFromDate = document.getElementById("dotnutFromDate")
+    let dotnutToDate = document.getElementById("dotnutToDate")
+
+    let fromDate = new Date()
+    fromDate.setDate(1)
+    fromDate = fromDate.toISOString()
+    dotnutFromDate.value = fromDate.split('T')[0]
+    
+    let toDate = new Date();
+    toDate.setMonth(toDate.getMonth() + 1, 1);
+    toDate.setDate(toDate.getDate() - 1);
+    toDate = toDate.toISOString()
+    dotnutToDate.value = toDate.split('T')[0]
+
+    function fromDateChanged(e) {
+        // newDate = new Date()
+        console.log("date changed")
+        fromDate = new Date(e.target.value)
+        fromDate = fromDate.toISOString()
+        console.log(fromDate)
+        if (fromDate <= toDate) {
+            console.log("calling construct url")
+            console.log(existingChart)
+            if (existingChart) {
+                existingChart.destroy();
+            }
+            constructUrl(fromDate, toDate)
+        }
+    }
+    function toDateChanged(e) {
+        // newDate = new Date()
+        console.log("date changed")
+        toDate = new Date(e.target.value)
+        toDate = toDate.toISOString()
+        console.log(toDate)
+        if (toDate >= fromDate) {
+            console.log("calling construct url")
+            console.log(existingChart)
+            if (existingChart) {
+                existingChart.destroy();
+            }
+            constructUrl(fromDate, toDate)
+        }
+    }
+
+
+
+    function constructUrl(fromDate, toDate) {
+        const url = "{{url}}/{{slug}}/{{afterSlug1}}" + `${"{{afterSlug2}}" ? "/{{afterslug2}}" : ""}` + `/${fromDate}/${toDate}`
+        console.log(url)
+        getDataForChat(url)
+    }
+
+// 2023-12-01T00:00:00.000Z/2023-12-13T00:00:00.000Z
+    async function getDataForChat(url) {
+        const { result, percentage } = await fetchData("GET", url, {})
+        let graphData = [
+            result["Sick Leave"] ?? 0,
+            result["Casual Leave"] ?? 0,
+            result["Priviledge Leave"] ?? 0,
+            result["Meternity Leave"] ?? 0,
+        ]
+        SickLeave.innerText = `${percentage["Sick Leave"] ?? 0}%`
+        CasualLeave.innerText = `${percentage["Casual Leave"] ?? 0}%`
+        PriviledgeLeave.innerText = `${percentage["Priviledge Leave"] ?? 0}%`
+        MeternityLeave.innerText = `${percentage["Meternity Leave"] ?? 0}%`
+        drawGraph(graphData)
+    }
+    // drawGraph(graphData)
+    constructUrl(fromDate, toDate)
+
+    function drawGraph(graphData) {
+        existingChart = new Chart(document.getElementById('{{id}}'), {
+            type: 'doughnut',
+            data: data = {
+                datasets: [{
+                    label: '{{chatName}}',
+                    data: graphData,
+                    backgroundColor: [
+                        // 'rgb(255, 99, 132)',
+                        // 'rgb(54, 162, 235)',
+                        // 'rgb(255, 205, 86)'
+                        "#017BF6", "#CC6EE3", "#FF6EB4", "#FF9181", "#FE674C", "#F9D600", "#F9F871", "#5CB616"
+                    ],
+                    hoverOffset: 4
+                }]
+            },
+            // options: {
+            //     scales: {
+            //         y: {
+            //             beginAtZero: true
+            //         }
+            //     }
+            // }
+        });
+    }
 
 </script>

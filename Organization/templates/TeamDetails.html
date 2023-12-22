@@ -22,6 +22,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src={% static 'js/script.js' %}></script>
+<script src={% static 'js/Fetch.js' %}></script>
 
 
 {% endblock %}
@@ -93,7 +94,7 @@
     </ul>
     
     <ul class="att_chart_sec2 p-10">
-        {% with id="chart1" %}
+        {% with chatName="Leave Types" id="chart1" url="/organization/teams" slug=slug afterSlug1="get-leave-type-insight" afterSlug2=teamId %}
         {% include "dotnut.html" %}
         {% endwith %}
 
@@ -115,5 +116,6 @@
 {% with app="organization" total=totalEmployee action="/organization/employees" slug=slug page=pageNo%}
 {% include "pagination.html" %}
 {% endwith %}
+
 
 {% endblock %}

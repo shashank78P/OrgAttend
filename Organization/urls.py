@@ -17,7 +17,8 @@ urlpatterns = [
     path("teams/<slug:slug>/attendance/<teamId>" , views.takeAttendance),
     path("teams/<slug:slug>/attendance/<teamId>/save" , views.saveAttendance),
 # api
-    path("teams/<slug:slug>/get-leave-type-insight/<teamId>" , views.leaveTypeInsight),
+    path("teams/<slug:slug>/get-leave-type-insight/<teamId>/<fromDate>/<toDate>" , views.leaveTypeInsight),
+    path("teams/<slug:slug>/get-leave-type-insight/<fromDate>/<toDate>" , views.leaveTypeInsightOfOrg),
 
     path("teams/<slug:slug>/<id>" , views.teamMembersDetails),
     path("teams/<slug:slug>/add/<teamId>" , views.addTeamMember),

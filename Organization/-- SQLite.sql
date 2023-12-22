@@ -1,4 +1,7 @@
--- SELECT * FROM Organization_attendance a;
+SELECT * FROM Organization_leaverequest 
+where 
+-- TeamId_id = 48 AND
+Organization_id = 2;
 
 -- SELECT 
 -- sum(case WHEN role = "LEADER" then 1 else 0 END) as leaderCount,
@@ -28,19 +31,34 @@
 -- GROUP BY takenAt;
 
 
-SELECT * FROM Organization_employee e;
+-- SELECT * FROM Organization_employee e;
+
+-- SELECT
+--         count(e._id) as total,
+--         jt.title
+--         FROM Organization_employee as e,
+--         Organization_job_title as jt,
+--         Organization_teammember as tm
+--         where
+--         e._id <> -1 and
+--         e.Organization_id = 2 AND
+--         jt.id = e.jobTitle_id AND
+--         tm.TeamId_id = 48 AND
+--         tm.OrganizationId_id = e.Organization_id AND
+--         e.createdAt BETWEEN '2023-12-03' AND '2023-12-21'
+--         GROUP BY jt.title;
 
 SELECT
-        count(e._id) as total,
-        jt.title
-        FROM Organization_employee as e,
-        Organization_job_title as jt,
-        Organization_teammember as tm
+        count(*) as total,
+        l.leaveType,
+        id
+        FROM Organization_leaverequest as l
         where
-        e._id <> -1 and
-        e.Organization_id = 2 AND
-        jt.id = e.jobTitle_id AND
-        tm.TeamId_id = 48 AND
-        tm.OrganizationId_id = e.Organization_id AND
-        e.createdAt BETWEEN '2023-12-03' AND '2023-12-21'
-        GROUP BY jt.title;
+        id <> -1 and
+        TeamId_id = 38 AND
+        Organization_id = 2 AND
+        status = "Accepted" AND
+        fromDate BETWEEN '2023-12-01' AND '2023-12-31'
+        AND
+        toDate BETWEEN '2023-12-01' AND '2023-12-31'
+        GROUP BY leaveType;

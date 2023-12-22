@@ -420,7 +420,78 @@ def getTeamsFormatedData(TeamsData):
         ])
     return tableTitle , tableData
 
-def leaveTypeInsight(request , slug , teamId):
+def leaveTypeInsightOfOrg(request , slug , fromDate , toDate):
+    try:
+        print("leaveTypeInsight")
+        user = request.session["user"]
+        userData = get_object_or_404(Users , _id = user["_id"])
+        print(user)
+        org = getOrgBySlug( request , slug)
+        print(org)
+        isHeOwner = isOwner(org , userData)
+        print(isHeOwner)
+        teamIds = getTeamIdList(org , userData)
+        print("teamIds")
+        print(teamIds)
+        print(list(teamIds))
+        # isHeLeaderOrCoLeader = isLeaderOrCoLeader(org=org , team=team , user=userData)
+        # print(isHeLeaderOrCoLeader)
+
+        if((not (isHeOwner) )or len(teamIds) == 0):
+            return HttpResponseNotAllowed("You don't have an access.")
+        
+        interQuery = ""
+        if(not isOwner):
+            print("not owner")
+            interQuery = f" teamId_id in {teamIds} AND"
+        print(fromDate)
+        print(toDate)
+        fromDate = fromDate.split("T")[0]
+        toDate = toDate.split("T")[0]
+        print(fromDate)
+        print(toDate)
+        
+        query = f"""
+        SELECT 
+        count(*) as total,
+        l.leaveType,
+        id
+        FROM Organization_leaverequest as l
+        where 
+        id <> -1 and
+        Organization_id = {org._id} AND
+        f{interQuery}
+        status = "ACCEPTED" AND
+        fromDate BETWEEN '{fromDate}' AND '{toDate}'
+        AND
+        toDate BETWEEN '{fromDate}' AND '{toDate}'
+        GROUP BY leaveType;
+    """
+        
+        print(query)
+        data = LeaveRequest.objects.raw(query)
+        print(data)
+        result = {}
+        resultPercentage = {}
+        totalLeaves = 0;
+        for i in data:
+            totalLeaves = totalLeaves + i.total
+            result[i.leaveType] = i.total
+        if(totalLeaves != 0):
+            for i in data:
+                resultPercentage[i.leaveType] = round(((i.total / totalLeaves) * 100))
+        print("result")
+        print(result)
+        print(resultPercentage)
+        return JsonResponse({
+            "result" : result,
+            "percentage" : resultPercentage
+        })
+    except Exception as e:
+        print(e)
+        return HttpResponseServerError(e)
+    
+def leaveTypeInsight(request , slug , teamId , fromDate , toDate):
     try:
         print("leaveTypeInsight")
         user = request.session["user"]
@@ -438,28 +509,35 @@ def leaveTypeInsight(request , slug , teamId):
         if(not (isHeOwner | isHeLeaderOrCoLeader)):
             return HttpResponseNotAllowed("You don't have an access.")
         
-        fromDate = request.POST.get("fromDate" , None)
-        print("fromDate")
-        toDate = request.POST.get("toDate" , None)
-        print("toDate")
+        # fromDate = request.POST.get("fromDate" , None)
+        # print("fromDate")
+        # toDate = request.POST.get("toDate" , None)
+        # print("toDate")
 
+        # print(fromDate)
+        # print(toDate)
+
+        # if(fromDate is None or toDate is None):
+        #     return HttpResponseServerError("Invalid from date and to date")
         print(fromDate)
         print(toDate)
-
-        if(fromDate is None or toDate is None):
-            return HttpResponseServerError("Invalid from date and to date")
-
-        fromDate = fromDate.strftime("%Y-%m-%d")
-        toDate = toDate.strftime("%Y-%m-%d")
+        # fromDate = date(fromDate)
+        # toDate = date(toDate)
+        fromDate = fromDate.split("T")[0]
+        toDate = toDate.split("T")[0]
+        print(fromDate)
+        print(toDate)
         query = f"""
         SELECT 
         count(*) as total,
-        l.leaveType
+        l.leaveType,
+        id
         FROM Organization_leaverequest as l
         where 
         id <> -1 and
         TeamId_id = {teamId} AND
         Organization_id = {org._id} AND
+        status = "ACCEPTED" AND
         fromDate BETWEEN '{fromDate}' AND '{toDate}'
         AND
         toDate BETWEEN '{fromDate}' AND '{toDate}'
@@ -469,7 +547,22 @@ def leaveTypeInsight(request , slug , teamId):
         print(query)
         data = LeaveRequest.objects.raw(query)
         print(data)
-        return JsonResponse(data=data)
+        result = {}
+        resultPercentage = {}
+        totalLeaves = 0;
+        for i in data:
+            totalLeaves = totalLeaves + i.total
+            result[i.leaveType] = i.total
+        if(totalLeaves != 0):
+            for i in data:
+                resultPercentage[i.leaveType] = round(((i.total / totalLeaves) * 100))
+        print("result")
+        print(result)
+        print(resultPercentage)
+        return JsonResponse({
+            "result" : result,
+            "percentage" : resultPercentage
+        })
     except Exception as e:
         print(e)
         return HttpResponseServerError(e)
@@ -1803,6 +1896,7 @@ def LeaveRequestDetails(request , slug , id):
         isHeOwner = isOwner(org , userData)
         isHeLeaderOrCoLeader = isLeaderOrCoLeader(leaveReq.TeamId,org , userData)
         print(isHeOwner)
+        print(isHeLeaderOrCoLeader)
 
         print("leaveReq.exists()")
         print(leaveReq)
