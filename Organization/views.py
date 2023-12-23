@@ -427,13 +427,15 @@ def leaveTypeInsightOfOrg(request , slug , fromDate , toDate):
         userData = get_object_or_404(Users , _id = user["_id"])
         org = getOrgBySlug( request , slug)
         isHeOwner = isOwner(org , userData)
-        teamIds = getTeamIdList(org , userData)
+        
+        isHeLeaderOrCoLeaderInAtleastOneTeam = isLeaderOrCoLeaderInAtleastOneTeam(org , userData)
 
-        if((not (isHeOwner)) or len(teamIds) == 0):
+        if(not (isHeOwner or isHeLeaderOrCoLeaderInAtleastOneTeam)):
             return HttpResponseNotAllowed("You don't have an access.")
         
         interQuery = ""
-        if(not isOwner):
+        if(not isHeOwner):
+            teamIds = getTeamIdList(org , userData)
             interQuery = f" teamId_id in {tuple(teamIds)} AND"
 
         fromDate = fromDate.split("T")[0]
@@ -469,7 +471,7 @@ def leaveTypeInsightOfOrg(request , slug , fromDate , toDate):
 def calculatePercentageForLeaveTye(data):
     result = {}
     resultPercentage = {}
-    totalLeaves = 0;
+    totalLeaves = 0
     for i in data:
         totalLeaves = totalLeaves + i.total
         result[i.leaveType] = i.total
@@ -525,6 +527,42 @@ def leaveTypeInsight(request , slug , teamId , fromDate , toDate):
         print(e)
         return HttpResponseServerError(e)
 
+def roleCountOfTeamsOrOrg( org_id, teamIds):
+    queryBuilder = ""
+    if(teamIds):
+        queryBuilder = f" AND t.id in {teamIds} "
+
+    query = f"""
+        SELECT
+            tm.role as role,
+            count(tm.role) as total,
+            tm.id
+        FROM
+            Organization_teammember as tm,
+            Organization_team as t
+        WHERE
+            tm.OrganizationId_id = {org_id}  AND
+            tm.TeamId_id = t.id
+            {queryBuilder}
+        GROUP BY
+            tm.role;
+    """
+
+    data = TeamMember.objects.raw(query)
+    co_Leader = 0
+    leader = 0
+    member = 0
+    total = 0
+    for i in data:
+        total += i.total
+        if i.role == "CO-LEADER":
+            co_Leader = i.total
+        if i.role == "LEADER":
+            leader = i.total
+        if i.role == "MEMBER":
+            member = i.total
+    return co_Leader,leader,member,total
+
 def teams(request , slug):
     try:
         user = request.session["user"]
@@ -544,6 +582,21 @@ def teams(request , slug):
         
         if( not ( isHeOwner | isHeLeaderOrCoLeaderInAtleastOneTeam)):
             return HttpResponseNotAllowed("You don't an access")
+
+        co_Leader = 0
+        leader = 0
+        member = 0
+        total = 0
+        avgAtt = 0
+
+        if isHeOwner:
+            co_Leader,leader,member,total = roleCountOfTeamsOrOrg(org_id= org._id , teamIds=False)
+            avgAtt = getTeamAvgAttendance(request , slug , teamId=False , orgId=org._id)
+        else:
+            teamIds = getTeamIdList(org , userData)
+            co_Leader,leader,member,total = roleCountOfTeamsOrOrg(org_id= org._id , teamIds=tuple(teamIds))
+            avgAtt = getTeamAvgAttendance(request , slug , tuple(teamIds) , org._id)
+
 
         if(data.get("search" , "") not in [None , "" ]):
             search = data["search"]
@@ -625,6 +678,11 @@ def teams(request , slug):
             "logo" : f"{os.environ.get('FRONTEND')}/media/{org.logo}" ,
             "baseUrl" : os.environ.get('FRONTEND'), 
             "endpoint":"organization",
+            "co_Leader" : co_Leader,
+            "leader" : leader,
+            "member" : member,
+            "total" : total,
+            "avgAtt":avgAtt,
             "page" : "teams" ,
             "teamsData" : teamsData[ skip :  skip + rows],
             "totalTeams" : np.arange(0, math.ceil(len(teamsData)/rows)),
@@ -977,6 +1035,13 @@ def getTeamInsights(request , slug , teamId , orgId):
 
 def getTeamAvgAttendance(request , slug , teamId , orgId):
     try:
+        QueryBuilder = ""
+        if(type(teamId).__name__ == 'int' or type(teamId).__name__ == 'str'):
+            QueryBuilder = f" AND TeamId_id = {teamId} "
+        
+        elif( type(teamId).__name__ ==  "tuple"):
+            QueryBuilder = f" AND TeamId_id in {teamId} "
+            
         print("getTeamAvgAttendance")
         queryToGetAttendanceOfTeam = f"""
                 SELECT 
@@ -987,8 +1052,8 @@ def getTeamAvgAttendance(request , slug , teamId , orgId):
                 FROM Organization_attendance a
                 WHERE 
                 id <> -1 and
-                Organization_id = {orgId} AND
-                TeamId_id = {teamId}
+                Organization_id = {orgId} 
+                {QueryBuilder}
                 GROUP BY takenAt;
         """ 
         d2 = Attendance.objects.raw(queryToGetAttendanceOfTeam)
@@ -1294,6 +1359,20 @@ def employees(request , slug):
         userList = getAllUserIdListOfOrgForUser(org , userData)
             # &
             # Q(employee__in = userList)
+        co_Leader = 0
+        leader = 0
+        member = 0
+        total = 0
+        avgAtt = 0
+
+        if isHeOwner:
+            co_Leader,leader,member,total = roleCountOfTeamsOrOrg(org_id= org._id , teamIds=False)
+            avgAtt = getTeamAvgAttendance(request , slug , teamId=False , orgId=org._id)
+        else:
+            teamIds = getTeamIdList(org , userData)
+            co_Leader,leader,member,total = roleCountOfTeamsOrOrg(org_id= org._id , teamIds=tuple(teamIds))
+            avgAtt = getTeamAvgAttendance(request , slug , tuple(teamIds) , org._id)
+
         employeeData = Employee.objects.filter(
             Q(Organization = org) 
             &
@@ -1335,6 +1414,11 @@ def employees(request , slug):
             "baseUrl" : os.environ.get('FRONTEND') ,
             "endpoint":"organization",
             "page" : "employees" ,
+            "co_Leader":co_Leader,
+            "leader":leader,
+            "member":member,
+            "total":total,
+            "avgAtt":avgAtt,
             "employeeData" : employeeData[ skip :  skip + rows],
             "totalEmployee" : np.arange(0, math.ceil(len(employeeData)/10)),
             'tableTitle':tableTitle,
@@ -2129,6 +2213,7 @@ def getEmployeePerJobTitleByTeam(request , slug , teamId, fromDate , toDate):
                     Organization_employee as e ON
                     e.jobTitle_id = jt.id AND
                     e.Organization_id = {org._id} AND
+                    jt.Organization_id = e.Organization_id AND
                     e.employee_id = tm.userId_id AND
                     tm.TeamId_id = {teamId} AND
                     e.createdAt BETWEEN '{fromDate}' AND '{toDate}'
@@ -2141,9 +2226,76 @@ def getEmployeePerJobTitleByTeam(request , slug , teamId, fromDate , toDate):
 
         label = []
         total = []
+        print(data)
 
         for job in data:
             label.append(job.jobTitle)
+            total.append(job.total)
+
+        return JsonResponse(
+            {
+                "label" : label,
+                "total" : total
+            } 
+        )
+
+    except Exception as e:
+        return HttpResponseServerError(e)
+
+def getEmployeeCountByTeam(request , slug , fromDate , toDate):
+    try:
+        user = request.session["user"]
+        userData = get_object_or_404(Users , _id = user["_id"])
+        
+        org = getOrgBySlug( request , slug)
+
+        isHeOwner = isOwner(org , userData)
+        print(isHeOwner)
+
+        
+        isHeLeaderOrCoLeaderInAtleastOneTeam = isLeaderOrCoLeaderInAtleastOneTeam(org=org  , user=userData)
+        
+        print(isHeLeaderOrCoLeaderInAtleastOneTeam)
+
+        if(not (isHeOwner | isHeLeaderOrCoLeaderInAtleastOneTeam)):
+            return HttpResponseNotAllowed("You don't have an access.")
+        
+        queryBuilder = ""
+
+        if(not isHeOwner):
+            teamIds = getTeamIdList(org , userData)
+            queryBuilder = f"  t.id in {tuple(teamIds)} AND "
+        
+        fromDate = fromDate.split("T")[0]
+        toDate = toDate.split("T")[0]
+        
+        query = f"""
+                SELECT
+                    t.name as name,
+                    count(tm.userId_id) as total,
+                    tm.id
+                FROM
+                    Organization_teammember as tm,
+                    Organization_team as t
+                WHERE
+                    tm.OrganizationId_id = {org._id}  AND
+                    tm.OrganizationId_id = t.OrganizationId_id  AND
+                    tm.TeamId_id = t.id AND
+                    { queryBuilder }
+                    tm.createdAt BETWEEN '{fromDate}' AND '{toDate}'
+                GROUP BY
+                    tm.TeamId_id;
+        """
+        data = Job_title.objects.raw(query)
+
+        label = []
+        total = []
+
+        print(queryBuilder)
+        print(data)
+
+        for job in data:
+            label.append(job.name)
             total.append(job.total)
 
         return JsonResponse(

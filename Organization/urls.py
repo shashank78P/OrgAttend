@@ -19,6 +19,7 @@ urlpatterns = [
 # api
     path("teams/<slug:slug>/get-leave-type-insight/<teamId>/<fromDate>/<toDate>" , views.leaveTypeInsight),
     path("teams/<slug:slug>/get-leave-type-insight-of-org/<fromDate>/<toDate>" , views.leaveTypeInsightOfOrg),
+    path("teams/<slug:slug>/get-total-employee-by-team-org/<fromDate>/<toDate>" , views.getEmployeeCountByTeam),
 
     path("teams/<slug:slug>/<id>" , views.teamMembersDetails),
     path("teams/<slug:slug>/add/<teamId>" , views.addTeamMember),

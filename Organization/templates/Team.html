@@ -40,9 +40,9 @@
             <ul>
                 <li class="title title_card">Leaders</li>
                 <li class="flex justify-end items-center att_card_stat">
-                    <span>2</span>
+                    <span>{{leader}}</span>
                     <span>/</span>
-                    <span>10</span>
+                    <span>{{total}}</span>
                 </li>
             </ul>
         </li>
@@ -50,9 +50,9 @@
             <ul>
                 <li class="title title_card">Co-Leaders</li>
                 <li class="flex justify-end items-center att_card_stat">
-                    <span>2</span>
+                    <span>{{co_Leader}}</span>
                     <span>/</span>
-                    <span>10</span>
+                    <span>{{total}}</span>
                 </li>
             </ul>
         </li>
@@ -60,9 +60,9 @@
             <ul>
                 <li class="title title_card">Members</li>
                 <li class="flex justify-end items-center att_card_stat">
-                    <span>6</span>
+                    <span>{{member}}</span>
                     <span>/</span>
-                    <span>10</span>
+                    <span>{{total}}</span>
                 </li>
             </ul>
         </li>
@@ -70,7 +70,7 @@
             <ul>
                 <li class="title title_card">Avg Attendance</li>
                 <li class="flex justify-end items-center att_card_stat">
-                    <span>60%</span>
+                    <span>{{avgAtt}}%</span>
                 </li>
             </ul>
         </li>
@@ -80,7 +80,7 @@
         {% include "dotnut.html" %}
         {% endwith %}
 
-        {% with id="chart2" %}
+        {% with chatName="Employees per team" id="chart2" url="/organization/teams" slug=slug afterSlug='get-total-employee-by-team-org'%}
         {% include "LineChart.html" %}
         {% endwith %}
     </ul>

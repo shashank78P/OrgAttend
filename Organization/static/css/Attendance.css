@@ -22,7 +22,7 @@
 }
 
 .att_chart_sec {
-    margin: 10px 0;
+    padding: 10px;
 }
 
 /* .att_chart_sec .title_card {
@@ -64,6 +64,13 @@
     color: var(--blue-primary);
     margin: 2px;
     font-weight: 700;
+}
+
+.employee_page_card_sec{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    /* place-items: center; */
+    gap: 10px;
 }
 
 #att_bar_chart {

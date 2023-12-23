@@ -72,6 +72,7 @@
     }
 
     function constructUrl(fromDate , toDate2){
+        console.log("{{url}}")
         const url = "{{url}}/{{slug}}" + `${"{{afterSlug}}" ? "/{{afterSlug}}" : ""}`  +"/"+ fromDate2 + "/" + toDate2
         getDataForChat(url);
     }
