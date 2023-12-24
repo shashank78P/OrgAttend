@@ -1,10 +1,18 @@
 .attendance_card {
     max-width: 500px;
     min-width: 200px;
-    border: 1px solid gray;
     padding: 10px;
-    border-left: 5px solid green;
     border-radius: 10px;
+}
+
+.attendance_card_present{
+    border: 1px solid var(--green-500);
+    border-left: 5px solid var(--green-500);
+}
+
+.attendance_card_absent{
+    border: 1px solid var(--red-500);
+    border-left: 5px solid var(--red-500);
 }
 
 .attendance_row {
@@ -22,18 +30,33 @@
 }
 
 .attendance_tag_card {
-    background-color: #aacfff;
     padding: 5px;
     border-radius: 5px;
+    color: white !important;
+}
+
+.attendance_tag_card_green{
+    background-color: var(--green-500);
+}
+
+.attendance_tag_card_red{
+    background-color: var(--red-500);
 }
 
 .attendance_tag {}
+
+.attendance_dot_green {
+    background-color: var(--green-500);
+}
+
+.attendance_dot_red {
+    background-color: var(--red-500);
+}
 
 .attendance_dot {
     width: 5px;
     height: 5px;
     border-radius: 5px;
-    background-color: #006fff;
     margin-right: 5px;
 }
 

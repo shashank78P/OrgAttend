@@ -2,14 +2,14 @@ import math
 import numpy as np
 import json
 import os
+from dateutil import parser
 from django.shortcuts import render , get_object_or_404
 from django.http import HttpResponse ,HttpResponseServerError , HttpResponseRedirect, JsonResponse ,Http404 , HttpResponseForbidden
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password , check_password
-
 from .forms import LeaveRequestForm, signUpForm , logInForm
 from .models import Users 
-from Organization.models import LeaveRequest, Organization, OwnerDetails, TeamMember
+from Organization.models import Attendance, LeaveRequest, Organization, OwnerDetails, Team, TeamMember
 from datetime import datetime , timedelta
 import jwt
 from dotenv import load_dotenv
@@ -175,6 +175,30 @@ def getCommonTeamIdsOfUsers(request , currUserId , originalUserId , orgId):
         print(e)
         return HttpResponseForbidden(e)
 
+def getTeamIds(request , userData , slugUser , org):
+    teamIds=[]
+    if(slugUser._id != userData._id):
+        print("if")
+        teamIds = getCommonTeamIdsOfUsers(request , userData._id , slugUser._id , org._id)
+        print("teamIds")
+        print(teamIds)
+    else:
+        print("else")
+        query1 = f"""
+                SELECT 
+                    * 
+                from 
+                    Organization_teammember 
+                where 
+                    userId_id = {userData._id} AND 
+                    OrganizationId_id = {org._id};
+        """
+        print(query1)
+        ids = TeamMember.objects.raw(query1)
+        for i in ids:
+            teamIds.append(i.TeamId_id)
+    return teamIds
+
 def home(request , slug) :
     try:    
         user = request.session["user"]
@@ -190,29 +214,8 @@ def home(request , slug) :
         print("userData._id")
         print(userData._id)
 
-        teamIds = []
-        if(slugUser._id != userData._id):
-            print("if")
-            teamIds = getCommonTeamIdsOfUsers(request , userData._id , slugUser._id , org._id)
-            print("teamIds")
-            print(teamIds)
-        else:
-            print("else")
-            query1 = f"""
-                    SELECT 
-                        * 
-                    from 
-                        Organization_teammember 
-                    where 
-                        userId_id = {userData._id} AND 
-                        OrganizationId_id = {org._id};
-            """
-            print(query1)
-            ids = TeamMember.objects.raw(query1)
-
-            for i in ids:
-                teamIds.append(i.TeamId_id)
-
+        teamIds = getTeamIds(request , userData , slugUser , org)
+        
         print(teamIds)
 
         if(len(teamIds) == 0):
@@ -225,7 +228,7 @@ def home(request , slug) :
         return render(request ,"Home.html" , {
             "navOptions" : navOptions,
             'slug' : slug ,
-            "user" : user , 
+            "user" : slugUser , 
             "endpoint":"users" , 
             "baseUrl" : os.environ.get('FRONTEND')
         })
@@ -233,6 +236,213 @@ def home(request , slug) :
         print('Internal Server error')
         return HttpResponseServerError(e)
     
+def calculatePercentageForLeaveTye(data):
+    result = {}
+    resultPercentage = {}
+    totalLeaves = 0
+    for i in data:
+        totalLeaves = totalLeaves + i.total
+        result[i.leaveType] = i.total
+    if(totalLeaves != 0):
+        for i in data:
+            resultPercentage[i.leaveType] = round(((i.total / totalLeaves) * 100))
+    print("result")
+    print(result)
+    print(resultPercentage)
+    return JsonResponse({
+        "result" : result,
+        "percentage" : resultPercentage
+    })
+
+def getLeaveTypeInsightOfUser(request  , slug , fromDate , toDate):
+    try:
+        user = request.session["user"]
+        slugUser = get_object_or_404(Users , slug = slug)
+        userData = get_object_or_404(Users , slug = user["slug"])
+        org = getOrgById(request , user["currentActiveOrganization"])
+        
+        teamIds = getTeamIds(request , userData , slugUser , org)
+
+        if(len(teamIds) < 0):
+            return HttpResponseForbidden("You don't have a access.")
+
+        fromDate = fromDate.split("T")[0]
+        toDate = toDate.split("T")[0]
+        
+        query = f"""
+        SELECT 
+        count(*) as total,
+        l.leaveType,
+        id
+        FROM Organization_leaverequest as l
+        where 
+        id <> -1 and
+        Organization_id = {org._id} AND
+        teamId_id in {tuple(teamIds)} AND
+        status = "ACCEPTED" AND
+        fromDate BETWEEN '{fromDate}' AND '{toDate}'
+        AND
+        toDate BETWEEN '{fromDate}' AND '{toDate}'
+        GROUP BY leaveType;
+    """
+        
+        print(query)
+        data = LeaveRequest.objects.raw(query)
+        print(data)
+
+        return calculatePercentageForLeaveTye(data)        
+
+    except Exception as e:
+        return HttpResponseServerError(e)
+    
+def getAttendance(request , slug , teamIds , year):
+    try:
+        print("getAttendance")
+        print(year)
+        DayInNumber = {
+            'Sun': 0, 'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, 'Sat': 6
+        }
+
+
+
+        att_data = {1 : {},2: {},3: {},4: {},5: {},6: {},7: {},8: {},9: {},10: {},11: {},12: {}}
+
+            # a.TeamId_id as TeamId,
+        fromDate = datetime(year, 1, 1).strftime("%Y-%m-%d")
+        toDate = datetime(year+1, 1, 1) - timedelta(days=1)
+        toDate = toDate.strftime("%Y-%m-%d")
+        print(f"from => {fromDate} to => {toDate}")
+        query  = f"""
+        SELECT  
+            takenAt AS takenAt,
+            SUM(CASE WHEN attendance = 1 THEN 1 ELSE 0 END) AS present,
+            SUM(CASE WHEN attendance = 0 THEN 1 ELSE 0 END) AS absent,
+            COUNT(takenAt) AS total,
+            id
+        FROM 
+            Organization_attendance AS a
+        where 
+            id <> -1 and 
+            TeamId_id in {tuple(teamIds)} and
+            takenAt between '{fromDate}' and '{toDate}'
+        GROUP BY 
+            takenAt ORDER BY takenAt;
+        """
+
+        print(query)
+        data = Attendance.objects.raw(query)
+
+        print(data)
+        print("data")
+        for d in data:
+            print(d)
+            # x = date(d.takenAt)
+            print(f"date => {d.takenAt.day} month => {d.takenAt.month} year => {d.takenAt.year}")
+            att_data[d.takenAt.month][d.takenAt.day] = {
+                    'percentage' : math.ceil(d.present / d.total) * 100,
+                    "validCell" : True , "noAttendance" : False,
+                    "takenAt" : d.takenAt
+            }
+
+        print(att_data)
+        
+        finalCalendarData = {"1": {},"2": {},"3": {},"4": {},"5": {},"6": {},"7": {},"8": {},"9": {},"10": {},"11": {},"12": {}}
+
+        # i is for month
+        for i in range(12):
+            start_date = datetime(year, i + 1, 1)
+            last_date = "";
+            
+            if(i == 11):
+                last_date = datetime(year+1, 1, 1) - timedelta(days=1)
+            else:
+                last_date = datetime(year, i + 2, 1) - timedelta(days=1)
+
+            start_day = start_date.strftime('%a')
+            last_day = last_date.strftime('%a')
+
+            number_of_days_in_month = last_date.day
+            total_number_of_div = DayInNumber[(start_day)] + number_of_days_in_month + abs(DayInNumber[last_day] - 6)
+
+            print(f"Month: {i + 1}, Year: {year}")
+            print(f"start day=> {start_day}, last Day => {last_day}")
+            print(f"total div => {total_number_of_div}")
+
+            defaultAttenance = { 'percentage' : 0 , "validCell" : False , "noAttendance" : False}
+            # print("=============================")
+            # print(DayInNumber[start_day])
+            # print(total_number_of_div -(6 - DayInNumber[last_day]))
+            # print("=============================")
+            day = 1;
+            for j in range(total_number_of_div):
+                if (j >= DayInNumber[start_day] and j < (total_number_of_div -(6 - DayInNumber[last_day]))):
+                    finalCalendarData[str(i+1)][str(j)] = att_data[i+1].get(day , { 'percentage' : 0 ,  "validCell" : True , "noAttendance" : True })
+                    day = day +1
+                else:
+                    finalCalendarData[str(i+1)][str(j)] = defaultAttenance
+        print("finalCalendarData.items()")
+        for i in range(1,13):
+            print("i => ",i)
+            print(len(finalCalendarData[f"{i}"]))
+        return finalCalendarData
+    except Exception as e:
+        print(e)
+        return HttpResponseServerError(e)
+
+
+def getAttendanceByTeamOrg(request , slug , fromDate , toDate):
+    try:
+        user = request.session["user"]
+        slugUser = get_object_or_404(Users , slug = slug)
+        userData = get_object_or_404(Users , slug = user["slug"])
+        org = getOrgById(request , user["currentActiveOrganization"])
+        
+        teamIds = getTeamIds(request , userData , slugUser , org)
+
+        if(len(teamIds) < 0):
+            return HttpResponseForbidden("You don't have a access.")
+
+        fromDate = fromDate.split("T")[0]
+        toDate = toDate.split("T")[0]
+        
+        query = f"""
+                SELECT
+                    t.id as teamId,
+                    a.id as id,
+                    t.name as teamName,
+                    COUNT(*) as total,
+                    SUM(CASE WHEN a.attendance = 1 THEN 1 ELSE 0 END) as attendance
+                FROM 
+                    Organization_team as t
+                LEFT JOIN 
+                    Organization_attendance as a ON t.id = a.TeamId_id
+                WHERE 
+                    t.id IN {tuple(teamIds)} AND
+                    a.Organization_id = {org._id} AND 
+                    a.takenAt BETWEEN '{fromDate}' AND '{toDate}'
+                GROUP BY 
+                    t.id, t.name;
+        """
+        data = Attendance.objects.raw(query)
+
+        label = []
+        total = []
+        print(data)
+
+        for d in data:
+            label.append(d.teamName)
+            total.append( round((d.attendance / d.total) * 100 ) if d.total != 0 else 0 )
+
+        return JsonResponse(
+            {
+                "label" : label,
+                "total" : total
+            } 
+        )
+        
+    except Exception as e:
+        return HttpResponseForbidden(e)
+
 def homePage(request):
     try:
         user = request.session["user"]
@@ -266,13 +476,100 @@ def setCurrentActiveOrganization(request):
 def attendanceHistory(request , slug) :
     try:
         user = request.session["user"]
+        slugUser = get_object_or_404(Users , slug = slug)
+        userData = get_object_or_404(Users , slug = user["slug"])
+        org = getOrgById(request , user["currentActiveOrganization"])
+        
+        teamIds = getTeamIds(request , userData , slugUser , org)
+
+        if(len(teamIds) < 0):
+            return HttpResponseForbidden("You don't have a access.")
+
         navOptions = {
             "leave_request" : True,
         }
-        return render(request ,"AttendanceHistory.html" , {"navOptions" : navOptions, 'slug' : slug , "user" : user , "endpoint":"users" , "baseUrl" : os.environ.get('FRONTEND')})
+
+        today = datetime.today()
+        year = today.year
+        print("===============year========================")
+
+        if (request.method == "POST" and request.POST["year"] is not None):
+            print("request.POST['year'']")
+            print(request.POST["year"])
+            year = int(request.POST["year"])
+
+        attendanceDataOfTeam = getAttendance(request , slug , teamIds=teamIds ,year=year)
+
+        print(attendanceDataOfTeam)
+        return render(request ,
+                    "AttendanceHistory.html" , 
+                    {
+                        "navOptions" : navOptions,
+                         'slug' : slug , 
+                         "user" : user , 
+                         "endpoint":"users" , 
+                         "baseUrl" : os.environ.get('FRONTEND'),
+                         "att_data" : attendanceDataOfTeam,
+                          "year" : year
+                      })
     except Exception as e:
             print(e)
             HttpResponseServerError(e)
+
+def getAttendanceInDetailsByDay(request , slug , takenAt):
+    try:
+        print("getAttendanceInDetailsByDay")
+        print(takenAt)
+        takenDate = parser.parse(takenAt).date()
+        print(takenDate)
+
+        user = request.session["user"]
+        slugUser = get_object_or_404(Users , slug = slug)
+        userData = get_object_or_404(Users , slug = user["slug"])
+        org = getOrgById(request , user["currentActiveOrganization"])
+        
+        teamIds = getTeamIds(request , userData , slugUser , org)
+        print(teamIds)
+
+        if(len(teamIds) < 0):
+            return HttpResponseForbidden("You don't have a access.")
+
+        query = f"""
+            SELECT 
+                t.id,
+                t.name as teamName,
+                t.checkInTime as checkInTime,
+                t.checkOutTime as checkOutTime,
+                takenAt AS takenAt,
+                a.attendance as attendance
+            FROM 
+                Organization_team as t
+            LEFT JOIN 
+                Organization_attendance as a ON t.id = a.TeamId_id
+            WHERE 
+                t.id IN {tuple(teamIds)} AND
+                a.Organization_id = {org._id} AND 
+                a.takenAt ='{takenDate}';
+        """
+
+        print(query)
+
+        data = Team.objects.raw(query)
+        # att_data = []
+
+        # for d in data:
+        #     print(d)
+        #     att_data.append(d)
+        
+        return render(request ,"AttendanceDetailsCard.html" , {
+            'slug' : slug ,
+            "user" : slugUser , 
+            "data" : data,
+            "endpoint":"users" , 
+            "baseUrl" : os.environ.get('FRONTEND')
+        })
+    except Exception as e:
+        return HttpResponseServerError(e)
 
 def add(request) :
     try:
@@ -341,8 +638,15 @@ def formateLeaveRequest(leaveRequestData):
 def leaveRequest(request , slug): 
     try:
         currentUser = request.session["user"]
-        userData = get_object_or_404(Users , _id = currentUser["_id"])
-        org = get_object_or_404( Organization, _id = currentUser["currentActiveOrganization"])
+        slugUser = get_object_or_404(Users , slug = slug)
+        userData = get_object_or_404(Users , slug = currentUser["slug"])
+        org = getOrgById(request , currentUser["currentActiveOrganization"])
+        
+        teamIds = getTeamIds(request , userData , slugUser , org)
+
+        if(len(teamIds) < 0):
+            return HttpResponseForbidden("You don't have a access.")
+
         print("leaveRequest")
         search=""
         rows=10
@@ -411,7 +715,8 @@ def leaveRequest(request , slug):
             "pageNo":page,
             "skip":skip,
             "rows":rows,
-            "search":search
+            "search":search,
+            "showAddBtn" : "true" if slugUser._id == userData._id else "false"
              })
         
     except Exception as e:

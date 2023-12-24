@@ -21,7 +21,9 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src={% static 'js/script.js' %}></script>
-<script src={% static "js/chart.js" %}></script>
+<!-- <script src={% static "js/chart.js" %}></script> -->
+<script src={% static 'js/Fetch.js' %}></script>
+
 {% endblock %}
 
 {% block content %}
@@ -31,14 +33,12 @@
     {% with page="home"%}
     {% include "NavigationOptions.html" %}
     {% endwith %}
-    <!-- style="width: 500px;" -->
-    <!-- style="display: grid; grid-template-columns:1fr 1fr; gap: 20px;" -->
     <div class="user-chart-component">
-        {% with id="chart1" %}
+        {% with chatName="Leave Types" id="chart1" url="/users/leave-type" slug=slug afterSlug1="get-leave-type-insight-of-user" %}
         {% include "dotnut.html" %}
         {% endwith %}
 
-        {% with id="chart2" %}
+        {% with chatName="Attendance per team" id="chart2" url="/users/attendance" slug=slug afterSlug='get-attendance-by-team-org'%}
         {% include "LineChart.html" %}
         {% endwith %}
     </div>

@@ -38,7 +38,7 @@
     toDate2.setDate(toDate2.getDate() - 1);
     toDate2 = toDate2.toISOString()
     lineGraphToDate.value = toDate2.split('T')[0]
-    constructUrl(fromDate2, toDate2)
+    constructUrl2(fromDate2, toDate2)
 
     function fromDateChangedLineGraph(e) {
         // newDate = new Date()
@@ -52,7 +52,7 @@
             if (existingLineChart) {
                 existingLineChart.destroy();
             }
-            constructUrl(fromDate2, toDate2)
+            constructUrl2(fromDate2, toDate2)
         }
     }
     function toDateChangedLineGraph(e) {
@@ -67,11 +67,11 @@
             if (existingLineChart) {
                 existingLineChart.destroy();
             }
-            constructUrl(fromDate2, toDate2)
+            constructUrl2(fromDate2, toDate2)
         }
     }
 
-    function constructUrl(fromDate , toDate2){
+    function constructUrl2(fromDate , toDate2){
         console.log("{{url}}")
         const url = "{{url}}/{{slug}}" + `${"{{afterSlug}}" ? "/{{afterSlug}}" : ""}`  +"/"+ fromDate2 + "/" + toDate2
         getDataForChat(url);

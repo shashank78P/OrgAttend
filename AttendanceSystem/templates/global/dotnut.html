@@ -85,7 +85,7 @@
 
     function fromDateChanged(e) {
         // newDate = new Date()
-        console.log("date changed")
+        console.log("from date changed in dotnut")
         fromDate = new Date(e.target.value)
         fromDate = fromDate.toISOString()
         console.log(fromDate)
@@ -114,27 +114,28 @@
         }
     }
 
-
     console.log(`{"afterSlug2/afterslug2}}" : ""}`)
     console.log("{{afterSlug2}}")
     console.log(`${"{{afterSlug2}}" ? "/{{afterSlug2}}" : ""}`)
     console.log("{% if afterSlug2 %} {{afterSlug2}} {% endif %} ")
     function constructUrl(fromDate, toDate) {
-
         const url = "{{url}}/{{slug}}/{{afterSlug1}}" + `${"{{afterSlug2}}" ? "/{{afterSlug2}}" : ""}` + "/" + fromDate + "/" + toDate
+        console.log("url")  
         console.log(url)  
-        getDataForChat(url)
+        getDataForChart(url)
     }
 
 // 2023-12-01T00:00:00.000Z/2023-12-13T00:00:00.000Z
-    async function getDataForChat(url) {
+    async function getDataForChart(url) {
         const { result, percentage } = await fetchData("GET", url, {})
+        console.log({result , percentage})
         let graphData = [
             result["Sick Leave"] ?? 0,
             result["Casual Leave"] ?? 0,
             result["Privilege Leave"] ?? 0,
             result["Meternity Leave"] ?? 0,
         ]
+        console.log({graphData})
         SickLeave.innerText = `${percentage["Sick Leave"] ?? 0}%`
         CasualLeave.innerText = `${percentage["Casual Leave"] ?? 0}%`
         PriviledgeLeave.innerText = `${percentage["Privilege Leave"] ?? 0}%`
@@ -143,7 +144,7 @@
     }
     // drawGraph(graphData)
     constructUrl(fromDate, toDate)
-
+    
     function drawGraph(graphData) {
         existingChart = new Chart(document.getElementById('{{id}}'), {
             type: 'doughnut',

@@ -1,29 +1,72 @@
-<ul class=" w-full attendance_card flex justify-center items-center flex-col">
-    <li class="w-full attendance_row attendance_row_1st">
-        <ul class="w-full flex justify-between items-center">
-            <li class="MediumText">Wed, Aug 13, 2021</li>
-            <li>
-                <ul class="flex justify-center items-center attendance_tag_card">
-                    <li class="attendance_dot"></li>
-                    <li class="attendance_tag">On Time </li>
+{% extends "base.html" %}
+{% load static %}
+
+{% block page_title %}
+{{ text | title }}
+{% endblock %}
+
+{% block css_block %}
+<link rel="stylesheet" href={% static "css/Global.css" %}>
+<link rel="stylesheet" href={% static "css/home.css" %}>
+<link rel="stylesheet" href={% static 'css/homeNav.css' %}>
+<link rel="stylesheet" href={% static "css/UserInfo.css" %}>
+<link rel="stylesheet" href={% static "css/NavigationOptions.css" %}>
+<link rel="stylesheet" href={% static "css/AttendanceCalendar.css" %}>
+<link rel="stylesheet" href={% static "css/AttendanceDetailsCard.css" %}>
+
+<script src={% static 'js/script.js' %}></script>
+
+
+{% endblock %}
+
+{% block content %}
+
+{% include "Nav.html" %}
+
+{% include "UserInfo.html" %}
+
+{% for d in data %}
+<div class="todayAttendance  ">
+    {% if d.attendance %}
+    <ul class=" w-full attendance_card flex justify-center items-center flex-col attendance_card_present">
+        {% else %}
+        <ul class=" w-full attendance_card flex justify-center items-center flex-col attendance_card_absent">
+            {% endif %}
+            <li class="w-full attendance_row attendance_row_1st">
+                <ul class="w-full flex justify-between items-center">
+                    <li class="MediumText">{{d.takenAt}}</li>
+                    <li>
+                        {% if d.attendance %}
+                        <ul class="flex justify-center items-center attendance_tag_card attendance_tag_card_green">
+                            <li class="attendance_dot attendance_dot_green"></li>
+                            {% else %}
+                            <ul class="flex justify-center items-center attendance_tag_card attendance_tag_card_red">
+                                <li class="attendance_dot attendance_dot_red"></li>
+                                {% endif %}
+                                <li class="attendance_tag" style="color: white !important;">On Time </li>
+                            </ul>
+                    </li>
+                </ul>
+            </li>
+            <li class="w-full attendance_row flex justify-evenly">
+                <ul class="w-full">
+                    <li class="w-full lightText">Check in time</li>
+                    <li class=" w-full darkText">{{d.checkInTime}}</li>
+                </ul>
+
+                <ul class="w-full">
+                    <li class="w-full lightText">Check out time</li>
+                    <li class="w-full darkText">{{d.checkOutTime}}</li>
+                </ul>
+
+                <ul class="w-full">
+                    <li class="w-full lightText">Team Name</li>
+                    <li class="w-full darkText">{{d.teamName | title}}</li>
                 </ul>
             </li>
         </ul>
-    </li>
-    <li class="w-full attendance_row flex justify-evenly">
-        <ul class="w-full">
-            <li class="w-full lightText">Check in</li>
-            <li class=" w-full darkText">9:00 AM</li>
-        </ul>
+</div>
+{% endfor %}
 
-        <ul class="w-full">
-            <li class="w-full lightText">Check in</li>
-            <li class="w-full darkText">5:00 PM</li>
-        </ul>
-
-        <ul class="w-full">
-            <li class="w-full lightText">Total</li>
-            <li class="w-full darkText">8 hr</li>
-        </ul>
-    </li>
-</ul>
+<script src={% static 'js/AttendanceCalendar.js' %}></script>
+{% endblock %}

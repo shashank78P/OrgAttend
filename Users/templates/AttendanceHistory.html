@@ -25,14 +25,8 @@
 {% with page="attendanceHistory" %}
 {% include "NavigationOptions.html" %}
 {% endwith %}
+{% with page="attendanceHistory" app="users" data=tableData title=tableTitle action='/users/attendance-history' slug=slug year=year %}
 {% include "AttendanceCalendar.html" %}
-
-<div class="todayAttendance">
-    {% include "AttendanceDetailsCard.html" %}
-    {% include "AttendanceDetailsCard.html" %}
-    {% include "AttendanceDetailsCard.html" %}
-    {% include "AttendanceDetailsCard.html" %}
-
-</div>
+{% endwith %}
 <script src={% static 'js/AttendanceCalendar.js' %}></script>
 {% endblock %}

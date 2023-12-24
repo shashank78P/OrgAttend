@@ -1,29 +1,15 @@
--- SELECT * from Organization_ownerdetails where userId_id = 3 AND OrganizationId_id = 2;
--- SELECT
---                  TeamId_id
---                 FROM Organization_teammember
---                 WHERE
---                 userId_id = 3
---                 AND
---                 TeamId_id in
---                 (SELECT
---                  TeamId_id
---                 FROM Organization_teammember
---                 WHERE
---                         OrganizationId_id =2 AND
-
---                     userId_id = 3
---                 );
-
 SELECT
-                        *
-                    from
-                        Organization_ownerdetails
-                    where
-                        userId_id = 3 AND
-                        OrganizationId_id = 2;
--- SELECT userId_id , TeamId_id from Organization_teammember
--- where role in ("LEADER" , "CO-LEADER") AND userId_id = 4;
-
--- SELECT TeamId_id , role from Organization_teammember
--- where  userId_id = 4;
+                t.id,
+                t.name as teamName,
+                t.checkInTime as checkInTime,
+                t.checkOutTime as checkOutTime,
+                takenAt AS takenAt,
+                a.attendance as attendance
+            FROM
+                Organization_team as t
+            LEFT JOIN
+                Organization_attendance as a ON t.id = a.TeamId_id
+            WHERE
+                t.id IN (1, 38, 45, 48) AND
+                a.Organization_id = 2 AND
+                a.takenAt ='2023-12-19';

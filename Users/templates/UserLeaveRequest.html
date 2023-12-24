@@ -28,7 +28,8 @@
 {% with page="leave-request" %}
 {% include "NavigationOptions.html" %}
 {% endwith %}
-{% with page=page app="users" data=tableData title=tableTitle action='/users/leave-request'  slug=slug afterSlug="add" isEdit=isEdit isAutoConstructHref="false" columnCount=columnCount showAdd="true" addAction=addAction %}
+
+{% with page=page app="users" data=tableData title=tableTitle action='/users/leave-request'  slug=slug afterSlug="add" isEdit=isEdit isAutoConstructHref="false" columnCount=columnCount showAdd=showAddBtn addAction=addAction %}
 {% include "table.html" %}
 {% endwith %}
 
