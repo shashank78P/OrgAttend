@@ -1,12 +1,12 @@
 <ul class="w-full flex justify-start items-center nav_option_container">
     <li class="flex justify-center items-center">
+        {% if app != 'organization' %} 
         <a href="{{baseUrl}}/{{endpoint}}/{{slug}}">
             <ul class="nav_link_card  {% if page == 'home' %} active_nav_link_card {% endif %}">
                 <li class="icon"></li>
                 <li class="w-full truncate navText">Dashboard</li>
             </ul>
         </a>
-        {% if app != 'organization' %}
         <a href="{{baseUrl}}/{{endpoint}}/attendance-history/{{slug}}">
             <ul class="nav_link_card  {% if page == 'attendanceHistory' %} active_nav_link_card {% endif %}">
                 <li class="icon"></li>

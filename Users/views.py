@@ -3,12 +3,13 @@ import numpy as np
 import json
 import os
 from django.shortcuts import render , get_object_or_404
-from django.http import HttpResponse ,HttpResponseServerError , HttpResponseRedirect, JsonResponse ,Http404
+from django.http import HttpResponse ,HttpResponseServerError , HttpResponseRedirect, JsonResponse ,Http404 , HttpResponseForbidden
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password , check_password
+
 from .forms import LeaveRequestForm, signUpForm , logInForm
 from .models import Users 
-from Organization.models import LeaveRequest, Organization
+from Organization.models import LeaveRequest, Organization, OwnerDetails, TeamMember
 from datetime import datetime , timedelta
 import jwt
 from dotenv import load_dotenv
@@ -113,14 +114,121 @@ def login(request) :
         return render(request ,"LogIn.html", { 'form' : form })
         # HttpResponseServerError("Internal Server error")
 
+def getOrgById(request , id):
+    try:
+        org = get_object_or_404(Organization , _id = id)
+        return org
+    except Exception as e:
+        print(e)
+        HttpResponseServerError(e)
+
+
+def getCommonTeamIdsOfUsers(request , currUserId , originalUserId , orgId):
+    try:
+        query1 = f"""
+        SELECT 
+            * 
+        from 
+            Organization_ownerdetails 
+        where 
+            userId_id = {currUserId} AND 
+            OrganizationId_id = {orgId};
+        """
+        isOwner = OwnerDetails.objects.raw(query1)
+        commonTeamIds = []
+        
+        leaderCoLeaderQuery = ""
+
+        # if not owner check for leader or co-leader
+        if(len(isOwner) == 0):
+            leaderCoLeaderQuery = ' role in ("LEADER" , "CO-LEADER") AND '
+
+        query2 = f"""
+            SELECT 
+                 TeamId_id,
+                 id
+                FROM Organization_teammember
+                WHERE 
+                userId_id = {originalUserId}
+                AND
+                TeamId_id in
+                (SELECT
+                 TeamId_id
+                FROM Organization_teammember
+                WHERE
+                	OrganizationId_id ={orgId} AND
+                    {leaderCoLeaderQuery}
+                    userId_id = {currUserId}
+                );
+        """
+        commonTeams = TeamMember.objects.raw(query2)
+        print(commonTeams)
+
+        if(len(commonTeams) == 0):
+            return HttpResponseForbidden("You don't have a access.")
+    
+        for ids in commonTeams:
+            commonTeamIds.append(ids.TeamId_id)
+
+        return tuple(commonTeamIds)
+    except Exception as e:
+        print(e)
+        return HttpResponseForbidden(e)
+
 def home(request , slug) :
     try:    
         user = request.session["user"]
         print(user)
+        slugUser = get_object_or_404(Users , slug = slug)
+        print(slugUser)
+        userData = get_object_or_404(Users , slug = user["slug"])
+        print(userData)
+        org = getOrgById(request , user["currentActiveOrganization"])
+        print(org)
+        print("slugUser['_id']")
+        print(slugUser._id)
+        print("userData._id")
+        print(userData._id)
+
+        teamIds = []
+        if(slugUser._id != userData._id):
+            print("if")
+            teamIds = getCommonTeamIdsOfUsers(request , userData._id , slugUser._id , org._id)
+            print("teamIds")
+            print(teamIds)
+        else:
+            print("else")
+            query1 = f"""
+                    SELECT 
+                        * 
+                    from 
+                        Organization_teammember 
+                    where 
+                        userId_id = {userData._id} AND 
+                        OrganizationId_id = {org._id};
+            """
+            print(query1)
+            ids = TeamMember.objects.raw(query1)
+
+            for i in ids:
+                teamIds.append(i.TeamId_id)
+
+        print(teamIds)
+
+        if(len(teamIds) == 0):
+            return HttpResponseForbidden("You don't have a access")
+                    
         navOptions = {
             "leave_request" : True,
+            "attendance" : True
         }
-        return render(request ,"Home.html" , {"navOptions" : navOptions, 'slug' : slug , "user" : user , "endpoint":"users" , "baseUrl" : os.environ.get('FRONTEND')})
+        return render(request ,"Home.html" , {
+            "navOptions" : navOptions,
+            'slug' : slug ,
+            "user" : user , 
+            "endpoint":"users" , 
+            "baseUrl" : os.environ.get('FRONTEND')
+        })
     except Exception as e:
         print('Internal Server error')
         return HttpResponseServerError(e)
