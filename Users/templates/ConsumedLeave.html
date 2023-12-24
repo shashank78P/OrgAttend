@@ -40,11 +40,11 @@
             <ul class="flex justify-center items-center">
                 <li class="con_title_1">PL</li>
                 <li class="con_tracker">
-                    <div style="width: 20%; background-color: var(--blue-primary)" class="con_mover"></div>
+                    <div style="width: {{data.PrivilegeLeavePercentage}}%; background-color: var(--blue-primary)" class="con_mover"></div>
                 </li>
                 <li class="flex justify-center items-center">
-                    <span>10</span>
-                    <span>/12</span>
+                    <span>{{data.PrivilegeLeave}}</span>
+                    <span>/{{data.total}}</span>
                 </li>
             </ul>
         </li>
@@ -53,12 +53,12 @@
             <ul class="flex justify-center items-center">
                 <li class="con_title_1">CL</li>
                 <li class="con_tracker">
-                    <div style="transition: width 0.5s ease; width: 80%; background-color: var(--purple-primary)"
+                    <div style="transition: width 0.5s ease; width: {{data.CasualLeavePercentage}}%; background-color: var(--purple-primary)"
                         class="con_mover"></div>
                 </li>
                 <li class="flex justify-center items-center">
-                    <span>09</span>
-                    <span>/12</span>
+                    <span>{{data.CasualLeave}}</span>
+                    <span>/{{data.total}}</span>
                 </li>
             </ul>
         </li>
@@ -67,11 +67,11 @@
             <ul class="flex justify-center items-center">
                 <li class="con_title_1">SL</li>
                 <li class="con_tracker">
-                    <div style="width: 70%; background-color: var(--pink-primary)" class="con_mover"></div>
+                    <div style="width: {{data.SickLeavePercentage}}%; background-color: var(--pink-primary)" class="con_mover"></div>
                 </li>
                 <li class="flex justify-center items-center">
-                    <span>02</span>
-                    <span>/12</span>
+                    <span>{{data.SickLeave}}</span>
+                    <span>/{{data.total}}</span>
                 </li>
             </ul>
         </li>
@@ -80,11 +80,11 @@
             <ul class="flex justify-center items-center">
                 <li class="con_title_1">ML</li>
                 <li class="con_tracker">
-                    <div style="width: 50%; background-color: var(--green-primary)" class="con_mover"></div>
+                    <div style="width: {{data.MaternityLeavePercentage}}%; background-color: var(--green-primary)" class="con_mover"></div>
                 </li>
                 <li class="flex justify-center items-center">
-                    <span>10</span>
-                    <span>/12</span>
+                    <span>{{data.MaternityLeave}}</span>
+                    <span>/{{data.total}}</span>
                 </li>
             </ul>
         </li>
@@ -121,7 +121,10 @@
 
     window.addEventListener('load', function () {
         // Your Chart.js code here
-        createChart('doughnut', "consumedLeaveChart", [122, 78], "Consumed Leave", ["#017BF6", "#CC6EE3", "#FF6EB4", "#FF9181", "#FE674C", "#F9D600", "#F9F871", "#5CB616"])
+        createChart('doughnut', "consumedLeaveChart", 
+        ["{{data.PrivilegeLeave}}","{{data.CasualLeave}}","{{data.SickLeave}}", "{{data.MaternityLeave}}"], "Todays Leave Types", 
+        ["#017BF6","#CC6EE3","#FF6EB4","#5CB616"]
+        )
     });
 
 </script>

@@ -30,8 +30,7 @@
 {% endwith %}
 <!-- {% include "AttendanceCalendar.html" %} -->
 
-
-{% with page=page app="users" data=tableData title=tableTitle action='/users/leave-request'  slug=slug afterSlug=afterSlug isEdit=isEdit isAutoConstructHref=false columnCount=columnCount %}
+{% with page=page app="users" data=tableData title=tableTitle action='/users/leave-request'  slug=slug afterSlug="add" isEdit=isEdit isAutoConstructHref="false" columnCount=columnCount showAdd="true" addAction=addAction %}
 {% include "table.html" %}
 {% endwith %}
 
@@ -39,4 +38,4 @@
 {% include "pagination.html" %}
 {% endwith %}
 
-{% endblock %}
+{% endblock %} 

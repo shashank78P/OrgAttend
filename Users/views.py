@@ -296,6 +296,7 @@ def leaveRequest(request , slug):
             'tableData':tableData[ skip :  skip + rows],
             "openAction":openAction,
             "editAction":editAction,
+            "addAction" : True,
             "deleteAction":deleteAction,
             "navOptions" : navOptions,
             "columnCount":7,

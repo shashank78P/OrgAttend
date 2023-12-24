@@ -16,6 +16,7 @@ urlpatterns = [
     path("teams/<slug:slug>/attendance/<teamId>/" , views.getAttendance),
     path("teams/<slug:slug>/attendance/<teamId>" , views.takeAttendance),
     path("teams/<slug:slug>/attendance/<teamId>/save" , views.saveAttendance),
+    path("teams/<slug:slug>/attendance/<teamId>/<str:takenAt>" , views.getAttendanceDetails),
 # api
     path("teams/<slug:slug>/get-leave-type-insight/<teamId>/<fromDate>/<toDate>" , views.leaveTypeInsight),
     path("teams/<slug:slug>/get-leave-type-insight-of-org/<fromDate>/<toDate>" , views.leaveTypeInsightOfOrg),

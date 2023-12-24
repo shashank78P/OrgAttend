@@ -56,21 +56,26 @@
                     <li>
                         <ul class="days_container">
                             {% for date , date_value in month_value.items%}
-                            <li class="day_box 
+                            {% if date_value.takenAt %}<a href="{{action}}/{% if slug %}{{slug}}{% endif %}{% if afterSlug %}/{{afterSlug}}{% endif %}{% if afterSlug1 %}/{{afterSlug1}}{% endif %}/{{date_value.takenAt}}" >{% endif %}
+                            <abbr
+                                title="{% if date_value.validCell == False %} {% elif date_value.noAttendance %} No attendance taken {% else %} {{date_value.takenAt}} | {{date_value.percentage}}% {% endif %}">
+                                <li class="day_box 
                                 {% if date_value.validCell == False %}
-                                    noAttendanceCardToDisplay
-                                {% elif date_value.noAttendance == True %}
-                                    noAttendance
-                                {% elif date_value.percentage <= 25 %}
-                                    present25
-                                {% elif date_value.percentage <= 50 %}
-                                    present50
-                                {% elif date_value.percentage <= 75 %}
-                                    present75
-                                {% elif date_value.percentage <= 100 %}
-                                    present100
-                                {% endif %}
-                            "></li>
+                                        noAttendanceCardToDisplay
+                                    {% elif date_value.noAttendance == True %}
+                                        noAttendance
+                                        {% elif date_value.percentage <= 25 %}
+                                        present25
+                                        {% elif date_value.percentage <= 50 %}
+                                        present50
+                                        {% elif date_value.percentage <= 75 %}
+                                        present75
+                                        {% elif date_value.percentage <= 100 %}
+                                        present100
+                                        {% endif %}
+                                        "></li>
+                            </abbr>
+                            {% if date_value.takenAt %}</a>{% endif %}
                             {% endfor %}
                         </ul>
                     </li>
@@ -105,17 +110,19 @@
                 </ul>
             </li>
             <li>
-                <form action="{{action}}{% if slug %}/{{slug}}{% endif %}{% if afterSlug %}/{{afterSlug}}{% endif %}" id="attendance_calendar_form" method="post">
+                <form action="{{action}}{% if slug %}/{{slug}}{% endif %}{% if id %}/{{id}}{% endif %}"
+                    id="attendance_calendar_form" method="post">
                     {% csrf_token %}
                     <ul class="flex justify-center items-center">
-                        <li class="calender_year_decrement_icon calender_year_decrement" id="calender_year_decrement "
+                        <li class="calender_year_decrement_icon calender_year_decrement" id="calender_year_decrement"
                             onclick="currentYearDecrement()">
                             {% with width=15 height=15 color="#64748B"%}
                             {% include 'SvgIcon/HalfArrowUp.html' %}
                             {% endwith %}
                         </li>
                         <li class="hidden">
-                            <input type="text" type="number" value="{{year}}" name="year" id="calender_year_filter_inpt">
+                            <input type="text" type="number" value="{{year}}" name="year"
+                                id="calender_year_filter_inpt">
                         </li>
                         <li class="calender_year_filter" id="calender_year_filter">{{year}}</li>
                         <li class="calender_year_increment_icon calender_year_increment"

@@ -13,6 +13,7 @@ from django.db.models import Q
 from datetime import date, datetime, timedelta
 from django.db.models import Count
 import numpy as np
+from dateutil import parser
 
 def isOwner(org , user):
     return OwnerDetails.objects.filter(OrganizationId = org , userId = user).values_list('OrganizationId', flat=True).distinct().exists()
@@ -815,7 +816,7 @@ def teamMembersDetails(request , slug , id):
             "orgSize":orgSize,
             "takeAttendance" : True,
             "teamId" : id,
-            "afterSlug":f"add/{id}",
+            "afterSlug":f"{id}",
             "logo" : f"{os.environ.get('FRONTEND')}/media/{org.logo}" ,
             "baseUrl" : os.environ.get('FRONTEND'), 
             "endpoint":"organization",
@@ -1405,7 +1406,7 @@ def employees(request , slug):
         print(len(employeeData))
 
         return render(request ,"Employee.html" , { 
-            "slug" : slug ,
+            "slug" : slug , 
             "org": org ,
             "user" : user,
             "orgSize":orgSize,
@@ -1991,7 +1992,8 @@ def getAttendance(request , slug , teamId , year):
             print(f"date => {d.takenAt.day} month => {d.takenAt.month} year => {d.takenAt.year}")
             att_data[d.takenAt.month][d.takenAt.day] = {
                     'percentage' : math.ceil(d.present / d.total) * 100,
-                    "validCell" : True , "noAttendance" : False
+                    "validCell" : True , "noAttendance" : False,
+                    "takenAt" : d.takenAt
             }
 
         print(att_data)
@@ -2039,13 +2041,8 @@ def getAttendance(request , slug , teamId , year):
         print(e)
         return HttpResponseServerError(e)
 
-def takeAttendance(request , slug , teamId):
+def getAttendanceBasicDetails(request , org , team , teamId):
     try:
-        user = request.session["user"]
-        org = getOrgBySlug(request,slug)
-        team = get_object_or_404(Team , id = teamId)
-        userData = get_object_or_404(Users , _id = user["_id"])
-
         team_data = {
             "orgName" : org.name,
             "teamTitle" : team.name,
@@ -2088,6 +2085,18 @@ def takeAttendance(request , slug , teamId):
             }
             att_data.append(user)
         print(att_data)
+        return att_data , team_data
+    except Exception as e:
+        return HttpResponseServerError(e)
+
+def takeAttendance(request , slug , teamId):
+    try:
+        user = request.session["user"]
+        org = getOrgBySlug(request,slug)
+        team = get_object_or_404(Team , id = teamId)
+        userData = get_object_or_404(Users , _id = user["_id"])
+
+        att_data , team_data = getAttendanceBasicDetails(request , org , team , teamId)
 
         return render(request , "Attendance.html", {
             "att_data" : att_data,
@@ -2113,10 +2122,33 @@ def saveAttendance(request , slug , teamId):
             print("=============================================")
             print("request.POST['date']")
             date = request.POST["date"]
+
+            isAttAllreadyTaken = Attendance.objects.filter(
+                TeamId = team,
+                Organization = org,
+                takenAt = datetime.strptime(date, '%Y-%m-%d').date()
+            )
+
+            if(len(isAttAllreadyTaken) > 0):
+                return HttpResponseServerError("Attendance for this date is already taken")
+
             for teamMem in teamMembers:
                 isPresent = False
                 if(data.get(f'{teamMem.userId._id}') == 'on'):
-                    isPresent = True
+                    query = f"""
+                        SELECT fromDate , toDate , status , createdBy_id , id
+                        FROM 
+                            Organization_leaverequest 
+                        where 
+                            Organization_id = {org._id}  AND
+                            createdBy_id = {teamMem.userId._id} AND
+                            status= "ACCEPTED" AND
+                            '{datetime.strptime(date, '%Y-%m-%d').date()}' BETWEEN fromDate AND toDate;
+                    """
+                    data = LeaveRequest.objects.raw(query)
+
+                    if(len(data) == 0):
+                        isPresent = True
                 
                 att = Attendance(
                     attendance = isPresent,
@@ -2131,6 +2163,100 @@ def saveAttendance(request , slug , teamId):
     except Exception as e:
         return HttpResponseServerError(e)
     
+
+def getAttendanceDetails(request , slug , teamId , takenAt):
+    try:
+        takenDate = parser.parse(takenAt).date()
+        print(takenDate)
+        # takenDate = datetime.strptime(takenDate, '%Y-%m-%d').date()
+        user = request.session["user"]
+        userData = get_object_or_404(Users , _id = user["_id"])
+        org = getOrgBySlug(request,slug)
+        team = get_object_or_404(Team , id = teamId)
+        
+        isHeLeaderOrCoLeader = isLeaderOrCoLeader(team , org , userData)
+        isHeOwner = isOwner(org, userData)
+
+        if(not (isHeOwner or isHeLeaderOrCoLeader)):
+            return HttpResponseNotAllowed("You don't have an access.")
+        
+        team_data = {
+            "orgName" : org.name,
+            "teamTitle" : team.name,
+            "checkInTime" : team.checkInTime,
+            "OrganizationId" : team.OrganizationId,
+            "checkOutTime" : team.checkOutTime,
+            "description" : team.description,
+        }
+        teamInsights = getTeamInsights(request , slug , teamId , org._id)
+        
+        att_data = Attendance.objects.filter(Organization = org , takenAt = takenDate)
+        query = f"""
+                        SELECT 
+                            count(*) as total,
+                            count(LeaveType) as count,
+                            LeaveType,
+                            id
+                        FROM 
+                            Organization_leaverequest 
+                        where 
+                            Organization_id = {org._id}  AND
+                            TeamId_id = {teamId} AND
+                            status = "ACCEPTED" AND
+                            '{takenDate}' BETWEEN fromDate AND toDate
+                        GROUP BY status;
+                    """
+        data = LeaveRequest.objects.raw(query)
+
+        print(data)
+
+        leaveStats = {
+            "total" : 0,
+            'Sick Leave' : 0,
+            'Casual Leave' : 0,
+            'Privilege Leave' : 0,
+            'Maternity Leave' : 0,
+        }
+
+        for d in data:
+            leaveStats[f"{d.leaveType}"] = d.count
+            leaveStats["total"] = d.total
+
+        leaveStats["SickLeavePercentage"] = round(((leaveStats["Sick Leave"] / leaveStats["total"] * 100)) if leaveStats["total"] > 0 else leaveStats["total"])
+        leaveStats["CasualLeavePercentage"] = round(((leaveStats["Casual Leave"] / leaveStats["total"] * 100)) if leaveStats["total"] > 0 else leaveStats["total"])
+        leaveStats["PrivilegeLeavePercentage"] = round(((leaveStats["Privilege Leave"] / leaveStats["total"] * 100)) if leaveStats["total"] > 0 else leaveStats["total"])
+        leaveStats["MaternityLeavePercentage"] = round(((leaveStats["Maternity Leave"] / leaveStats["total"] * 100)) if leaveStats["total"] > 0 else leaveStats["total"])
+        leaveStats["SickLeave"] = leaveStats["Sick Leave"]
+        leaveStats["CasualLeave"] = leaveStats["Casual Leave"]
+        leaveStats["PrivilegeLeave"] = leaveStats["Privilege Leave"]
+        leaveStats["MaternityLeave"] = leaveStats["Maternity Leave"]
+        
+        total = 0
+        present = 0
+        percentage = 0
+
+        for d in att_data:
+            total+=1
+            if(d.attendance == 1):
+                present+=1
+
+        if(total != 0):
+            percentage = round(((present / total) * 100))
+        return render(request , "AttendanceDetails.html", {
+            "att_data" : att_data,
+            "slug" : slug,
+            "teamId" : teamId,
+            "team_data" : team_data,
+            "teamInsights":teamInsights,
+            "attendance_percentage" : percentage,
+            "total" : total,
+            "presentCount" : present,
+            "absentCount" : total - present,
+            "leaveStats":leaveStats,
+            "date" : takenDate
+        })
+    except Exception as e:
+        return HttpResponseServerError(e)
 def getEmployeePerJobTitle(request , slug , fromDate , toDate):
     try:
         user = request.session["user"]

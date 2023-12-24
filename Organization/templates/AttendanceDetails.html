@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% csrf_token %}
+{% load static %}
+{% block page_title %}
+{{ text | title }}
+{% endblock %}
+
+{% block css_block %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+<link rel="stylesheet" href={% static "css/Global.css" %}>
+<link rel="stylesheet" href={% static "css/Attendance.css" %}>
+<link rel="stylesheet" href={% static "css/ConsumedLeave.css" %}>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src={% static 'js/script.js' %}></script>
+<script src={% static "js/chart.js" %}></script>
+
+{% endblock %}
+
+{% block content %}
+{{data}}
+<div class="att_container">
+   <div class="att_nav_container p-10">
+        <ul class="flex items-center">
+            <li class="title att_title mr-5">{{team_data.teamTitle}}</li>
+            <li class="light">({{team_data.orgName}})</li>
+        </ul>
+   </div>
+   
+   <!-- stats -->
+    <div class="att_chart_sec">
+        <ul class="att_chart_sec1">
+            <li class="att_cards box-shadow border-light">
+                <ul>
+                    <li class="title title_card">Leaders</li>
+                    <li class="flex justify-end items-center att_card_stat">
+                        <span>{{teamInsights.leaderCount}}</span>
+                        <span>/</span>
+                        <span>{{teamInsights.totalParticipantsCount}}</span>
+                    </li>
+                </ul>
+            </li>
+            <li class="att_cards box-shadow border-light">
+                <ul>
+                    <li class="title title_card">Co-Leaders</li>
+                    <li class="flex justify-end items-center att_card_stat">
+                        <span>{{teamInsights.coLeaderCount}}</span>
+                        <span>/</span>
+                        <span>{{teamInsights.totalParticipantsCount}}</span>
+                    </li>
+                </ul>
+            </li>
+            <li class="att_cards box-shadow border-light">
+                <ul>
+                    <li class="title title_card">Members</li>
+                    <li class="flex justify-end items-center att_card_stat">
+                        <span>{{teamInsights.memberCount}}</span>
+                        <span>/</span>
+                        <span>{{teamInsights.totalParticipantsCount}}</span>
+                    </li>
+                </ul>
+            </li>
+            <li class="att_cards box-shadow border-light">
+                <ul>
+                    <li class="title title_card">Present Percentage</li>
+                    <li class="flex justify-end items-center att_card_stat">
+                        <span>{{attendance_percentage}}%</span>
+                    </li>
+                </ul>
+            </li>
+            <li class="att_cards box-shadow border-light">
+                <ul>
+                    <li class="title title_card">Check-in Time</li>
+                    <li class="flex justify-end items-center att_card_stat">
+                        <span>{{teamInsights.checkInTime | title}}</span>
+                    </li>
+                </ul>
+            </li>
+            <li class="att_cards box-shadow border-light">
+                <ul>
+                    <li class="title title_card">Check-out Time</li>
+                    <li class="flex justify-end items-center att_card_stat">
+                        <span>{{team_data.checkOutTime | title}}</span>
+                    </li>
+                </ul>
+            </li>
+            <li class="att_cards box-shadow border-light">
+                <ul>
+                    <li class="title title_card">Present Count</li>
+                    <li class="flex justify-end items-center att_card_stat">
+                        <span>{{presentCount | title}}</span>
+                    </li>
+                </ul>
+            </li>
+            <li class="att_cards box-shadow border-light">
+                <ul>
+                    <li class="title title_card">Absent Count</li>
+                    <li class="flex justify-end items-center att_card_stat">
+                        <span>{{absentCount | title}}</span>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+        
+        {% with data=leaveStats %}
+            {% include "ConsumedLeave.html" %}
+        {% endwith %}
+        <div class="attendance_list_sec box-shadow">
+            <div class="title att_title mb-5">Attendance details of {{date}}</div>
+            <div class="mt-5">
+                {% for d in att_data%}
+                <ul class="flex item-center att_list">
+                    <li class="mr-5">
+                        {{d.userId.firstName}} {{d.userId.middleName}} {{d.userId.lastName}}
+                    </li>
+                    <li>
+                        {% if d.attendance == 1 %}
+                        <abbr title="Present">
+                            {% with width=20 height=20 color="#22c55e" %}
+                            {% include "SvgIcon/AttendanceIco.html" %}
+                            {% endwith %}
+                        </abbr>
+                        {% else %}
+                        <abbr title="Absent">
+                            {% with width=20 height=20 color="#ef4444" %}
+                            {% include "SvgIcon/UserMinusIco.html" %}
+                            {% endwith %}
+                        </abbr>
+                        {% endif %}
+                    </li>
+                </ul>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
