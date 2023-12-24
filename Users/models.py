@@ -82,7 +82,12 @@ class Users(models.Model):
                                    )
     slug = models.SlugField(default="" , null=False , blank=True , db_index=True )
     address = models.ForeignKey(Address , on_delete=models.SET_NULL, null=True)
+    otp = models.CharField( max_length = 4 , null=True)
 
+    def save(self, *args, **kwargs):
+        self.slug = f"{self.firstName}{self.middleName}{self.middleName}{self.email}" 
+        
+        super().save(*args, **kwargs)
 
     def get_absolute_url(self):
         return reverse("user-detail" , [self._id])

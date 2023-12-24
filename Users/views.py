@@ -1,4 +1,5 @@
 import math
+import random
 import numpy as np
 import json
 import os
@@ -7,17 +8,32 @@ from django.shortcuts import render , get_object_or_404
 from django.http import HttpResponse ,HttpResponseServerError , HttpResponseRedirect, JsonResponse ,Http404 , HttpResponseForbidden
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password , check_password
-from .forms import LeaveRequestForm, signUpForm , logInForm
+from .forms import LeaveRequestForm, signUpForm , logInForm, signUpForm2
 from .models import Users 
 from Organization.models import Attendance, LeaveRequest, Organization, OwnerDetails, Team, TeamMember
-from datetime import datetime , timedelta
+from datetime import datetime , timedelta, timezone
 import jwt
 from dotenv import load_dotenv
 from django.db.models import Q
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 
-# Create your views here.
+def sendmail(toEmail , subject , htmlContent ):
+    message = Mail(
+        from_email='dailydash155@gmail.com',
+        to_emails=toEmail,
+        subject=subject,
+        html_content=htmlContent)
+    try:
+        sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
+        response = sg.send(message)
+        print(response.status_code)
+        print(response.body)
+        print(response.headers)
+    except Exception as e:
+        print(e.message)
+        return HttpResponseForbidden(e)
 
-print( datetime.utcnow() + timedelta(days= 2))
 
 def index(request , slug):
     try:
@@ -48,35 +64,94 @@ def signUp(request) :
     try:
         if(request.method == "POST"):
             form = signUpForm(request.POST)
+            if form.is_valid():
+                print("valid")
+                email = request.POST["email"]
+                otp = random.randint(1000 , 9999)
+                print("otp")
+                print(otp)
+                subject = "Response to the request of OTP"
+                htmlContent = f"""
+                    <h1>Stay In Time Tracker</h1>
+                    <p>This mail is to the response to request made for opening an account in <b>Stay In Time Tracker</b></p>
+                    <p>Here is your OTP : <strong>{otp}</strong></p>
+                    <p>Thank you, for your interest.</p>
+                    <br/>
+                    <p style="color : red">This otp is only valid for 15min.</p>
+                """
+                sendmail(email , subject , htmlContent)
+                print(email)
+                user = Users(
+                    email = email,
+                    otp = otp
+                )
+                user.save()
+                return HttpResponseRedirect("/users/sign-up-2")
+            else:
+                return render(request ,"RequestForOtp.html" , { 'form' : form })
+
+        elif(request.method == "GET"):
+            form = signUpForm()
+            return render(request ,"RequestForOtp.html" , { 'form' : form })
+    except Exception as e:
+            print("error")
+            print(e)
+            HttpResponseServerError(e)
+
+def signUp2(request) :
+    try:
+        if(request.method == "POST"):
+            form = signUpForm2(request.POST)
             # data = request.POST
             # print(form.cleaned_data)
             print(request.POST)
+            email=request.POST["email"]
+            otp=request.POST["otp"]
+
+            userData = get_object_or_404(Users , email = email)
+            otpSentAt = userData.updatedAt
+
+            # Get the current time in UTC (timezone-aware)
+            now = datetime.now(timezone.utc)
+
+            # Calculate the time difference
+            time_difference = now - otpSentAt
+
+            # Compare if the time difference is within a certain threshold (e.g., 15 minutes)
+            if time_difference.total_seconds() < 15 * 60:
+                print("less than fifteen_minutes")
+                form.add_error("otp" ,"Invalid otp (try to generate new OTP)")
+                return render(request ,"SignUp.html" , { 'form' : form })
+
+            if(otp != userData.otp):
+                form.add_error("otp" ,"Invalid otp")
+                return render(request ,"SignUp.html" , { 'form' : form })
+
             password=request.POST["password"]
             confirmPassword=request.POST["confirmPassword"]
-            print(password + " "+ confirmPassword)
+
             if(password != confirmPassword):
                 form.add_error("confirmPassword" ,"Passwords not matched")
+                return render(request ,"SignUp.html" , { 'form' : form })
+            
             if form.is_valid():
-                user = Users(
+                Users.objects.filter(email = email).update(
                     firstName = request.POST["firstName"],
                     middleName = request.POST["middleName"],
                     lastName = request.POST["lastName"],
-                    email = request.POST["email"],
                     password = make_password(request.POST["password"]),
+                    otp = None,
                 )
-                print("user")
-                print(user)
-                user.save()
                 return HttpResponseRedirect("/users/log-in")
             else:
                 return render(request ,"SignUp.html" , { 'form' : form })
 
         elif(request.method == "GET"):
-            form = signUpForm()
+            form = signUpForm2()
             return render(request ,"SignUp.html" , { 'form' : form })
     except Exception as e:
             print(e)
-            HttpResponseServerError(e)
+            return HttpResponseServerError(e)
 
 def login(request) :
     try:
@@ -209,6 +284,10 @@ def home(request , slug) :
         print(userData)
         org = getOrgById(request , user["currentActiveOrganization"])
         print(org)
+
+        if(not (bool(org)  and bool(userData) and bool(slugUser)) ):
+            print("You dont a access")
+            return HttpResponseForbidden("You dont have a access")
         print("slugUser['_id']")
         print(slugUser._id)
         print("userData._id")

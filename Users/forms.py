@@ -6,6 +6,31 @@ from django.shortcuts import get_object_or_404
 from Organization.models import Team , TeamMember
 
 class signUpForm(forms.Form):
+    email = forms.EmailField(
+        label="Email",
+        max_length = 200,
+        error_messages={
+            "required" :"Email is required",
+            "max_length" :"Email is to large"
+        }
+    )
+
+class signUpForm2(forms.Form):
+    email = forms.EmailField(
+        label="Email",
+        max_length = 200,
+        error_messages={
+            "required" :"Email is required",
+            "max_length" :"Email is to large"
+        }
+    )
+    otp = forms.CharField(
+        label="OTP",
+        max_length = 4,
+        error_messages={
+            "required" :"OTP is required"
+        }
+    )
     firstName = forms.CharField(
         label="First Name",
         max_length = 200,
@@ -33,14 +58,6 @@ class signUpForm(forms.Form):
         error_messages={
             "max_length" :"Last Name is to large",
             "min_length" :"Last Name is too small"
-        }
-    )
-    email = forms.EmailField(
-        label="Email",
-        max_length = 200,
-        error_messages={
-            "required" :"Email is required",
-            "max_length" :"Email is to large"
         }
     )
     password = forms.CharField(
