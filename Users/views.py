@@ -814,7 +814,7 @@ def homePage(request):
         user = request.session["user"]
         # org = Organization.objects.get(_id = user["currentActiveOrganization"])
         # slug = org.slug
-        return HttpResponseRedirect(f"/users/{user["slug"]}")
+        return HttpResponseRedirect(f"/users/{user['slug']}")
     except Exception as e:
         return HttpResponseServerError(e)
 
