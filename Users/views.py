@@ -153,7 +153,7 @@ def signUp(request) :
 
                 user = Users.objects.filter(email=email, password__isnull=False).first()
 
-                if( user is not None and len(user) > 0):
+                if( user is not None ):
                     form.add_error("email" , "User with this email already exist.")
                     return render(request ,"RequestForOtp.html" , { 'form' : form })
                 
