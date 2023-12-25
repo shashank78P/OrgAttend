@@ -248,10 +248,13 @@ def login(request) :
             email=request.POST["email"]
 
             user = Users.objects.get(email = email)
+            print(user)
 
             if(check_password(password , user.password)):
+                print("correct pswrd")
+                print(user.slug)
                 response = HttpResponseRedirect(f"/users/{user.slug}")
-                render(request ,"Profile.html" , { "slug" : "" })
+                # render(request ,"Profile.html" , { "slug" : "" })
                 token = jwt.encode( {
                     '_id' : user._id,
                     },
