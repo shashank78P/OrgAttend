@@ -447,6 +447,7 @@ def leaveTypeInsightOfOrg(request , slug , fromDate , toDate):
             teamIds = getTeamIdList(org , userData)
             if len(teamIds) <= 1:
                 teamIds.append(-1)
+                teamIds.append(-1)
             interQuery = f" teamId_id in {tuple(teamIds)} AND"
 
         fromDate = fromDate.split("T")[0]
@@ -606,6 +607,7 @@ def teams(request , slug):
         else:
             teamIds = getTeamIdList(org , userData)
             if len(teamIds) <= 1:
+                teamIds.append(-1)
                 teamIds.append(-1)
             co_Leader,leader,member,total = roleCountOfTeamsOrOrg(org_id= org._id , teamIds=tuple(teamIds))
             avgAtt = getTeamAvgAttendance(request , slug , tuple(teamIds) , org._id)
@@ -1064,6 +1066,7 @@ def getTeamAvgAttendance(request , slug , teamId , orgId):
             teamId = list(teamId)
             if len(teamId) <= 1:
                 teamId.append(-1)
+                teamId.append(-1)
             QueryBuilder = f" AND TeamId_id in {tuple(teamId)} "
             
         print("getTeamAvgAttendance")
@@ -1397,6 +1400,7 @@ def employees(request , slug):
         else:
             teamIds = getTeamIdList(org , userData)
             if len(teamIds) <= 1:
+                teamIds.append(-1)
                 teamIds.append(-1)
             co_Leader,leader,member,total = roleCountOfTeamsOrOrg(org_id= org._id , teamIds=tuple(teamIds))
             avgAtt = getTeamAvgAttendance(request , slug , tuple(teamIds) , org._id)
@@ -2433,6 +2437,7 @@ def getEmployeeCountByTeam(request , slug , fromDate , toDate):
         if(not isHeOwner):
             teamIds = getTeamIdList(org , userData)
             if len(teamIds) <= 1:
+                teamIds.append(-1)
                 teamIds.append(-1)
             queryBuilder = f"  t.id in {tuple(teamIds)} AND "
         

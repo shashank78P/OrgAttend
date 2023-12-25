@@ -463,6 +463,7 @@ def getCommonTeamIdsOfUsers(request , currUserId , originalUserId , orgId):
         
         if len(commonTeamIds) == 1:
             commonTeamIds.append(-1)
+            commonTeamIds.append(-1)
 
         return tuple(commonTeamIds)
     except Exception as e:
@@ -497,6 +498,7 @@ def getTeamIds(request , userData , slugUser , org):
 def getUsersJobTitle(teamIds , userId ,orgId):
     teamIds = list(teamIds)
     if len(teamIds) <= 1:
+        teamIds.append(-1)
         teamIds.append(-1)
 
     query = f"""
@@ -628,6 +630,7 @@ def getLeaveTypeInsightOfUser(request  , slug , fromDate , toDate):
             return HttpResponseForbidden("You don't have a access.")
         if(len(teamIds) <= 1):
             teamIds.append(-1)
+            teamIds.append(-1)
 
         fromDate = fromDate.split("T")[0]
         toDate = toDate.split("T")[0]
@@ -664,6 +667,7 @@ def getAttendance(request , slug , teamIds , year):
         print(year)
         teamIds = list(teamIds)
         if len(teamIds) <= 1:
+            teamIds.append(-1)
             teamIds.append(-1)
         DayInNumber = {
             'Sun': 0, 'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, 'Sat': 6
@@ -770,6 +774,7 @@ def getAttendanceByTeamOrg(request , slug , fromDate , toDate):
         
         teamIds = list(teamIds)
         if len(teamIds) <= 1:
+            teamIds.append(-1)
             teamIds.append(-1)
 
         fromDate = fromDate.split("T")[0]
@@ -924,6 +929,7 @@ def getAttendanceInDetailsByDay(request , slug , takenAt):
         
         teamIds = list(teamIds)
         if len(teamIds) <= 1:
+            teamIds.append(-1)
             teamIds.append(-1)
 
         query = f"""
