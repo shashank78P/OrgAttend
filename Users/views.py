@@ -478,19 +478,20 @@ def getTeamIds(request , userData , slugUser , org):
         print(teamIds)
     else:
         print("else")
-        query1 = f"""
-                SELECT 
-                    * 
-                from 
-                    Organization_teammember 
-                where 
-                    userId_id = {userData._id} AND 
-                    OrganizationId_id = {org._id};
-        """
-        print(query1)
-        ids = TeamMember.objects.raw(query1)
-        for i in ids:
-            teamIds.append(i.TeamId_id)
+        # query1 = f"""
+        #         SELECT 
+        #             * 
+        #         from 
+        #             Organization_teammember 
+        #         where 
+        #             userId_id = {userData._id} AND 
+        #             OrganizationId_id = {org._id};
+        # """
+        teamIds = TeamMember.objects.filter(OrganizationId = org, userId = userData).values_list('TeamId', flat=True).distinct()
+        print(teamIds)
+        # ids = TeamMember.objects.raw(query1)
+        # for i in ids:
+        #     teamIds.append(i.TeamId_id)
     return teamIds
 
 def getUsersJobTitle(teamIds , userId ,orgId):
