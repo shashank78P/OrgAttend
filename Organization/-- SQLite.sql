@@ -1,15 +1,20 @@
-SELECT
-                t.id,
-                t.name as teamName,
-                t.checkInTime as checkInTime,
-                t.checkOutTime as checkOutTime,
-                takenAt AS takenAt,
-                a.attendance as attendance
+select
+                jt.title as title,
+                id
+            from Organization_job_title as jt
+            where
+            id in
+            (select
+                DISTINCT(e.jobTitle_id)
             FROM
-                Organization_team as t
-            LEFT JOIN
-                Organization_attendance as a ON t.id = a.TeamId_id
+                Organization_team as t,
+                Organization_teammember as tm,
+                Organization_employee as e
             WHERE
                 t.id IN (1, 38, 45, 48) AND
-                a.Organization_id = 2 AND
-                a.takenAt ='2023-12-19';
+                e.employee_id = 3 AND
+                e.Organization_id = 2 AND
+                e.Organization_id = t.OrganizationId_id AND
+                tm.OrganizationId_id = t.OrganizationId_id AND
+                e.employee_id = tm.userId_id
+            );

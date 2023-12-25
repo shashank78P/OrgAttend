@@ -1,18 +1,24 @@
 <ul class="flex items-center flex-wrap userCard">
     <li class="userImageSec">
-        <img src="../../static/images/tempImage.png" alt="">
+        {% if userProfilePic == "False" %}
+        <img src='../../../../static/images/default-user.webp' alt="" />
+        {% else %}
+        <img src={{userProfilePic}} alt="" />
+        {% endif %}
     </li>
     <li>
         <ul class="userCardDetails flex flex-col justify-between items-start">
             <li class="userCard-top-section">
                 <ul class="flex items-center userName-section">
                     <li class="userName">
-                        <h1>{{user.firstName }} {{user.middleName}} {{user.lastName}}</h1>
+                        <h1>{{user.firstName | title}} {{user.middleName | title}} {{user.lastName | title}}</h1>
                     </li>
-                    <li class="user-role role cursor-pointer">Admin</li>
-                    <li class="user-role type cursor-pointer">Full time</li>
+                    {% if isOwner %}
+                    <li class="user-role role cursor-pointer">Owner</li>
+                    {% endif %}
+                    <!-- <li class="user-role type cursor-pointer">Full time</li> -->
                 </ul>
-                <p>UI/UX Developer</p>
+                <p>{{userJobTitle | title}}</p>
             </li>
             <li class="flex items-center">
                 <span class="icon userCardIcon">
@@ -36,7 +42,8 @@
                     {% include 'SvgIcon/locationIco.html' %}
                     {% endwith %}
                 </span>
-                <span>{{user.city}} {{user.state}} {{user.country}} {{user.code}}</span>
+                <span>{{user.address.city | title}} {{user.address.state | title}} {{user.address.country | title}}
+                    {{user.address.code | title}}</span>
             </li>
         </ul>
     </li>

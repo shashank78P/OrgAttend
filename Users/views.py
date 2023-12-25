@@ -10,7 +10,7 @@ from django.contrib import messages
 from django.contrib.auth.hashers import make_password , check_password
 from .forms import LeaveRequestForm, signUpForm , logInForm, signUpForm2
 from .models import Users 
-from Organization.models import Attendance, LeaveRequest, Organization, OwnerDetails, Team, TeamMember
+from Organization.models import Attendance, Job_title, LeaveRequest, Organization, OwnerDetails, Team, TeamMember
 from datetime import datetime , timedelta, timezone
 import jwt
 from dotenv import load_dotenv
@@ -198,9 +198,8 @@ def getOrgById(request , id):
         HttpResponseServerError(e)
 
 
-def getCommonTeamIdsOfUsers(request , currUserId , originalUserId , orgId):
-    try:
-        query1 = f"""
+def isUserOwner(currUserId , orgId):
+    query1 = f"""
         SELECT 
             * 
         from 
@@ -209,7 +208,11 @@ def getCommonTeamIdsOfUsers(request , currUserId , originalUserId , orgId):
             userId_id = {currUserId} AND 
             OrganizationId_id = {orgId};
         """
-        isOwner = OwnerDetails.objects.raw(query1)
+    return OwnerDetails.objects.raw(query1)
+def getCommonTeamIdsOfUsers(request , currUserId , originalUserId , orgId):
+    try:
+        
+        isOwner = isUserOwner(currUserId , orgId)
         commonTeamIds = []
         
         leaderCoLeaderQuery = ""
@@ -274,6 +277,31 @@ def getTeamIds(request , userData , slugUser , org):
             teamIds.append(i.TeamId_id)
     return teamIds
 
+def getUsersJobTitle(teamIds , userId ,orgId):
+    query = f"""
+            select 
+                jt.title as title,
+                id
+            from Organization_job_title as jt
+            where 
+            id in 
+            (select 
+                DISTINCT(e.jobTitle_id)
+            FROM 
+                Organization_team as t,
+                Organization_teammember as tm,
+                Organization_employee as e
+            WHERE
+                t.id IN {tuple(teamIds)} AND
+                e.employee_id = {userId} AND
+                e.Organization_id = {orgId} AND
+                e.Organization_id = t.OrganizationId_id AND
+                tm.OrganizationId_id = t.OrganizationId_id AND
+                e.employee_id = tm.userId_id
+            );
+        """
+    return Job_title.objects.raw(query)
+
 def home(request , slug) :
     try:    
         user = request.session["user"]
@@ -297,22 +325,46 @@ def home(request , slug) :
         
         print(teamIds)
 
+        isowner = isUserOwner(slugUser._id , org._id)
+        print("isowner")
+        print(isowner)
+
         if(len(teamIds) == 0):
             return HttpResponseForbidden("You don't have a access")
+        
+        userJobTitleData = getUsersJobTitle(teamIds , slugUser._id , org._id)
+        userJobTitle = ""
+
+        print(userJobTitleData)
+
+        for job in userJobTitleData:
+            print(job.title)
+            if( userJobTitle == ""):
+                userJobTitle = job.title
+            else: 
+                userJobTitle += f" | {job.title}"
                     
         navOptions = {
             "leave_request" : True,
             "attendance" : True
         }
+        userImg = f"{os.environ.get('FRONTEND')}/media/{slugUser.logo}"
+        print("slugUser.logo")
+        print(slugUser.logo)
         return render(request ,"Home.html" , {
             "navOptions" : navOptions,
             'slug' : slug ,
             "user" : slugUser , 
-            "endpoint":"users" , 
+            "userProfilePic" : f"{ userImg if slugUser.logo != None else False}",
+            "isOwner" : len(isowner) > 0,
+            "userJobTitle" : userJobTitle,
+            "endpoint":"users" ,
+            "isOriginalUser" : "true" if slugUser._id == userData._id else "false",
             "baseUrl" : os.environ.get('FRONTEND')
         })
     except Exception as e:
         print('Internal Server error')
+        print(e)
         return HttpResponseServerError(e)
     
 def calculatePercentageForLeaveTye(data):
@@ -563,6 +615,20 @@ def attendanceHistory(request , slug) :
 
         if(len(teamIds) < 0):
             return HttpResponseForbidden("You don't have a access.")
+        
+        userJobTitleData = getUsersJobTitle(teamIds , slugUser._id , org._id)
+        userJobTitle = ""
+
+        print(userJobTitleData)
+
+        for job in userJobTitleData:
+            print(job.title)
+            if( userJobTitle == ""):
+                userJobTitle = job.title
+            else: 
+                userJobTitle += f" | {job.title}"
+        isowner = isUserOwner(slugUser._id , org._id)
+        userImg = f"{os.environ.get('FRONTEND')}/media/{slugUser.logo}"
 
         navOptions = {
             "leave_request" : True,
@@ -585,11 +651,15 @@ def attendanceHistory(request , slug) :
                     {
                         "navOptions" : navOptions,
                          'slug' : slug , 
-                         "user" : user , 
+                         "user" : slugUser , 
                          "endpoint":"users" , 
                          "baseUrl" : os.environ.get('FRONTEND'),
                          "att_data" : attendanceDataOfTeam,
-                          "year" : year
+                         "year" : year,
+                         "userProfilePic" : f"{ userImg if slugUser.logo != None else False}",
+                         "isOwner" : len(isowner) > 0,
+                         "userJobTitle" : userJobTitle,
+                         "isOriginalUser" : "true" if slugUser._id == userData._id else "false"
                       })
     except Exception as e:
             print(e)
@@ -634,6 +704,21 @@ def getAttendanceInDetailsByDay(request , slug , takenAt):
         print(query)
 
         data = Team.objects.raw(query)
+
+        
+        userJobTitleData = getUsersJobTitle(teamIds , slugUser._id , org._id)
+        userJobTitle = ""
+
+        print(userJobTitleData)
+
+        for job in userJobTitleData:
+            print(job.title)
+            if( userJobTitle == ""):
+                userJobTitle = job.title
+            else: 
+                userJobTitle += f" | {job.title}"
+        isowner = isUserOwner(slugUser._id , org._id)
+        userImg = f"{os.environ.get('FRONTEND')}/media/{slugUser.logo}"
         # att_data = []
 
         # for d in data:
@@ -645,7 +730,11 @@ def getAttendanceInDetailsByDay(request , slug , takenAt):
             "user" : slugUser , 
             "data" : data,
             "endpoint":"users" , 
-            "baseUrl" : os.environ.get('FRONTEND')
+            "baseUrl" : os.environ.get('FRONTEND'),
+            "userProfilePic" : f"{ userImg if slugUser.logo != None else False}",
+            "isOwner" : len(isowner) > 0,
+            "userJobTitle" : userJobTitle,
+            "isOriginalUser" : "true" if slugUser._id == userData._id else "false"
         })
     except Exception as e:
         return HttpResponseServerError(e)
@@ -773,11 +862,25 @@ def leaveRequest(request , slug):
         print(leaveReq)
 
         tableTitle , tableData  = formateLeaveRequest(leaveReq)
+
+        userJobTitleData = getUsersJobTitle(teamIds , slugUser._id , org._id)
+        userJobTitle = ""
+
+        print(userJobTitleData)
+
+        for job in userJobTitleData:
+            print(job.title)
+            if( userJobTitle == ""):
+                userJobTitle = job.title
+            else: 
+                userJobTitle += f" | {job.title}"
+        isowner = isUserOwner(slugUser._id , org._id)
+        userImg = f"{os.environ.get('FRONTEND')}/media/{slugUser.logo}"
         
         # t.objects.annotate(totalMem = Count("teammember")) 
         return render(request ,"UserLeaveRequest.html" , { 
             "slug" : slug ,
-            "user" : currentUser,
+            "user" : slugUser,
             "afterSlug":"add",
             "baseUrl" : os.environ.get('FRONTEND'), 
             "endpoint":"users",
@@ -795,7 +898,10 @@ def leaveRequest(request , slug):
             "skip":skip,
             "rows":rows,
             "search":search,
-            "showAddBtn" : "true" if slugUser._id == userData._id else "false"
+            "isOriginalUser" : "true" if slugUser._id == userData._id else "false",
+            "userProfilePic" : f"{ userImg if slugUser.logo != None else False}",
+            "isOwner" : len(isowner) > 0,
+            "userJobTitle" : userJobTitle,
              })
         
     except Exception as e:

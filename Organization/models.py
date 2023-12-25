@@ -45,7 +45,7 @@ class Organization(models.Model):
     slug = models.SlugField(default="" , null=False , blank=True , db_index=True )
 
     def save(self , *args , **kwargs):
-        slug = f"{self.name} {uuid.uuid4() }"
+        slug = f"{self.name}"
         print(slug)
         self.slug = slugify(slug)
         super().save(*args , **kwargs)

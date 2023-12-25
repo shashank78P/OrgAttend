@@ -46,8 +46,8 @@ class Users(models.Model):
         validators=[isValidDate]
     )
     logo = models.ImageField(
-        upload_to="organizationLogo",
-        default="organization.png",
+        upload_to="UsersImage",
+        default="UsersImage/default-user.webp",
         max_length=20000 , 
         error_messages={
             'invalid': 'Invalid file (file is not acceptable).'
@@ -85,8 +85,9 @@ class Users(models.Model):
     otp = models.CharField( max_length = 4 , null=True)
 
     def save(self, *args, **kwargs):
-        self.slug = f"{self.firstName}{self.middleName}{self.middleName}{self.email}" 
-        
+        slug = f"{self.firstName} {self.middleName} {self.middleName} {self.email}" 
+        print(slug)
+        self.slug = slugify(slug)
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):

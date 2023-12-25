@@ -42,11 +42,11 @@
     </li>
     <li>
         <ul class="flex justify-between items-center user-nav-last-part">
+            {% if isOriginalUser == "true" %}
             <li class="cursor-pointer">
-                {% with width=20 height=20 color="#3D4756"%}
-                {% include 'SvgIcon/BellIco.html' %}
-                {% endwith %}
+                <a href="">Change Password</a>
             </li>
+            {% endif %}
             <li class="log-out-btn cursor-pointer">Log Out</li>
         </ul>
     </li>
