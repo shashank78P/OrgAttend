@@ -86,7 +86,7 @@ class Users(models.Model):
     lastOtpSentAt = models.DateTimeField(null=True)
 
     def save(self, *args, **kwargs):
-        slug = f"{self.firstName if self.firstName is not None else ''} {self.middleName if self.middleName is not None else ''} {self.lastName if self.lastName is not None else ""} {self.email if self.email is not None else ''}" 
+        slug = f"{self.firstName if self.firstName is not None else ''} {self.middleName if self.middleName is not None else ''} {self.lastName if self.lastName is not None else ''} {self.email if self.email is not None else ''}" 
         print(slug)
         self.slug = slugify(slug)
         super().save(*args, **kwargs)
