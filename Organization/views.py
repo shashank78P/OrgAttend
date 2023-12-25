@@ -2122,7 +2122,7 @@ def getAttendanceBasicDetails(request , org , team , teamId):
                 percentage = math.ceil((d.days_present / d.total_days) * 100)
             user = {
                 'userId' : d.userId._id,
-                'logo' : f'{os.environ.get('FRONTEND')}/media/{d.userId.logo}',
+                'logo' : f"{os.environ.get('FRONTEND')}/media/{d.userId.logo}",
                 'name' : f"{d.userId.firstName} {d.userId.middleName} {d.userId.lastName}",
                 'percentage' : percentage
             }
