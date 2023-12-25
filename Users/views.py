@@ -311,7 +311,7 @@ def ChangePassword1(request):
                 <p>Thank you, for your interest.</p>
                 <p style="color : red">This otp is only valid for 15min.</p>
             """
-            # sendmail(email , subject , htmlContent)
+            sendmail(email , subject , htmlContent)
             print(email)
             
             userData.otp = otp
