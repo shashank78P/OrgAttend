@@ -58,6 +58,9 @@ class AuthMe:
                 'code' : address.code,
             }
             print("exiting from middle ware")
+
+            if(request.path == "/"):
+                return HttpResponseRedirect(f"/users/{user['slug']}")
             return response
 
         except jwt.ExpiredSignatureError:
