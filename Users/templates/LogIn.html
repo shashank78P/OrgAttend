@@ -1,20 +1,40 @@
 {% extends "base.html" %}
+{% load static %}
 {% block page_title %}
 {{ text | title }}
 {% endblock %}
 
+{% block css_block %}
+<link rel="stylesheet" href={% static "css/Global.css" %}>
+<link rel="stylesheet" href={% static "css/CreateOrganization.css" %}>
+{% endblock %}
+
 {% block content %}
-<form action="/users/log-in" method="POST">
+<form action="/users/log-in" method="POST" class=" shadow formContainer">
     {% csrf_token %}
-   {% for field in form %}
-   <!-- field.errors -->
-        <ul class="">
-            <li>{{ field.label_tag }}</li>
-            <li>{{ field }}</li>
-            <li>{{ field.errors }}</li>
-        </ul>
-   {% endfor %}
-    <div>
+    <div class="w-full flex justify-center items-center flex-col">
+        {% for field in form %}
+        <!-- field.errors -->
+        <div class="w-full form_row flex justify-center items-start flex-col">
+            <div class="w-full form_row flex justify-center items-start flex-col">
+                {{ field.label_tag }}
+                {{ field }}
+                {{ field.errors }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <ul class="w-full form_row flex justify-between items-center mt-5 mb-5" 
+        style="padding: 10px;"
+    >
+        <li>
+            <a href="/users/sign-up" style="color: var(--purple-primary); font-weight: 700;">Sign Up</a>
+        </li>
+        <li>
+            <a href="/users/change-password-pre" style="color: var(--red-500); font-weight: 700;" >Forget Password</a>
+        </li>
+    </ul>
+    <div class="w-full form_row flex justify-center items-start flex-col">
         <input type="submit" value="Log In">
     </div>
 </form>

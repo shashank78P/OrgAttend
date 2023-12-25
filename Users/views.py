@@ -17,23 +17,28 @@ from dotenv import load_dotenv
 from django.db.models import Q
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
+from django.template.loader import render_to_string
 
 def sendmail(toEmail , subject , htmlContent ):
     try:
+        print("send mail")
         message = Mail(
         from_email='dailydash155@gmail.com',
         to_emails=toEmail,
         subject=subject,
         html_content=htmlContent)
+        print(os.environ.get('SENDGRID_API_KEY'))
+        print("SENDGRID_API_KEY")
         sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
+        print(sg)
+        print(message)
         response = sg.send(message)
         print(response.status_code)
         print(response.body)
         print(response.headers)
     except Exception as e:
-        print(e.message)
-        return HttpResponseForbidden(e)
-
+        print(e)
+        raise Exception(e)
 
 def editUserData(request , slug) :
     try:
@@ -43,11 +48,18 @@ def editUserData(request , slug) :
         print(slugUser)
         userData = get_object_or_404(Users , slug = user["slug"])
         print(userData)
+        print("slugUser._id")
+        print(slugUser._id)
+        print("userData._id")
+        print(userData._id)
 
         if(slugUser._id != userData._id):
             return HttpResponseForbidden("You dont have a access.")
         
+        print(request.method)
+
         if(request.method == "POST"):
+            print("post")
             form = UserProfileEdit(request.POST)
             if form.is_valid():
                 print("valid")
@@ -72,34 +84,56 @@ def editUserData(request , slug) :
                     userDataToUpdate.logo = logo
                     userDataToUpdate.save()
 
-                Address.objects.filter(id = userData.address_id).update(city= city,state= state,country= country,code= code)
-                Users.objects.filter(_id = userData._id).update(
-                    firstName = firstName,
-                    middleName = middleName,
-                    lastName = lastName,
-                    DOB = DOB,
-                    phoneNumber = phoneNumber
-                )
-                return HttpResponseRedirect(f"/users/{slug}")
+                try:
+                    print("userData.address_id")
+                    print(userData.address_id)
+                    if userData.address_id is None:
+                        add = Address(city= city,state= state,country= country,code= code)
+                        add.save()
+                        Users.objects.filter(_id = userData._id).update(address = add)
+                        pass
+                    else:
+                        Address.objects.filter(id = userData.address_id).update(city= city,state= state,country= country,code= code)
+
+                    Users.objects.filter(_id = userData._id).update(
+                        firstName = firstName,
+                        middleName = middleName,
+                        lastName = lastName,
+                        DOB = DOB, 
+                        phoneNumber = phoneNumber
+                    )
+                    return HttpResponseRedirect(f"/users/{slug}")
+                except Exception as e:
+                    print(e)
+                    if 'UNIQUE constraint failed' in str(e):
+                        form.add_error("phoneNumber" , "Phone number already exists.")
+                    return render(request ,"EditUserProfile.html" , { 
+                        'form' : form , 
+                        'slug' : slug
+                    })
             else:
+                print("GET")
                 return render(request ,"EditUserProfile.html" , { 
                     'form' : form , 
                     'slug' : slug
                 })
 
         elif(request.method == "GET"):
-            address = Address.objects.filter(id = userData.address.id)
             query_dict = QueryDict(mutable=True)
+            if(userData.address is not None):
+                address = Address.objects.filter(id = userData.address.id)
+                query_dict.appendlist("city" , address[0].city)
+                query_dict.appendlist("state" , address[0].state)
+                query_dict.appendlist("country" , address[0].country)
+                query_dict.appendlist("code" , address[0].code)
+            
             query_dict.appendlist("logo" , userData.logo)
             query_dict.appendlist("firstName" , userData.firstName)
             query_dict.appendlist("middleName" , userData.middleName)
             query_dict.appendlist("lastName" , userData.lastName)
             query_dict.appendlist("DOB" , userData.DOB)
             query_dict.appendlist("phoneNumber" , userData.phoneNumber)
-            query_dict.appendlist("city" , address[0].city)
-            query_dict.appendlist("state" , address[0].state)
-            query_dict.appendlist("country" , address[0].country)
-            query_dict.appendlist("code" , address[0].code)
+            
             print("query_dict")
             print(query_dict)
             form = UserProfileEdit(query_dict)
@@ -119,7 +153,7 @@ def signUp(request) :
 
                 user = Users.objects.filter(email=email, password__isnull=False).first()
 
-                if(len(user) > 0):
+                if( user is not None and len(user) > 0):
                     form.add_error("email" , "User with this email already exist.")
                     return render(request ,"RequestForOtp.html" , { 'form' : form })
                 
@@ -137,11 +171,8 @@ def signUp(request) :
                 """
                 sendmail(email , subject , htmlContent)
                 print(email)
-                user = Users(
-                    email = email,
-                    otp = otp
-                )
-                user.save()
+
+                Users.objects.update_or_create(email=email, defaults={'otp': otp ,'lastOtpSentAt' :datetime.now(timezone.utc)})
                 return HttpResponseRedirect("/users/sign-up-2")
             else:
                 return render(request ,"RequestForOtp.html" , { 'form' : form })
@@ -426,6 +457,9 @@ def getCommonTeamIdsOfUsers(request , currUserId , originalUserId , orgId):
     
         for ids in commonTeams:
             commonTeamIds.append(ids.TeamId_id)
+        
+        if len(commonTeamIds) == 1:
+            commonTeamIds.append(-1)
 
         return tuple(commonTeamIds)
     except Exception as e:
@@ -457,6 +491,10 @@ def getTeamIds(request , userData , slugUser , org):
     return teamIds
 
 def getUsersJobTitle(teamIds , userId ,orgId):
+    teamIds = list(teamIds)
+    if len(teamIds) == 1:
+        teamIds.append(-1)
+
     query = f"""
             select 
                 jt.title as title,
@@ -491,7 +529,17 @@ def home(request , slug) :
         print(userData)
         org = getOrgById(request , user["currentActiveOrganization"])
         print(org)
+        userImg = f"{os.environ.get('FRONTEND')}/media/{slugUser.logo}"
 
+        if(org == None):
+            return render(request , "NoOrganizationUserInfo.html" , {
+            'slug' : slug ,
+            "user" : slugUser , 
+            "userProfilePic" : f"{ userImg if slugUser.logo != None else False}",
+            "endpoint":"users" ,
+            "isOriginalUser" : "true" if slugUser._id == userData._id else "false",
+            "baseUrl" : os.environ.get('FRONTEND')
+            })
         if(not (bool(org)  and bool(userData) and bool(slugUser)) ):
             print("You dont a access")
             return HttpResponseForbidden("You dont have a access")
@@ -508,8 +556,8 @@ def home(request , slug) :
         print("isowner")
         print(isowner)
 
-        if(len(teamIds) == 0):
-            return HttpResponseForbidden("You don't have a access")
+        # if(len(teamIds) == 0):
+        #     return HttpResponseForbidden("You don't have a access")
         
         userJobTitleData = getUsersJobTitle(teamIds , slugUser._id , org._id)
         userJobTitle = ""
@@ -527,7 +575,6 @@ def home(request , slug) :
             "leave_request" : True,
             "attendance" : True
         }
-        userImg = f"{os.environ.get('FRONTEND')}/media/{slugUser.logo}"
         print("slugUser.logo")
         print(slugUser.logo)
         return render(request ,"Home.html" , {
@@ -575,6 +622,8 @@ def getLeaveTypeInsightOfUser(request  , slug , fromDate , toDate):
 
         if(len(teamIds) < 0):
             return HttpResponseForbidden("You don't have a access.")
+        if(len(teamIds) == 1):
+            teamIds.append(-1)
 
         fromDate = fromDate.split("T")[0]
         toDate = toDate.split("T")[0]
@@ -609,6 +658,9 @@ def getAttendance(request , slug , teamIds , year):
     try:
         print("getAttendance")
         print(year)
+        teamIds = list(teamIds)
+        if len(teamIds) == 1:
+            teamIds.append(-1)
         DayInNumber = {
             'Sun': 0, 'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, 'Sat': 6
         }
@@ -711,6 +763,10 @@ def getAttendanceByTeamOrg(request , slug , fromDate , toDate):
 
         if(len(teamIds) < 0):
             return HttpResponseForbidden("You don't have a access.")
+        
+        teamIds = list(teamIds)
+        if len(teamIds) == 1:
+            teamIds.append(-1)
 
         fromDate = fromDate.split("T")[0]
         toDate = toDate.split("T")[0]
@@ -861,6 +917,10 @@ def getAttendanceInDetailsByDay(request , slug , takenAt):
 
         if(len(teamIds) < 0):
             return HttpResponseForbidden("You don't have a access.")
+        
+        teamIds = list(teamIds)
+        if len(teamIds) == 1:
+            teamIds.append(-1)
 
         query = f"""
             SELECT 

@@ -43,7 +43,11 @@
 {% endwith %}
 
 {% else %}
+{% if jobTitleDetails == True %}
+<a class="title " style="margin-left: 10px; color: var(--blue-primary);" href="/organization/job-title/{{slug}}">Job-Title/</a>
+{% endif %}
 <div class="title section_title p-10">Employees working as {{jobTitle | title}}</div>
+
 {% endif %}
 
 <!-- openAction

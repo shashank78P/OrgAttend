@@ -91,8 +91,7 @@ def createOrganization(request):
                         user = Users.objects.get(email = email.strip())
                         ownersDetails = OwnerDetails(OrganizationId = org , userId = user)
                         ownersDetails.save()
-
-                    return render(request ,"CreateOrganization.html", { 'form' : form })
+                    return HttpResponseRedirect(f"/organization/leave-request/{org.slug}")
             return render(request ,"CreateOrganization.html", { 'form' : form })
         else:
             form = createOrganizationForm()
@@ -245,7 +244,10 @@ def createOrUpdate(request , user,slug , isEdit, teamId=""):
         form = createTeamForm(request.POST)
         if form.is_valid():
             data = request.POST
-            if data["checkInTime"] > data["checkOutTime"]:
+            print(data["checkInTime"])
+            print(data["checkOutTime"])
+            print(type(data["checkOutTime"]))
+            if isCorrectTime(data["checkInTime"] , data["checkOutTime"]):
                 form.add_error("checkOutTime" ,"Invalid CheckInTime and CheckOutTime , time interval between these must be of minimum 45min")
                 title = "Create Team"
                 if isEdit:
@@ -443,6 +445,8 @@ def leaveTypeInsightOfOrg(request , slug , fromDate , toDate):
         interQuery = ""
         if(not isHeOwner):
             teamIds = getTeamIdList(org , userData)
+            if len(teamIds) <= 1:
+                teamIds.append(-1)
             interQuery = f" teamId_id in {tuple(teamIds)} AND"
 
         fromDate = fromDate.split("T")[0]
@@ -601,6 +605,8 @@ def teams(request , slug):
             avgAtt = getTeamAvgAttendance(request , slug , teamId=False , orgId=org._id)
         else:
             teamIds = getTeamIdList(org , userData)
+            if len(teamIds) <= 1:
+                teamIds.append(-1)
             co_Leader,leader,member,total = roleCountOfTeamsOrOrg(org_id= org._id , teamIds=tuple(teamIds))
             avgAtt = getTeamAvgAttendance(request , slug , tuple(teamIds) , org._id)
 
@@ -710,23 +716,29 @@ def teams(request , slug):
         print(e)
         return HttpResponseServerError(e)
 
-def getTeamsMemebesFormatedData(TeamsMembersData , teamId):
+def getTeamsMemebesFormatedData(TeamsMembersData , teamId , org):
     tableTitle = ["name","role","job-title","createdBy","createdAt"]
     tableData = []
     print(tableTitle)
+    print("TeamsMembersData")
+    print(TeamsMembersData)
     for i in  range(0,len(TeamsMembersData)):
+        print(i)
         teamMember = TeamsMembersData[i]
-        print(teamMembersDetails)
+        print("teamMember")
+        print(teamMember)
 
-        emp = Employee.objects.filter(employee = teamMember.userId)
+        emp = Employee.objects.filter(employee = teamMember.userId, Organization = org).first()
+        print("emp")
+        print(emp)
 
         tableData.append([ 
             f'{teamMember.userId.firstName} {teamMember.userId.middleName} {teamMember.userId.lastName}',
             f'{teamMember.role}',
-            f'{emp[0].jobTitle.title}',
+            f'{emp.jobTitle.title if emp is not None else ""}',
             f'{teamMember.createdBy.firstName} {teamMember.createdBy.middleName} {teamMember.createdBy.lastName}',
             f'{teamMember.createdAt}',
-            f'{teamId}/{teamMember.id}/{emp[0]._id}',
+            f'{teamId}/{teamMember.id}/{emp._id if emp is not None else ""}',
         ])
     return tableTitle , tableData
 
@@ -790,7 +802,7 @@ def teamMembersDetails(request , slug , id):
         Q(userId__address__code__icontains=search))
         ).order_by("-createdAt")
         
-        tableTitle , tableData = getTeamsMemebesFormatedData(teamsMembersDetails,id)
+        tableTitle , tableData = getTeamsMemebesFormatedData(teamsMembersDetails,id , org)
         openAction = False
         editAction = True
         deleteAction = True
@@ -1049,7 +1061,10 @@ def getTeamAvgAttendance(request , slug , teamId , orgId):
             QueryBuilder = f" AND TeamId_id = {teamId} "
         
         elif( type(teamId).__name__ ==  "tuple"):
-            QueryBuilder = f" AND TeamId_id in {teamId} "
+            teamId = list(teamId)
+            if len(teamId) <= 1:
+                teamId.append(-1)
+            QueryBuilder = f" AND TeamId_id in {tuple(teamId)} "
             
         print("getTeamAvgAttendance")
         queryToGetAttendanceOfTeam = f"""
@@ -1381,6 +1396,8 @@ def employees(request , slug):
             avgAtt = getTeamAvgAttendance(request , slug , teamId=False , orgId=org._id)
         else:
             teamIds = getTeamIdList(org , userData)
+            if len(teamIds) <= 1:
+                teamIds.append(-1)
             co_Leader,leader,member,total = roleCountOfTeamsOrOrg(org_id= org._id , teamIds=tuple(teamIds))
             avgAtt = getTeamAvgAttendance(request , slug , tuple(teamIds) , org._id)
 
@@ -1780,7 +1797,22 @@ def leaveRequest(request , slug):
         user = request.session["user"]
         userData = get_object_or_404(Users , _id = user["_id"])
 
-        org = get_object_or_404( Organization, _id = user["currentActiveOrganization"])
+        org = None
+        if user["currentActiveOrganization"] is None:
+            userInOrg = TeamMember.objects.filter(userId = userData).first()
+            userInOrgOwner = OwnerDetails.objects.filter(userId = userData).first()
+
+            if userInOrg is not None:
+                Users.objects.filter(_id = user["_id"]).update(currentActiveOrganization = userInOrg.OrganizationId)
+                
+            elif userInOrgOwner is not None:
+                Users.objects.filter(_id = user["_id"]).update(currentActiveOrganization = userInOrgOwner.OrganizationId._id)
+            else:
+                return HttpResponseRedirect(f"/users")
+            org = get_object_or_404( Organization, _id = userData.currentActiveOrganization)
+
+        if org is None:
+            org = get_object_or_404( Organization, _id = user["currentActiveOrganization"])
 
         isHeOwner = isOwner(org , userData)
         isHeLeaderOrCoLeaderInAtleastOneTeam = isLeaderOrCoLeaderInAtleastOneTeam(org , userData)
@@ -1844,7 +1876,7 @@ def leaveRequest(request , slug):
         openAction = True
         editAction = False
         deleteAction = True
-        addAction = True
+        addAction = False
         
         navOptions = {
             "leave_request" : isHeLeaderOrCoLeaderInAtleastOneTeam | isHeOwner,
@@ -1966,8 +1998,6 @@ def getAttendance(request , slug , teamId , year):
         DayInNumber = {
             'Sun': 0, 'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, 'Sat': 6
         }
-
-
 
         att_data = {1 : {},2: {},3: {},4: {},5: {},6: {},7: {},8: {},9: {},10: {},11: {},12: {}}
 
@@ -2092,6 +2122,7 @@ def getAttendanceBasicDetails(request , org , team , teamId):
                 percentage = math.ceil((d.days_present / d.total_days) * 100)
             user = {
                 'userId' : d.userId._id,
+                'logo' : f'{os.environ.get('FRONTEND')}/media/{d.userId.logo}',
                 'name' : f"{d.userId.firstName} {d.userId.middleName} {d.userId.lastName}",
                 'percentage' : percentage
             }
@@ -2157,9 +2188,9 @@ def saveAttendance(request , slug , teamId):
                             status= "ACCEPTED" AND
                             '{datetime.strptime(date, '%Y-%m-%d').date()}' BETWEEN fromDate AND toDate;
                     """
-                    data = LeaveRequest.objects.raw(query)
+                    data1 = LeaveRequest.objects.raw(query)
 
-                    if(len(data) == 0):
+                    if(data1 is not None and len(data1) == 0):
                         isPresent = True
                 
                 att = Attendance(
@@ -2401,6 +2432,8 @@ def getEmployeeCountByTeam(request , slug , fromDate , toDate):
 
         if(not isHeOwner):
             teamIds = getTeamIdList(org , userData)
+            if len(teamIds) <= 1:
+                teamIds.append(-1)
             queryBuilder = f"  t.id in {tuple(teamIds)} AND "
         
         fromDate = fromDate.split("T")[0]
@@ -2493,6 +2526,9 @@ def editCompanyProfile(request , slug):
                 owners=[]
                 for email in temp_owners:
                     owners.append(email)
+                
+                if len(owners) <= 1:
+                    owners.append("")
     
                 print("checking for user existence")
                 for email in owners:

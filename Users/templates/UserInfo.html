@@ -30,6 +30,8 @@
                 </ul>
                 <p>{{userJobTitle | title}}</p>
             </li>
+            
+            {% if user.email %}
             <li class="flex items-center">
                 <span class="icon userCardIcon">
                     {% with width=20 height=20 color="#3D4756"%}
@@ -38,6 +40,9 @@
                 </span>
                 <span>{{user.email}}</span>
             </li>
+            {% endif %}
+            
+            {% if user.phoneNumber %}
             <li class="flex items-center">
                 <span class="icon userCardIcon">
                     {% with width=20 height=20 color="#3D4756" %}
@@ -46,6 +51,9 @@
                 </span>
                 <span>{{user.phoneNumber}}</span>
             </li>
+            {% endif %}
+            
+            {% if user.address.city  or user.address.state or user.address.country or user.address.code %}
             <li class="flex items-center">
                 <span class="icon userCardIcon">
                     {% with width=20 height=20 color="#3D4756"%}
@@ -55,6 +63,7 @@
                 <span>{{user.address.city | title}} {{user.address.state | title}} {{user.address.country | title}}
                     {{user.address.code | title}}</span>
             </li>
+            {% endif %}
         </ul>
     </li>
 </ul>

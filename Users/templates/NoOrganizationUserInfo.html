@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block page_title %}
+{{ text | title }}
+{% endblock %}
+
+{% block css_block %}
+<link rel="stylesheet" href={% static "css/Global.css" %}>
+<link rel="stylesheet" href={% static "css/home.css" %}>
+<link rel="stylesheet" href={% static 'css/homeNav.css' %}>
+<link rel="stylesheet" href={% static "css/UserInfo.css" %}>
+
+<script src={% static 'js/script.js' %}></script>
+
+{% endblock %}
+
+{% block content %}
+
+{% include "Nav.html" %}
+
+{% with url="/users" slug=slug afterSlug="edit" %}
+{% include "UserInfo.html" %}
+{% endwith %}
+
+<h1 class="title" style="text-align: center;">
+    The details of the organization will be accessible only if you are a member or owner of at least one organization.</h1>
+
+{% endblock %} 

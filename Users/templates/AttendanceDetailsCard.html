@@ -21,7 +21,9 @@
 
 {% block content %}
 
+{% with url="/users" slug=slug afterSlug="edit" %}
 {% include "Nav.html" %}
+{% endwith %}
 
 {% include "UserInfo.html" %}
 

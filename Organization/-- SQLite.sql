@@ -19,5 +19,5 @@
                                 SELECT DISTINCT(u._id) FROM
                                     Users_users as u
                                 WHERE
-                                    u.email not in ('19.shashank.p@gmail.com', 'raki@gmail.com')
+                                    u.email not in (,)
                             );

@@ -13,7 +13,7 @@ urlpatterns = [
     path("teams/<slug:slug>" , views.teams),
     path("teams/<slug:slug>/create-team" , views.createTeam),
 
-    path("teams/<slug:slug>/attendance/<teamId>/" , views.getAttendance),
+    # path("teams/<slug:slug>/attendance/<teamId>/" , views.getAttendance),
     path("teams/<slug:slug>/attendance/<teamId>" , views.takeAttendance),
     path("teams/<slug:slug>/attendance/<teamId>/save" , views.saveAttendance),
     path("teams/<slug:slug>/attendance/<teamId>/<str:takenAt>" , views.getAttendanceDetails),

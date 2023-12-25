@@ -32,7 +32,6 @@
 {% with page="leave-request" app="organization"%}
 {% include "NavigationOptions.html" %}
 {% endwith %}
-
 {% with page=page app="organization" data=tableData title=tableTitle action='/organization/leave-request'  slug=slug afterSlug=afterSlug isEdit=isEdit isAutoConstructHref="false" showAdd="false" columnCount=columnCount %}
 {% include "table.html" %}
 {% endwith %}
