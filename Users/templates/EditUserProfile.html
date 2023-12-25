@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load static %}
+{% block page_title %}
+{{ text | title }}
+{% endblock %}
+
+{% block css_block %}
+<link rel="stylesheet" href={% static "css/Global.css" %}>
+<link rel="stylesheet" href={% static "css/CreateOrganization.css" %}>
+
+{% endblock %}
+
+{% block content %}
+<form action="/users/{{slug}}/edit" method="POST" enctype="multipart/form-data" class=" shadow formContainer">
+    {% csrf_token %}
+    <h1 class="form_title">Edit User Data</h1>
+    <div class="w-full flex justify-center items-center flex-col">
+        {% for field in form %}
+        <!-- field.errors -->
+        <div class="w-full form_row flex justify-center items-start flex-col">
+            <div class="w-full form_row flex justify-center items-start flex-col">
+                {{ field.label_tag }}
+                {{ field }}
+                {{ field.errors }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="w-full form_row flex justify-center items-start flex-col">
+        <input type="submit" value="Update">
+    </div>
+</form>
+{% endblock %}

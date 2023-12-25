@@ -10,13 +10,23 @@
         <ul class="userCardDetails flex flex-col justify-between items-start">
             <li class="userCard-top-section">
                 <ul class="flex items-center userName-section">
-                    <li class="userName">
+                    <li class="userName mr-5">
                         <h1>{{user.firstName | title}} {{user.middleName | title}} {{user.lastName | title}}</h1>
                     </li>
                     {% if isOwner %}
-                    <li class="user-role role cursor-pointer">Owner</li>
+                    <li class="user-role role cursor-pointer mr-5">Owner</li>
                     {% endif %}
-                    <!-- <li class="user-role type cursor-pointer">Full time</li> -->
+                    {% if isOriginalUser %}
+                    <li class="ml-5">
+                        <a href="{{url}}/{{slug}}/{{afterSlug}}">
+                            <abbr title="Edit">
+                                {% with width=20 height=20 color="#3D4756"%}
+                                {% include 'SvgIcon/PencileIco.html' %}
+                                {% endwith %}
+                            </abbr>
+                        </a>
+                    </li>
+                    {% endif %}
                 </ul>
                 <p>{{userJobTitle | title}}</p>
             </li>

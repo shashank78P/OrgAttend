@@ -5,11 +5,11 @@ import json
 import os
 from dateutil import parser
 from django.shortcuts import render , get_object_or_404
-from django.http import HttpResponse ,HttpResponseServerError , HttpResponseRedirect, JsonResponse ,Http404 , HttpResponseForbidden
+from django.http import HttpResponse ,HttpResponseServerError , HttpResponseRedirect, JsonResponse ,Http404 , HttpResponseForbidden, QueryDict
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password , check_password
-from .forms import LeaveRequestForm, signUpForm , logInForm, signUpForm2
-from .models import Users 
+from .forms import LeaveRequestForm, UserProfileEdit, changePasswordForm, signUpForm , logInForm, signUpForm2
+from .models import Address, Users 
 from Organization.models import Attendance, Job_title, LeaveRequest, Organization, OwnerDetails, Team, TeamMember
 from datetime import datetime , timedelta, timezone
 import jwt
@@ -19,12 +19,12 @@ from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 
 def sendmail(toEmail , subject , htmlContent ):
-    message = Mail(
+    try:
+        message = Mail(
         from_email='dailydash155@gmail.com',
         to_emails=toEmail,
         subject=subject,
         html_content=htmlContent)
-    try:
         sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
         response = sg.send(message)
         print(response.status_code)
@@ -35,30 +35,79 @@ def sendmail(toEmail , subject , htmlContent ):
         return HttpResponseForbidden(e)
 
 
-def index(request , slug):
+def editUserData(request , slug) :
     try:
-        # cookie = request.get_signed_cookie(
-        #     'authorization',
-        #     salt=os.environ.get('SECRET_KEY'),
-        # )
-        # print("request")
-        # if not request.path:
-        #     return Http404("Page Not found")
-        # slug = request.path.split("/")[-1]
-        # print(request.path)
-        # token = cookie.split(" ")[1]
-        # decoded_data = jwt.decode(token, os.environ.get('SECRET_KEY'), algorithms='HS256')
-        print('request.session["user"]')
-        print(request.session['user'])
-        user = Users.objects.get(slug = slug)
-        return render(request ,"Profile.html" , { 'slug' : slug , 'user' : user })
-    except jwt.ExpiredSignatureError:
-        return render(request ,"Profile.html" , { 'slug' : slug , messages : messages.error(request, "Token has expired.")})
-    except jwt.InvalidTokenError:
-        return render(request ,"Profile.html" , { 'slug' : slug , messages : messages.error(request, "Invalid token.")})
+        user = request.session["user"]
+        print(user)
+        slugUser = get_object_or_404(Users , slug = slug)
+        print(slugUser)
+        userData = get_object_or_404(Users , slug = user["slug"])
+        print(userData)
+
+        if(slugUser._id != userData._id):
+            return HttpResponseForbidden("You dont have a access.")
+        
+        if(request.method == "POST"):
+            form = UserProfileEdit(request.POST)
+            if form.is_valid():
+                print("valid")
+                print("logo")
+                logo = request.FILES.get('logo' , False)
+                print("f name")
+                firstName = request.POST["firstName"]
+                middleName = request.POST["middleName"]
+                lastName = request.POST["lastName"]
+                DOB = request.POST["DOB"]
+                phoneNumber = request.POST["phoneNumber"]
+                city = request.POST["city"]
+                state = request.POST["state"]
+                country = request.POST["country"]
+                code = request.POST["code"]
+
+                print("userData.address_id")
+                print(userData.address_id)
+
+                if logo != False:
+                    userDataToUpdate = Users.objects.get(_id = userData._id)    
+                    userDataToUpdate.logo = logo
+                    userDataToUpdate.save()
+
+                Address.objects.filter(id = userData.address_id).update(city= city,state= state,country= country,code= code)
+                Users.objects.filter(_id = userData._id).update(
+                    firstName = firstName,
+                    middleName = middleName,
+                    lastName = lastName,
+                    DOB = DOB,
+                    phoneNumber = phoneNumber
+                )
+                return HttpResponseRedirect(f"/users/{slug}")
+            else:
+                return render(request ,"EditUserProfile.html" , { 
+                    'form' : form , 
+                    'slug' : slug
+                })
+
+        elif(request.method == "GET"):
+            address = Address.objects.filter(id = userData.address.id)
+            query_dict = QueryDict(mutable=True)
+            query_dict.appendlist("logo" , userData.logo)
+            query_dict.appendlist("firstName" , userData.firstName)
+            query_dict.appendlist("middleName" , userData.middleName)
+            query_dict.appendlist("lastName" , userData.lastName)
+            query_dict.appendlist("DOB" , userData.DOB)
+            query_dict.appendlist("phoneNumber" , userData.phoneNumber)
+            query_dict.appendlist("city" , address[0].city)
+            query_dict.appendlist("state" , address[0].state)
+            query_dict.appendlist("country" , address[0].country)
+            query_dict.appendlist("code" , address[0].code)
+            print("query_dict")
+            print(query_dict)
+            form = UserProfileEdit(query_dict)
+            return render(request ,"EditUserProfile.html" , { 'form' : form , "slug" : slug })
     except Exception as e:
-        error_message = str(e)
-        return HttpResponseServerError(error_message)
+            print("error")
+            print(e)
+            HttpResponseServerError(e)
 
 def signUp(request) :
     try:
@@ -67,6 +116,13 @@ def signUp(request) :
             if form.is_valid():
                 print("valid")
                 email = request.POST["email"]
+
+                user = Users.objects.filter(email=email, password__isnull=False).first()
+
+                if(len(user) > 0):
+                    form.add_error("email" , "User with this email already exist.")
+                    return render(request ,"RequestForOtp.html" , { 'form' : form })
+                
                 otp = random.randint(1000 , 9999)
                 print("otp")
                 print(otp)
@@ -116,9 +172,8 @@ def signUp2(request) :
 
             # Calculate the time difference
             time_difference = now - otpSentAt
-
-            # Compare if the time difference is within a certain threshold (e.g., 15 minutes)
-            if time_difference.total_seconds() < 15 * 60:
+            
+            if time_difference.total_seconds() > 15 * 60:
                 print("less than fifteen_minutes")
                 form.add_error("otp" ,"Invalid otp (try to generate new OTP)")
                 return render(request ,"SignUp.html" , { 'form' : form })
@@ -197,6 +252,129 @@ def getOrgById(request , id):
         print(e)
         HttpResponseServerError(e)
 
+def ChangePassword1(request):
+    try:
+        print("change-password-pre1")
+        if(request.method == "POST"):
+            print("post")
+            email = request.POST.get("email" , False)
+            print("email")
+            print(email)
+            if(not email):
+                form = signUpForm()
+                return render(request ,"ChangePassword.html" , { 
+                    'form' : form ,
+                })
+            
+            userData = getUserByEmail(email)
+
+            otp = random.randint(1000 , 9999)
+            print("otp")
+            print(otp)
+            email = userData.email
+            subject = "Here is the OTP for password change"
+            htmlContent = f"""
+                <h1>Stay In Time Tracker</h1>
+                <p>This mail is to the response to request made for password change <b>Stay In Time Tracker</b></p>
+                <p>Here is your OTP : <strong>{otp}</strong></p>
+                <p>Thank you, for your interest.</p>
+                <p style="color : red">This otp is only valid for 15min.</p>
+            """
+            # sendmail(email , subject , htmlContent)
+            print(email)
+            
+            userData.otp = otp
+            userData.lastOtpSentAt = datetime.now(timezone.utc) 
+            userData.save()
+            return HttpResponseRedirect(f"/users/change-password")
+        else:
+            print("else")
+            form = signUpForm()
+            return render(request ,"ChangePassword.html" , { 
+                'form' : form ,
+                'action' : "/users/change-password-pre"
+            })
+    except Exception as e:
+        print(e)
+        return HttpResponseForbidden(e)
+
+def ChangePassword(request):
+    try:
+        print("ChangePassword")
+        if(request.method == "POST"):
+            print("post")
+            form = changePasswordForm(request.POST)
+            if form.is_valid():
+                print("valid")
+                otp = request.POST.get("otp" , False)
+                email = request.POST.get("email" , False)
+                password = request.POST.get("password" , False)
+                confirmPassword = request.POST.get("confirmPassword" , False)
+
+                if(not (otp and password and confirmPassword and email)):
+                    return render(request ,"ChangePassword.html" , { 
+                    'form' : form ,
+                    'action' :"/users/change-password"
+                })
+
+                if(confirmPassword != password):
+                    form.add_error("confirmPassword" , "Password not matched")
+                    return render(request ,"ChangePassword.html" , { 
+                    'form' : form ,
+                    'action' :"/users/change-password"
+                })
+
+                userData = Users.objects.get(email = email)
+                print(email)
+                print(userData)
+                print("userData.otp")
+                print(userData.otp)
+                print(otp)
+                if(otp != userData.otp):
+                    form.add_error("otp" , "Invalid otp")
+                    return render(request ,"ChangePassword.html" , { 
+                    'form' : form , 
+                    'action' :"/users/change-password"
+                })
+
+                print(userData.lastOtpSentAt)
+                currentDateTime = datetime.now(timezone.utc)
+                print(currentDateTime)
+
+                diff = currentDateTime - userData.lastOtpSentAt
+                print(diff)
+                print("diff.total_seconds")
+                print(diff.total_seconds())
+
+                if(diff.total_seconds() > 15*60):
+                    form.add_error("otp" , "Invalid OTP")
+                    return render(request ,"ChangePassword.html" , { 
+                    'form' : form , 
+                    'action' :"/users/change-password"
+                })
+
+                userData.password = make_password(request.POST["password"])
+                userData.otp = None
+                userData.lastOtpSentAt = None
+                userData.save()
+                return HttpResponseRedirect(f"/users/{userData.slug}")
+            else:
+                print("else")
+                form = changePasswordForm(request.POST)
+                return render(request ,"ChangePassword.html" , { 
+                    'form' : form ,
+                    'action' :"/users/change-password"
+                })
+        else:
+                form = changePasswordForm()
+                return render(request ,"ChangePassword.html" , { 
+                    'form' : form ,
+                    'action' :"/users/change-password"
+                })
+            
+        
+    except Exception as e:
+        return HttpResponseForbidden(e)
 
 def isUserOwner(currUserId , orgId):
     query1 = f"""
@@ -209,6 +387,7 @@ def isUserOwner(currUserId , orgId):
             OrganizationId_id = {orgId};
         """
     return OwnerDetails.objects.raw(query1)
+
 def getCommonTeamIdsOfUsers(request , currUserId , originalUserId , orgId):
     try:
         
@@ -942,5 +1121,19 @@ def deleteLeaveRequest(request ,slug , id):
 
         LeaveRequest.objects.filter(id = id , createdBy = userData).delete()
         return HttpResponseRedirect(f"/users/leave-request/{slug}")
+    except Exception as e:
+        return HttpResponseServerError(e)
+
+def logout(request):
+    try:
+        currentUser = request.session["user"]
+        userData = get_object_or_404(Users , _id = currentUser["_id"])
+        response = HttpResponseRedirect(f"/users/log-in")
+        response.set_signed_cookie(
+                        'authorization' , f"Bearer " ,
+                        salt="attendance123",
+                        expires= datetime.utcnow() + timedelta(days= 1) 
+        )
+        return response;
     except Exception as e:
         return HttpResponseServerError(e)

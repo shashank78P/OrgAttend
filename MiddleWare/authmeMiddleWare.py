@@ -12,7 +12,7 @@ class AuthMe:
 
     def __call__(self, request, *args: Any, **kwds: Any) -> Any:
         try:
-            Allowed_paths = ["/users/log-in" , "/users/sign-up" , "/admin/" , "/users/sign-up-2"]
+            Allowed_paths = ["/users/log-in" , "/users/sign-up" , "/admin/" , "/users/sign-up-2","/users/change-password-pre","/users/change-password"]
             response = self.get_response(request)
             token = request.get_signed_cookie('authorization', salt=os.environ.get('SECRET_KEY'), default=None)
 

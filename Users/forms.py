@@ -5,6 +5,112 @@ from django.shortcuts import get_object_or_404
 
 from Organization.models import Team , TeamMember
 
+class UserProfileEdit(forms.Form):
+    logo = forms.forms.FileField(
+        label="User Profile Pic",
+        required=False,
+        error_messages={
+            "required" :"Logo is required",
+        }
+    )
+
+    # email = forms.EmailField(
+    #     label="Email",
+    #     max_length = 200,
+    #     error_messages={
+    #         "required" :"Email is required",
+    #         "max_length" :"Email is to large"
+    #     }
+    # )
+    firstName = forms.CharField(
+        label="First Name",
+        max_length = 200,
+        error_messages={
+            "required" :"First Name is required",
+            "max_length" :"First Name is to large",
+            "min_length" :"First Name is too small"
+        }
+    )
+    middleName = forms.CharField(
+        label="Middle Name",
+        required=False,
+        max_length = 20,
+        min_length=1,
+        error_messages={
+            "max_length" :"Middle Name is too large",
+            "min_length" :"Middle Name is too small"
+        }
+    )
+    lastName = forms.CharField(
+        label="Last Name",
+        required=False,
+        max_length = 20,
+        min_length=1,
+        error_messages={
+            "max_length" :"Last Name is to large",
+            "min_length" :"Last Name is too small"
+        }
+    )
+
+    DOB = forms.DateField(
+        label="Date Of Birth",
+        widget=forms.DateInput(attrs={'type': 'date' , 'max' : date.today().strftime('%Y-%m-%d')} ),
+        error_messages={
+            "required" :"DOB is required"
+        }
+    )
+
+    phoneNumber = forms.CharField(
+        label="Phone Number",
+        max_length = 10,
+        min_length=10,
+        error_messages={
+            "required" :"Phone Number is required",
+            "max_length" :"Phone Number is to large",
+            "min_length" :"Phone Number is too small"
+        }
+    )
+    city = forms.CharField(
+        label="City",
+        required=True,
+        max_length = 50,
+        min_length=3,
+        error_messages={
+            "max_length" :"City name is too large",
+            "min_length" :"City name is too small"
+        }
+    )
+    state = forms.CharField(
+        label="State",
+        required=True,
+        max_length = 500,
+        min_length=3,
+        error_messages={
+            "max_length" :"State name is too large",
+            "min_length" :"State name is too small"
+        }
+    )
+    country = forms.CharField(
+        label="Country",
+        required=True,
+        max_length = 500,
+        min_length=3,
+        error_messages={
+            "max_length" :"Country name is too large",
+            "min_length" :"Country name is too small"
+        }
+    )
+    code = forms.CharField(
+        label="Pin Code",
+        required=True,
+        max_length = 500,
+        min_length=3,
+        error_messages={
+            "max_length" :"Pin Code is too large",
+            "min_length" :"Pin Code is too small"
+        }
+    )
+
 class signUpForm(forms.Form):
     email = forms.EmailField(
         label="Email",
@@ -12,6 +118,45 @@ class signUpForm(forms.Form):
         error_messages={
             "required" :"Email is required",
             "max_length" :"Email is to large"
+        }
+    )
+
+class changePasswordForm(forms.Form):
+    email = forms.EmailField(
+        label="Email",
+        max_length = 200,
+        error_messages={
+            "required" :"Email is required",
+            "max_length" :"Email is to large"
+        }
+    )
+    otp = forms.CharField(
+        label="OTP",
+        max_length = 4,
+        error_messages={
+            "required" :"OTP is required"
+        }
+    )
+    password = forms.CharField(
+        label="Password",
+        widget=forms.PasswordInput,
+        max_length=200,
+        min_length=8,
+        error_messages={
+            "required" :"Password is required",
+            "max_length" :"Password is to large",
+            "min_length" :"Password must have atleast 8 character"
+        }
+    )
+    confirmPassword = forms.CharField(
+        label="Confirm Password",
+        widget=forms.PasswordInput,
+        max_length=200,
+        min_length=8,
+        error_messages={
+            "required" :"Confirm Password is required",
+            "max_length" :"Confirm Password is to large",
+            "min_length" :"Confirm Password must have atleast 8 character"
         }
     )
 

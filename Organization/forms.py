@@ -84,7 +84,7 @@ class createOrganizationForm(forms.Form):
         }
     )
     ownersDetails = forms.CharField(
-        widget=forms.Textarea(attrs={'rows': 4}),  # Adjust 'rows' as needed
+        widget=forms.Textarea(attrs={'rows': 4}), 
         label="Owners email separated by ",
         required=False,
         error_messages={
@@ -92,7 +92,7 @@ class createOrganizationForm(forms.Form):
         },
     )
     description = forms.CharField(
-        widget=forms.Textarea(attrs={'rows': 4}),  # Adjust 'rows' as needed
+        widget=forms.Textarea(attrs={'rows': 4}), 
         label="Description",
         required=False,
         error_messages={

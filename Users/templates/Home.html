@@ -29,7 +29,9 @@
 {% block content %}
 <div>
     {% include "Nav.html" %}
+    {% with url="/users" slug=slug afterSlug="edit" %}
     {% include "UserInfo.html" %}
+    {% endwith %}
     {% with page="home"%}
     {% include "NavigationOptions.html" %}
     {% endwith %}

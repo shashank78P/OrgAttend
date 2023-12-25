@@ -44,10 +44,12 @@
         <ul class="flex justify-between items-center user-nav-last-part">
             {% if isOriginalUser == "true" %}
             <li class="cursor-pointer">
-                <a href="">Change Password</a>
+                <a href="/users/change-password-pre">Change Password</a>
             </li>
             {% endif %}
-            <li class="log-out-btn cursor-pointer">Log Out</li>
+            <a href="/users/log-out">
+                <li class="log-out-btn cursor-pointer">Log Out</li>
+            </a>
         </ul>
     </li>
 </ul>

@@ -7,6 +7,9 @@ urlpatterns = [
     
     path("sign-up-2" , views.signUp2),
     path("log-in" , views.login),
+    path("log-out" , views.logout),
+    path("change-password" , views.ChangePassword),
+    path("change-password-pre" , views.ChangePassword1),
     path("add" , views.add),
     path("edit/<slug:slug>" , views.edit ),
     path("set-current-active-organization" , views.setCurrentActiveOrganization),
@@ -14,7 +17,7 @@ urlpatterns = [
     path("attendance-history/<slug:slug>/<str:takenAt>" , views.getAttendanceInDetailsByDay),
     path("" , views.homePage),
     path("<slug:slug>" , views.home),
-    path("profile/<slug:slug>" , views.index , name="user-profile"),
+    path("<slug:slug>/edit" , views.editUserData),
 
     path("leave-request/<slug:slug>" , views.leaveRequest),
     path("leave-request/<slug:slug>/add" , views.addLeaveRequest),

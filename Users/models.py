@@ -46,7 +46,7 @@ class Users(models.Model):
         validators=[isValidDate]
     )
     logo = models.ImageField(
-        upload_to="UsersImage",
+        upload_to="UsersImage/",
         default="UsersImage/default-user.webp",
         max_length=20000 , 
         error_messages={
@@ -83,6 +83,7 @@ class Users(models.Model):
     slug = models.SlugField(default="" , null=False , blank=True , db_index=True )
     address = models.ForeignKey(Address , on_delete=models.SET_NULL, null=True)
     otp = models.CharField( max_length = 4 , null=True)
+    lastOtpSentAt = models.DateTimeField(null=True)
 
     def save(self, *args, **kwargs):
         slug = f"{self.firstName} {self.middleName} {self.middleName} {self.email}" 
