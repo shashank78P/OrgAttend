@@ -45,6 +45,7 @@ urlpatterns = [
     path("employees/<slug:slug>/delete/<id>" , views.deleteEmployee),
 
     path("<slug:slug>" , views.companyProfile),
+    path("<slug:slug>/edit" , views.editCompanyProfile),
 
     path("get-employee-count-per-job-title-org/<slug:slug>/<fromDate>/<toDate>" , views.getEmployeePerJobTitle),
     path("get-employee-count-per-job-title-team/<slug:slug>/<teamId>/<fromDate>/<toDate>" , views.getEmployeePerJobTitleByTeam),

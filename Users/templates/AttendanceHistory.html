@@ -20,13 +20,20 @@
 {% endblock %}
 
 {% block content %}
+
 {% include "Nav.html" %}
+
+{% with url="/users" slug=slug afterSlug="edit" %}
 {% include "UserInfo.html" %}
+{% endwith %}
+
 {% with page="attendanceHistory" %}
 {% include "NavigationOptions.html" %}
 {% endwith %}
+
 {% with page="attendanceHistory" app="users" data=tableData title=tableTitle action='/users/attendance-history' slug=slug year=year %}
 {% include "AttendanceCalendar.html" %}
 {% endwith %}
+
 <script src={% static 'js/AttendanceCalendar.js' %}></script>
 {% endblock %}

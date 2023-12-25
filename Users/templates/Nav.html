@@ -2,9 +2,11 @@
     <li>
         <ul class=" flex items-center">
             <li class="logo cursor-pointer">
-                {% with width=30 height=30 color="#3D4756"%}
-                {% include 'SvgIcon/AttendanceIco.html' %}
-                {% endwith %}
+                <a href="/users">
+                    {% with width=30 height=30 color="#3D4756"%}
+                    {% include 'SvgIcon/AttendanceIco.html' %}
+                    {% endwith %}
+                </a>
             </li>
             <li class="organization">
                 <div class="flex justify-start items-center">

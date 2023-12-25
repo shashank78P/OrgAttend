@@ -78,7 +78,7 @@ class createOrganizationForm(forms.Form):
     )
     logo = forms.FileField(
         label="Company Logo",
-        required=True,
+        required=False,
         error_messages={
             "required" :"Logo is required",
         }

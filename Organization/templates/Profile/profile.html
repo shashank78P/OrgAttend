@@ -1,7 +1,7 @@
 {% load static %}
 <ul class="flex items-center flex-wrap userCard">
     <li class="userImageSec">
-        <img src="{{logo}}" class="OrgProfileImage" alt="xc">
+        <img src="{{logo}}" class="OrgProfileImage" alt="{{org.name | title}}">
     </li>
     <li>
         <ul class="userCardDetails flex flex-col justify-between items-start">
@@ -10,6 +10,17 @@
                     <li class="userName">
                         <h1>{{org.name | title}}</h1>
                     </li>
+                    {% if isOwner %}
+                    <li class="ml-5">
+                        <a href="/organization/{{slug}}/edit">
+                            <abbr title="Edit">
+                                {% with width=20 height=20 color="#3D4756"%}
+                                {% include 'SvgIcon/PencileIco.html' %}
+                                {% endwith %}
+                            </abbr>
+                        </a>
+                    </li>
+                    {% endif %}
                 </ul>
             </li>
             <li class="flex items-center">

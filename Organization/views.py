@@ -56,14 +56,17 @@ def createOrganization(request):
 
             if form.is_valid():
                 # owner datails
-                owners = data["ownersDetails"]
-                owners = owners.split(",")
+                temp_owners = data["ownersDetails"]
+                temp_owners = temp_owners.split(",")
+                owners=[]
+                for email in temp_owners:
+                    owners.append(email)
     
                 print("checking for user existence")
                 for email in owners:
                     print(email)
                     try:
-                        user = Users.objects.get(email = email)
+                        user = Users.objects.get(email = email.strip())
                         print(user)
                     except Users.DoesNotExist:
                         form.add_error("ownersDetails" ,f"user with this email ({email}) not exist")
@@ -85,9 +88,10 @@ def createOrganization(request):
                     org.save()
     
                     for email in owners:
-                        user = Users.objects.get(email = email)
+                        user = Users.objects.get(email = email.strip())
                         ownersDetails = OwnerDetails(OrganizationId = org , userId = user)
                         ownersDetails.save()
+
                     return render(request ,"CreateOrganization.html", { 'form' : form })
             return render(request ,"CreateOrganization.html", { 'form' : form })
         else:
@@ -100,36 +104,38 @@ def createOrganization(request):
 
 def companyProfile(request , slug):
     try:
-        print("called companyProfile")
-        user = request.session["user"]
-        org = Organization.objects.get(slug = slug)
+        # print("called companyProfile")
+        # user = request.session["user"]
+        # org = Organization.objects.get(slug = slug)
         
-        orgSize = getOrgSize(org)
-        print(f"{os.environ.get('FRONTEND')}/media/{org.logo}")
-        userData = get_object_or_404(Users , _id = user["_id"])
-        isHeOwner = isOwner(org , userData)
-        isHeLeaderOrCoLeaderInAtleastOneTeam = isLeaderOrCoLeaderInAtleastOneTeam(org , userData)
-        navOptions = {
-            "leave_request" : isHeOwner | isHeLeaderOrCoLeaderInAtleastOneTeam,
-            'job_title' : isHeOwner ,
-            'teams' : isHeOwner | isHeLeaderOrCoLeaderInAtleastOneTeam,
-            'employees' : isHeOwner
-        }
-        return render(request ,"companyProfile.html" , 
-            { 
-                "slug" : slug ,
-                "user" : user,
-                "org": org ,
-                "page" : "COMPANY_PROFILE" ,
-                "logo" : f"{os.environ.get('FRONTEND')}/media/{org.logo}" ,
-                "orgSize" : orgSize,
-                "endpoint":"organization",
-                "navOptions":navOptions,
-                "baseUrl" : os.environ.get('FRONTEND')
-            }
-        )
-    except():
-        return render(request ,"companyProfile.html")        
+        # orgSize = getOrgSize(org)
+        # print(f"{os.environ.get('FRONTEND')}/media/{org.logo}")
+        # userData = get_object_or_404(Users , _id = user["_id"])
+        # isHeOwner = isOwner(org , userData)
+        # isHeLeaderOrCoLeaderInAtleastOneTeam = isLeaderOrCoLeaderInAtleastOneTeam(org , userData)
+        # navOptions = {
+        #     "leave_request" : isHeOwner | isHeLeaderOrCoLeaderInAtleastOneTeam,
+        #     'job_title' : isHeOwner ,
+        #     'teams' : isHeOwner | isHeLeaderOrCoLeaderInAtleastOneTeam,
+        #     'employees' : isHeOwner
+        # }
+        # return render(request ,"companyProfile.html" , 
+        #     { 
+        #         "slug" : slug ,
+        #         "user" : user,
+        #         "org": org ,
+        #         "page" : "COMPANY_PROFILE" ,
+        #         "logo" : f"{os.environ.get('FRONTEND')}/media/{org.logo}" ,
+        #         "orgSize" : orgSize,
+        #         "endpoint":"organization",
+        #         "navOptions":navOptions,
+        #         "baseUrl" : os.environ.get('FRONTEND')
+        #     }
+        # )
+        return HttpResponseRedirect(f"/organization/leave-request/{slug}")
+    except Exception as e:
+        return HttpResponseServerError(e)
+        # return render(request ,"companyProfile.html")        
 
 def companyRole(request , slug):
     try:
@@ -697,6 +703,7 @@ def teams(request , slug):
             "pageNo":page,
             "skip":skip,
             "rows":rows,
+            "isOwner" : isHeOwner,
             "search":search
              })
     except Exception as e:
@@ -844,7 +851,8 @@ def teamMembersDetails(request , slug , id):
             "rows":rows,
             "search":search,
             "att_data" : attendanceDataOfTeam,
-            "year" : year
+            "year" : year,
+            "isOwner" : isHeOwner
              })
     except Exception as e:
         print(e)
@@ -1171,7 +1179,8 @@ def jobTitle(request , slug):
             "skip":skip,
             "rows":rows,
             "search":search ,
-            "isStatsToShow":True
+            "isStatsToShow":True,
+            "isOwner" : isHeOwner
              }
         print(data)
         return render(request ,"JobTitle.html" , data)
@@ -1281,7 +1290,8 @@ def jobTitleDetails(request , slug ,jobTitleId):
             "rows":rows,
             "search":search ,
             "isStatsToShow":False,
-            "jobTitle" : jobTitle.title
+            "jobTitle" : jobTitle.title,
+            "isOwner" : isHeOwner
              }
         print(data)
         return render(request ,"JobTitle.html" , data)
@@ -1433,7 +1443,8 @@ def employees(request , slug):
             "pageNo":page,
             "skip":skip,
             "rows":rows,
-            "search":search
+            "search":search,
+            "isOwner" : isHeOwner
              })
     except Exception as e:
         print(e)
@@ -1868,7 +1879,8 @@ def leaveRequest(request , slug):
                 "pageNo":page,
                 "skip":skip,
                 "rows":rows,
-                "search":search
+                "search":search,
+                "isOwner" : isHeOwner
                     } 
                     )
     except Exception as e:
@@ -2378,7 +2390,6 @@ def getEmployeeCountByTeam(request , slug , fromDate , toDate):
         isHeOwner = isOwner(org , userData)
         print(isHeOwner)
 
-        
         isHeLeaderOrCoLeaderInAtleastOneTeam = isLeaderOrCoLeaderInAtleastOneTeam(org=org  , user=userData)
         
         print(isHeLeaderOrCoLeaderInAtleastOneTeam)
@@ -2430,6 +2441,169 @@ def getEmployeeCountByTeam(request , slug , fromDate , toDate):
                 "total" : total
             } 
         )
+
+    except Exception as e:
+        return HttpResponseServerError(e)
+
+
+def editCompanyProfile(request , slug):
+    try:
+        user = request.session["user"]
+        userData = get_object_or_404(Users , _id = user["_id"])
+        
+        org = getOrgBySlug( request , slug)
+
+        isHeOwner = isOwner(org , userData)
+        print(isHeOwner)
+
+        if(not isHeOwner):
+            return HttpResponseNotAllowed("You don't have an access.")
+        
+        ownersDetails = OwnerDetails(OrganizationId = org)
+
+        if(request.method == "POST"):
+            form = createOrganizationForm(request.POST)
+            if form.is_valid():
+                print("valid")
+                print("logo")
+                logo = request.FILES.get('logo' , False)
+                print("f name")
+
+                name = request.POST["name"]
+                webSiteLink = request.POST["webSiteLink"]
+                socialMediaLink = request.POST["socialMediaLink"]
+                contactEmail = request.POST["contactEmail"]
+                ownersDetails = request.POST["ownersDetails"]
+                description = request.POST["description"]
+
+                city = request.POST["city"]
+                state = request.POST["state"]
+                country = request.POST["country"]
+                code = request.POST["code"]
+
+                print("org.address_id")
+                print(org.address_id)
+
+                if logo != False:
+                    orgDataToUpdate = Organization.objects.get(_id = org._id)    
+                    orgDataToUpdate.logo = logo
+                    orgDataToUpdate.save()
+
+                temp_owners = ownersDetails.split(",")
+                owners=[]
+                for email in temp_owners:
+                    owners.append(email)
+    
+                print("checking for user existence")
+                for email in owners:
+                    print(email)
+                    try:
+                        user = Users.objects.get(email = email.strip())
+                        print(user)
+                    except Users.DoesNotExist:
+                        form.add_error("ownersDetails" ,f"user with this email ({email}) not exist")
+                        return render(request ,"CreateOrganization.html", { 'form' : form , 'slug' : slug, 'isEdit' : True })    
+
+                print("updating address")
+                Address.objects.filter(id = org.address_id).update(city= city,state= state,country= country,code= code)
+                print("updating org")
+                Organization.objects.filter(_id = org._id).update(
+                    name = name,
+                    webSiteLink = webSiteLink,
+                    socialMediaLink = socialMediaLink,
+                    contactEmail = contactEmail,
+                    description     = description,
+                )
+
+                print("updating owners")
+                print(owners)
+                for email in owners:
+                        user = Users.objects.get(email = email.strip())
+                        isOwnerAlreadyOwner = OwnerDetails.objects.filter(OrganizationId = org , userId = user)
+                        print(len(isOwnerAlreadyOwner))
+                        if(len(isOwnerAlreadyOwner) <= 0):
+                            own = OwnerDetails(OrganizationId = org , userId = user)
+                            print("saving")
+                            own.save()
+                            print("saved")
+
+                # for removing owner not in list
+                query2 = f"""
+                        DELETE
+                        FROM
+                            Organization_ownerdetails as own
+                        WHERE
+                            own.OrganizationId_id = {org._id} AND
+                            own.userId_id in (
+                                SELECT DISTINCT(u._id) FROM
+                                    Users_users as u
+                                WHERE
+                                    u.email not in {tuple(owners)}
+                            );
+"""
+                deletedOwners = OwnerDetails.objects.raw(query2)
+
+                if(deletedOwners != None):
+                    try:
+                        for i in deletedOwners:
+                            print(i)
+                    except Exception as exc:
+                        print(exc)
+                        
+                print(deletedOwners)
+
+                return HttpResponseRedirect(f"/organization/{slug}")
+            else:
+                return render(request ,"CreateOrganization.html" , { 
+                    'form' : form , 
+                    'slug' : slug,
+                    'isEdit' : True
+                })
+
+        elif(request.method == "GET"):
+            address = Address.objects.filter(id = org.address.id)
+            query_dict = QueryDict(mutable=True)
+            query_dict.appendlist("name", org.name)
+            query_dict.appendlist("webSiteLink", org.webSiteLink)
+            query_dict.appendlist("socialMediaLink", org.socialMediaLink)
+            query_dict.appendlist("contactEmail", org.contactEmail)
+            query_dict.appendlist("logo", org.logo)
+            query_dict.appendlist("description", org.description)
+
+            query_dict.appendlist("city" , address[0].city)
+            query_dict.appendlist("state" , address[0].state)
+            query_dict.appendlist("country" , address[0].country)
+            query_dict.appendlist("code" , address[0].code)
+
+            query = """
+                    select
+                        DISTINCT(u.email),
+                        own.id
+                    FROM
+                        Organization_ownerdetails as own,
+                        Users_users as u,
+                        Organization_organization as org
+                    WHERE
+                        org._id = 2 AND
+                        org._id = own.OrganizationId_id AND
+                        u._id = own.userId_id;
+            """
+
+            ownerData = OwnerDetails.objects.raw(query)
+            ownersEmail = ""
+
+            for owner in ownerData:
+                if ownersEmail == "":
+                    ownersEmail = owner.email;
+                else:
+                    ownersEmail = f"{ownersEmail},{owner.email}"
+            
+            query_dict.appendlist("ownersDetails", ownersEmail)
+            print("query_dict")
+            print(query_dict)
+            
+            form = createOrganizationForm(query_dict)
+            return render(request ,"CreateOrganization.html" , { 'form' : form , "slug" : slug , 'isEdit' : True})
 
     except Exception as e:
         return HttpResponseServerError(e)

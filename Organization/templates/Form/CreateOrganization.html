@@ -51,9 +51,19 @@
     </form> -->
 
 {% block content %}
+{% if isEdit %}
+<form action="/organization/{{slug}}/edit" method="POST" enctype="multipart/form-data" class=" shadow formContainer">
+{% else %}
 <form action="/organization/create-organization" method="POST" enctype="multipart/form-data" class=" shadow formContainer">
+{% endif %}
     {% csrf_token %}
-    <h1 class="form_title">Create Organization</h1>
+    <h1 class="form_title">
+        {% if isEdit == True %}
+            Edit Organization
+        {% else %}
+            Create Organization
+        {% endif %}
+    </h1>
     <div class="w-full flex justify-center items-center flex-col">
         {% for field in form %}
         <!-- field.errors -->
@@ -67,7 +77,11 @@
         {% endfor %}
     </div>
     <div class="w-full form_row flex justify-center items-start flex-col">
-        <input type="submit" value="Create">
+        <input type="submit" value="{% if isEdit == True %} Update
+        {% else %}
+        Create
+        {% endif %}"
+        >
     </div>
 </form>
 {% endblock %}

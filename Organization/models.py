@@ -45,7 +45,7 @@ class Organization(models.Model):
     slug = models.SlugField(default="" , null=False , blank=True , db_index=True )
 
     def save(self , *args , **kwargs):
-        slug = f"{self.name}"
+        slug = f"{self.name} {self.contactEmail}"
         print(slug)
         self.slug = slugify(slug)
         super().save(*args , **kwargs)
@@ -60,10 +60,10 @@ class OwnerDetails(models.Model):
     updatedAt = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
-        now = timezone.now()
-        ist = timezone.pytz.timezone('Asia/Kolkata')
-        self.createdAt = now.astimezone(ist) if self.createdAt is None else self.createdAt.astimezone(ist)
-        self.updatedAt = now.astimezone(ist)
+        # now = timezone.now()
+        # ist = timezone.pytz.timezone('Asia/Kolkata')
+        # self.createdAt = now.astimezone(ist) if self.createdAt is None else self.createdAt.astimezone(ist)
+        # self.updatedAt = now.astimezone(ist)
         
         super().save(*args, **kwargs)
 
