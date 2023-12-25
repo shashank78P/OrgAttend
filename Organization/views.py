@@ -1776,7 +1776,7 @@ def AddLeaveRequest(request):
                      TeamId = team
                  )
                  leaveRequest.save()
-                 return HttpResponseRedirect(f"/users/leave-request/{currentUser["slug"]}")
+                 return HttpResponseRedirect(f"/users/leave-request/{currentUser['slug']}")
         else:
             return Http404()
     except Exception as e:
