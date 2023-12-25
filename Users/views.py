@@ -431,7 +431,7 @@ def getCommonTeamIdsOfUsers(request , currUserId , originalUserId , orgId):
         leaderCoLeaderQuery = ""
 
         # if not owner check for leader or co-leader
-        if(len(isOwner) == 0):
+        if(len(isOwner) <= 1):
             leaderCoLeaderQuery = ' role in ("LEADER" , "CO-LEADER") AND '
 
         query2 = f"""
@@ -455,7 +455,7 @@ def getCommonTeamIdsOfUsers(request , currUserId , originalUserId , orgId):
         commonTeams = TeamMember.objects.raw(query2)
         print(commonTeams)
 
-        if(len(commonTeams) == 0):
+        if(len(commonTeams) <= 1):
             return HttpResponseForbidden("You don't have a access.")
     
         for ids in commonTeams:
@@ -496,7 +496,7 @@ def getTeamIds(request , userData , slugUser , org):
 
 def getUsersJobTitle(teamIds , userId ,orgId):
     teamIds = list(teamIds)
-    if len(teamIds) == 1:
+    if len(teamIds) <= 1:
         teamIds.append(-1)
 
     query = f"""
