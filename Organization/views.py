@@ -489,6 +489,14 @@ def delteTeam(request , slug , teamId):
             return HttpResponseNotAllowed("You don't an access")
         
         if(request.method == "POST"):
+            LeaveRequest.objects.filter(
+                    TeamId = team,
+                    Organization = org
+            ).delete()
+            Attendance.objects.filter(
+                    TeamId = team,
+                    Organization = org
+            ).delete()
             Team.objects.filter(id = teamId , OrganizationId = org).delete()
             return HttpResponseRedirect(f"/organization/teams/{slug}")
         else:
@@ -920,10 +928,10 @@ def teamMembersDetails(request , slug , id):
         year = today.year
         print("===============year========================")
 
-        if (request.method == "POST" and request.POST["year"] is not None):
-            print("request.POST['year'']")
-            print(request.POST["year"])
-            year = int(request.POST["year"])
+        if (request.method == "POST" and request.POST.get("year" , None) is not None):
+            # print("request.POST['year'']")
+            # print(request.POST["year"])
+            year = int(request.POST.get("year" , date.today().year))
 
         attendanceDataOfTeam = getAttendance(request , slug , teamId=id ,year=year)
 
@@ -935,6 +943,7 @@ def teamMembersDetails(request , slug , id):
             "orgSize":orgSize,
             "takeAttendance" : True,
             "teamId" : id,
+            "detailed":True,
             "afterSlug":f"{id}",
             "logo" : f"{os.environ.get('FRONTEND')}/media/{org.logo}" ,
             "baseUrl" : os.environ.get('FRONTEND'), 
@@ -1087,11 +1096,22 @@ def deleteTeamMember(request , slug ,teamId, id , employeeId):
 
         userData = get_object_or_404(Users , _id = user["_id"])
         isHeOwner = isOwner(org , userData)
-        if( not ( isHeOwner | isLeaderOrCoLeader(org , userData))):
+        team = Team.objects.get( id = teamId)
+        if( not ( isHeOwner | isLeaderOrCoLeader(team,org , userData))):
             return HttpResponseNotAllowed("You don't an access")
 
 
         if(request.method == "POST"):
+            LeaveRequest.objects.filter(
+                    TeamId = team,
+                    createdBy = emp.employee,
+                    Organization = org
+            ).delete()
+            Attendance.objects.filter(
+                    TeamId = team,
+                    userId = emp.employee,
+                    Organization = org
+            ).delete()
             TeamMember.objects.filter(id = id).delete()
             return HttpResponseRedirect(f"/organization/teams/{org.slug}/{teamId}")
         else:
@@ -1296,7 +1316,7 @@ def jobTitle(request , slug):
             "rows":rows,
             "search":search ,
             "isStatsToShow":True,
-            "isOwner" : isHeOwner
+            "isOwner" : isHeOwner,
              }
         print(data)
         return render(request ,"JobTitle.html" , data)
@@ -1407,7 +1427,8 @@ def jobTitleDetails(request , slug ,jobTitleId):
             "search":search ,
             "isStatsToShow":False,
             "jobTitle" : jobTitle.title,
-            "isOwner" : isHeOwner
+            "isOwner" : isHeOwner,
+            "id":jobTitleId
              }
         print(data)
         return render(request ,"JobTitle.html" , data)
@@ -1593,7 +1614,7 @@ def saveEmployeeData(request , user, org , redirectUrl,action , isEdit = False):
             )
 
             if len(employeeDetails) > 0:
-                form.add_error("email" , "Same Employee with this role is already exist")
+                form.add_error("email" , "Employee already exist")
                 return render(request ,"AddEmployee.html", { 'form' : form , 'action':action})
 
             print("employeeDetails")
@@ -1645,12 +1666,25 @@ def deleteEmployee(request ,slug , id):
         print(user)
         org = getOrgBySlug(request,slug)
         emp = get_object_or_404(Employee , _id = id )
+        userNeedToBeDeleted = get_object_or_404(Users , _id = emp.employee._id )
         userData = get_object_or_404(Users, _id = user["_id"])
 
         if( not isOwner(org , userData)):
             return HttpResponseNotAllowed("You don't an access")
         
         if request.method == "POST":
+            LeaveRequest.objects.filter(
+                    createdBy = userNeedToBeDeleted,
+                    Organization = org
+            ).delete()
+            Attendance.objects.filter(
+                    userId = userNeedToBeDeleted,
+                    Organization = org
+            ).delete()
+            TeamMember.objects.filter(
+                    userId = userNeedToBeDeleted,
+                    OrganizationId = org
+            ).delete()
             Employee.objects.filter( 
                     _id = id,      
                     Organization = org
@@ -1946,7 +1980,6 @@ def leaveRequest(request , slug):
         leaveReq = None
         print(ownerOrgData)
         if(len(ownerOrgData) >= 1):
-            #    & Q(createdBy__id__not = userData._id)
             leaveReq = LeaveRequest.objects.filter(Q(Organization_id__in = ownerOrgData) 
                                                     &(
                 Q(status__icontains=search) |
@@ -1977,7 +2010,7 @@ def leaveRequest(request , slug):
         
         openAction = True
         editAction = False
-        deleteAction = True
+        deleteAction = False
         addAction = False
         
         navOptions = {
@@ -2135,7 +2168,7 @@ def getAttendance(request , slug , teamId , year):
             # x = date(d.takenAt)
             print(f"date => {d.takenAt.day} month => {d.takenAt.month} year => {d.takenAt.year}")
             att_data[d.takenAt.month][d.takenAt.day] = {
-                    'percentage' : math.ceil(d.present / d.total) * 100,
+                    'percentage' : math.ceil((d.present / d.total )* 100),
                     "validCell" : True , "noAttendance" : False,
                     "takenAt" : d.takenAt
             }

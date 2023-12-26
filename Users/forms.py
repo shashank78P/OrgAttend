@@ -272,7 +272,7 @@ class LeaveRequestForm(forms.Form):
     )
     To = forms.DateField(
         label="To",
-        widget=forms.DateInput(attrs={'type': 'date'} ),
+        widget=forms.DateInput(attrs={'type': 'date' , 'min' : date.today().strftime('%Y-%m-%d')} ),
         error_messages={
             "required" :"To Date is required",
         }

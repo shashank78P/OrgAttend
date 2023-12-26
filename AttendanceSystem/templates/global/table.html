@@ -1,14 +1,18 @@
 {% load is_last %}
-
-<form action="{{action}}{% if slug %}/{{slug}}{% endif %}" method="post" id="searchPaginationParam">
+{% if detailed %}
+<form action="{{action}}{% if slug %}/{{slug}}{% endif %}{% if afterSlug %}/{{afterSlug}}{% endif %}" method="post" id="searchPaginationParam">
+{% else %}
+    <form action="{{action}}{% if slug %}/{{slug}}{% endif %}{% if id %}/{{id}}{% endif %}" method="post" id="searchPaginationParam">
+{% endif %}
+<form action="{{action}}{% if slug %}/{{slug}}{% endif %}{% if afterSlug %}/{{afterSlug}}{% endif %}" method="post" id="searchPaginationParam">
     <div class="flex justify-between item-center topSection">
         {% csrf_token %}
         <input type="submit" value="" class="hidden">
         <ul class="flex justify-center items-center searchContainer">
-            <li>
+            <li> 
                 <input type="text" name="search" value="{{search}}" placeholder="Search...">
             </li>
-            <li class="icon searchIcon">
+            <li class="icon searchIcon" onclick="searchPaginationParam()">
                 <label for="searchPaginationParam">
                     {% with width=20 height=20 color="#3D4756"%}
                     {% include 'SvgIcon/SearchIco.html' %}
