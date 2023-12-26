@@ -562,6 +562,9 @@ def home(request , slug) :
         print("isowner")
         print(isowner)
 
+        for i in isowner:
+            print(i)
+
         # if(len(teamIds) == 0):
         #     return HttpResponseForbidden("You don't have a access")
         
