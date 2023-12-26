@@ -80,7 +80,7 @@ class createOrganizationForm(forms.Form):
         label="Company Logo",
         required=False,
         error_messages={
-            "required" :"Logo is required",
+            'required': 'Logo is required',
         }
     )
     ownersDetails = forms.CharField(

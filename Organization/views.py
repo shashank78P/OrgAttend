@@ -1,5 +1,6 @@
 import math
 import os
+from django.db import IntegrityError
 from django.http import QueryDict
 from django.http import HttpResponseServerError , HttpResponseNotAllowed, JsonResponse , Http404 , HttpResponseRedirect
 from django.shortcuts import render , get_object_or_404
@@ -39,6 +40,7 @@ def isLeaderOrCoLeaderInAtleastOneTeam(org , user):
 
 def getOrgBySlug(request , slug):
     try:
+        print(slug)
         org = get_object_or_404(Organization , slug = slug)
         return org
     except Exception as e:
@@ -75,6 +77,9 @@ def createOrganization(request):
                     address = Address(city = data["city"], state = data["state"], country = data["country"], code = data["code"])
                     print(address)
                     address.save()
+                    print("address save")
+
+                    logo = request.FILES.get('logo' , False)
         
                     org = Organization( 
                         name=data['name'],
@@ -82,21 +87,46 @@ def createOrganization(request):
                         webSiteLink=data['webSiteLink'],
                         socialMediaLink=data['socialMediaLink'],
                         contactEmail=data['contactEmail'],
-                        logo=request.FILES['logo'], 
                         description=data['description'],
                         )
                     org.save()
+                        # logo=request.FILES['logo'], 
+
+                    if logo != False:
+                        orgDataToUpdate = Organization.objects.get(_id = org._id)    
+                        orgDataToUpdate.logo = logo
+                        orgDataToUpdate.save()
+
+                    print("org saved")
+                    print(org )
     
                     for email in owners:
+                        print("owners email")
+                        print(email)
                         user = Users.objects.get(email = email.strip())
+                        print(user)
                         ownersDetails = OwnerDetails(OrganizationId = org , userId = user)
+                        print(ownersDetails)
                         ownersDetails.save()
+                        print("ownersDetails save")
                     return HttpResponseRedirect(f"/organization/leave-request/{org.slug}")
             return render(request ,"CreateOrganization.html", { 'form' : form })
         else:
             form = createOrganizationForm()
             return render(request ,"CreateOrganization.html", { 'form' : form })
-    except():
+    except IntegrityError as e:
+        print(e)
+        print(e.args)  # This will print the error message
+        print(e.args[0])  # This will print the error message
+        form = createOrganizationForm(request.POST, request.FILES)
+        for arg in e.args:
+            if "contactEmail" in arg and "UNIQUE constraint failed" in arg:
+                form.add_error("contactEmail" , "This email is already exist")
+            if "name" in arg and "UNIQUE constraint failed" in arg:
+                form.add_error("name" , "Organization name is already exist")
+        return render(request ,"CreateOrganization.html", { 'form' : form })
+    except Exception as e:
+        print(e)
         form = createOrganizationForm()
         return render(request ,"CreateOrganization.html", { 'form' : form })
     
@@ -236,6 +266,17 @@ def isCorrectTime(checkInTime , checkOutTime):
             return False
     else:
         return False
+def isEmployeeInTeamAndOrgbyEmail(org, team , email):
+    print("isEmployeeInTeamAndOrgbyEmail")
+    user = Users.objects.filter(email = email).first()
+    print(team)
+    print(user)
+    print(TeamMember.objects.filter(userId = user , OrganizationId = org , TeamId = team).exists())
+    return TeamMember.objects.filter(userId = user , OrganizationId = org , TeamId = team).exists()
+def isEmployeeInOrgbyEmail(org , email):
+    user = Users.objects.filter(email = email).first()
+    return Employee.objects.filter(employee = user , Organization = org).exists()
+
 
 def createOrUpdate(request , user,slug , isEdit, teamId=""):
     try:
@@ -243,21 +284,77 @@ def createOrUpdate(request , user,slug , isEdit, teamId=""):
         print(request.POST)
         form = createTeamForm(request.POST)
         if form.is_valid():
+            print("valid")
             data = request.POST
             print(data["checkInTime"])
             print(data["checkOutTime"])
             print(type(data["checkOutTime"]))
+
             if isCorrectTime(data["checkInTime"] , data["checkOutTime"]):
                 form.add_error("checkOutTime" ,"Invalid CheckInTime and CheckOutTime , time interval between these must be of minimum 45min")
                 title = "Create Team"
                 if isEdit:
                     title = "Edit Team"
-                    
                 return render(request ,"CreateTeam.html", { 'form' : form , "slug" :slug , teamId:teamId, 'title' : title})
+            
             print(data)
             print(type(data))
-            createdBy = Users.objects.get(_id = user["_id"])
-            org_id = Organization.objects.get(_id = user["currentActiveOrganization"])
+            print(user)
+            print('user["_id"]')
+            print(user["_id"])
+            createdBy = Users.objects.filter(_id = user["_id"]).first()
+            print(createdBy)
+            org_id = Organization.objects.filter(_id = user["currentActiveOrganization"]).first()
+            print(org_id)
+
+            #leader emails
+            leader = data["leader"].split(",")
+            print(leader)
+            for email in leader:
+                print("len(email)")
+                print(len(email))
+                if email != "" or len(email) != 0: 
+                    if not isEmployeeInOrgbyEmail(org_id , email):
+                        print("email isEmployeeInOrgbyEmail")
+                        print(email)
+                        form.add_error("leader" ,f"The user with this {email} is not exist in employee list")
+                        return render(request ,"CreateTeam.html", { 'form' : form , "slug" :slug , teamId:teamId, 'title' : "Create Team" if not isEdit else "Edit Team"})
+                    print("leader isEdit")
+                    if(isEdit):
+                        print("isEdit = true")
+                        team = Team.objects.filter(id = teamId).first()
+                        if(isEmployeeInTeamAndOrgbyEmail(org_id, team,email)):
+                            form.add_error("leader" ,f"The user with this {email} is already in team")
+                            return render(request ,"CreateTeam.html", { 'form' : form , "slug" :slug , teamId:teamId, 'title' : "Create Team" if not isEdit else "Edit Team"})
+                
+            #co-leader emails
+            co_Leader = data["co_Leader"].split(",")
+            for email in co_Leader:
+                if  email != "" or len(email) != 0:
+                    if not isEmployeeInOrgbyEmail(org_id , email):
+                        form.add_error("co_Leader" ,f"The user with this {email} is not exist in employee list")
+                        return render(request ,"CreateTeam.html", { 'form' : form , "slug" :slug , teamId:teamId, 'title' : "Create Team" if not isEdit else "Edit Team"})
+
+                    if(isEdit):
+                        team = Team.objects.filter(id = teamId).first()
+                        if(isEmployeeInTeamAndOrgbyEmail(org_id, team,email)):
+                            form.add_error("co_Leader" ,f"The user with this {email} is already in team")
+                            return render(request ,"CreateTeam.html", { 'form' : form , "slug" :slug , teamId:teamId, 'title' : "Create Team" if not isEdit else "Edit Team"})
+
+            #team_members emails
+            team_members = data["team_members"].split(",")
+            for email in team_members:
+                if email != "" or len(email) != 0:
+                    if not isEmployeeInOrgbyEmail(org_id , email):
+                        form.add_error("team_members" ,f"The user with this {email} is not exist in employee list")
+                        return render(request ,"CreateTeam.html", { 'form' : form , "slug" :slug , teamId:teamId, 'title' : "Create Team" if not isEdit else "Edit Team"})
+
+                    if(isEdit):
+                        team = Team.objects.filter(id = teamId).first()
+                        if(isEmployeeInTeamAndOrgbyEmail(org_id, team,email)):
+                            form.add_error("team_members" ,f"The user with this {email} is already in team")
+                            return render(request ,"CreateTeam.html", { 'form' : form , "slug" :slug , teamId:teamId, 'title' : "Create Team" if not isEdit else "Edit Team"})
+
 
             if not isEdit:
                 team = Team(
@@ -270,8 +367,8 @@ def createOrUpdate(request , user,slug , isEdit, teamId=""):
                 )
                 team.save()
                 
-                createrData = Users.objects.filter(email = user["email"])
-                saveTeamMemberData(request,createrData[0] , form , "LEADER" ,team , org_id,user)
+                # createrData = Users.objects.filter(email = user["email"])
+                # saveTeamMemberData(request,createrData[0] , form , "LEADER" ,team , org_id,user)
 
             else:
                 Team.objects.filter(id = teamId).update(
@@ -285,10 +382,11 @@ def createOrUpdate(request , user,slug , isEdit, teamId=""):
             # leader
             print("team leader")
             print(data["leader"])
-            leaderData = Users.objects.filter(email = data["leader"])
-            print(leaderData)
-            if len(leaderData) == 1:
-                saveTeamMemberData(request,leaderData[0] , form , "LEADER" ,team , org_id,user)
+            leader = data["leader"].split(",")
+            for email in leader:
+                leader_Data = Users.objects.filter(email = email)
+                if len(leader_Data) == 1:
+                    saveTeamMemberData(request,leader_Data[0] , form , "LEADER",team , org_id , user)
 
             # co_Leader
             co_leader = data["co_Leader"].split(",")
@@ -2486,6 +2584,7 @@ def getEmployeeCountByTeam(request , slug , fromDate , toDate):
 
 def editCompanyProfile(request , slug):
     try:
+        print("editCompanyProfile")
         user = request.session["user"]
         userData = get_object_or_404(Users , _id = user["_id"])
         
@@ -2528,7 +2627,7 @@ def editCompanyProfile(request , slug):
                     orgDataToUpdate.save()
 
                 temp_owners = ownersDetails.split(",")
-                owners=[]
+                owners=[user["email"]]
                 for email in temp_owners:
                     owners.append(email)
                 
@@ -2645,6 +2744,17 @@ def editCompanyProfile(request , slug):
             
             form = createOrganizationForm(query_dict)
             return render(request ,"CreateOrganization.html" , { 'form' : form , "slug" : slug , 'isEdit' : True})
-
+    except IntegrityError as e:
+        print(e)
+        print(e.args)  # This will print the error message
+        print(e.args[0])  # This will print the error message
+        form = createOrganizationForm(request.POST, request.FILES)
+        for arg in e.args:
+            if "contactEmail" in arg and "UNIQUE constraint failed" in arg:
+                form.add_error("contactEmail" , "This email is already exist")
+            if "name" in arg and "UNIQUE constraint failed" in arg:
+                form.add_error("name" , "Organization name is already exist")
+        return render(request ,"CreateOrganization.html", { 'form' : form })
     except Exception as e:
+        print(e)
         return HttpResponseServerError(e)
