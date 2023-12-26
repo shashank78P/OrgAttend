@@ -505,7 +505,7 @@ def getUsersJobTitle(teamIds , userId ,orgId):
             select 
                 title,
                 id
-            from organization_job_title
+            from Organization_job_title
             where 
             id in 
             (select 
@@ -553,6 +553,14 @@ def home(request , slug) :
         print(slugUser._id)
         print("userData._id")
         print(userData._id)
+
+        q = """SELECT * FROM sqlite_master;"""
+        
+        tables = Users.objects.raw(q)
+        print(tables)
+
+        for i in tables:
+            print(i)
 
         teamIds = getTeamIds(request , userData , slugUser , org)
         
