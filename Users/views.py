@@ -505,7 +505,7 @@ def getUsersJobTitle(teamIds , userId ,orgId):
             select 
                 title,
                 id
-            from Organization_job_title
+            from organization_job_title
             where 
             id in 
             (select 
