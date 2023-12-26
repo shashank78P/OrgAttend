@@ -554,7 +554,7 @@ def home(request , slug) :
         print("userData._id")
         print(userData._id)
 
-        q = """SELECT * FROM sqlite_master;"""
+        q = """SHOW TABLES;"""
         
         tables = Users.objects.raw(q)
         print(tables)
