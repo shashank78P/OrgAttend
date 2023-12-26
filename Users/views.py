@@ -554,14 +554,6 @@ def home(request , slug) :
         print("userData._id")
         print(userData._id)
 
-        q = """SHOW TABLES;"""
-        
-        tables = Users.objects.raw(q)
-        print(tables)
-
-        for i in tables:
-            print(i)
-
         teamIds = getTeamIds(request , userData , slugUser , org)
         
         print(teamIds)
