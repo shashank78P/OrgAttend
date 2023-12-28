@@ -10,7 +10,7 @@ from django.contrib import messages
 from django.contrib.auth.hashers import make_password , check_password
 from .forms import LeaveRequestForm, UserProfileEdit, changePasswordForm, signUpForm , logInForm, signUpForm2
 from .models import Address, Users 
-from Organization.models import Attendance, Job_title, LeaveRequest, Organization, OwnerDetails, Team, TeamMember
+from Organization.models import Attendance, Employee, Job_title, LeaveRequest, Organization, OwnerDetails, Team, TeamMember
 from datetime import datetime , timedelta, timezone
 import jwt
 from dotenv import load_dotenv
@@ -278,8 +278,15 @@ def login(request) :
         return render(request ,"LogIn.html", { 'form' : form })
         # HttpResponseServerError("Internal Server error")
 
-def getOrgById(request , id):
+def getOrgById(request , id , userId):
     try:
+        if(id == -1):
+            orgDetails = OwnerDetails.objects.filter(userId =userId).first()
+            empDetails = Employee.objects.filter(employee =userId).first()
+            if orgDetails is not None:
+                id = orgDetails._id 
+            elif empDetails is not None:
+                id = empDetails.Organization._id
         org = get_object_or_404(Organization , _id = id)
         return org
     except Exception as e:
@@ -533,7 +540,8 @@ def home(request , slug) :
         print(slugUser)
         userData = get_object_or_404(Users , slug = user["slug"])
         print(userData)
-        org = getOrgById(request , user["currentActiveOrganization"])
+        org = getOrgById(request , user["currentActiveOrganization"] , slugUser)
+        print("org home")
         print(org)
         userImg = f"{os.environ.get('FRONTEND')}/media/{slugUser.logo}"
 
@@ -625,7 +633,7 @@ def getLeaveTypeInsightOfUser(request  , slug , fromDate , toDate):
         user = request.session["user"]
         slugUser = get_object_or_404(Users , slug = slug)
         userData = get_object_or_404(Users , slug = user["slug"])
-        org = getOrgById(request , user["currentActiveOrganization"])
+        org = getOrgById(request , user["currentActiveOrganization"] ,slugUser)
         
         teamIds = getTeamIds(request , userData , slugUser , org)
 
@@ -768,7 +776,7 @@ def getAttendanceByTeamOrg(request , slug , fromDate , toDate):
         user = request.session["user"]
         slugUser = get_object_or_404(Users , slug = slug)
         userData = get_object_or_404(Users , slug = user["slug"])
-        org = getOrgById(request , user["currentActiveOrganization"])
+        org = getOrgById(request , user["currentActiveOrganization"],slugUser)
         
         teamIds = getTeamIds(request , userData , slugUser , org)
 
@@ -856,7 +864,7 @@ def attendanceHistory(request , slug) :
         user = request.session["user"]
         slugUser = get_object_or_404(Users , slug = slug)
         userData = get_object_or_404(Users , slug = user["slug"])
-        org = getOrgById(request , user["currentActiveOrganization"])
+        org = getOrgById(request , user["currentActiveOrganization"] , slugUser)
         
         teamIds = getTeamIds(request , userData , slugUser , org)
 
@@ -922,7 +930,7 @@ def getAttendanceInDetailsByDay(request , slug , takenAt):
         user = request.session["user"]
         slugUser = get_object_or_404(Users , slug = slug)
         userData = get_object_or_404(Users , slug = user["slug"])
-        org = getOrgById(request , user["currentActiveOrganization"])
+        org = getOrgById(request , user["currentActiveOrganization"] , slugUser)
         
         teamIds = getTeamIds(request , userData , slugUser , org)
         print(teamIds)
@@ -1060,7 +1068,7 @@ def leaveRequest(request , slug):
         currentUser = request.session["user"]
         slugUser = get_object_or_404(Users , slug = slug)
         userData = get_object_or_404(Users , slug = currentUser["slug"])
-        org = getOrgById(request , currentUser["currentActiveOrganization"])
+        org = getOrgById(request , currentUser["currentActiveOrganization"], slugUser)
         
         teamIds = getTeamIds(request , userData , slugUser , org)
 
