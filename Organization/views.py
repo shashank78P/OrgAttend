@@ -1,7 +1,7 @@
 import math
 import os
 from django.db import IntegrityError
-from django.http import QueryDict
+from django.http import HttpResponseNotFound, QueryDict
 from django.http import HttpResponseServerError , HttpResponseNotAllowed, JsonResponse , Http404 , HttpResponseRedirect
 from django.shortcuts import render , get_object_or_404
 import requests
@@ -35,6 +35,7 @@ def getAllUserIdListOfOrgForUser(org , user):
 
 def isLeaderOrCoLeaderInAtleastOneTeam(org , user):
     print("isLeader in atleast on company")
+    print(org)
     print(TeamMember.objects.filter(role__in = ["LEADER" , "CO-LEADER"] ))
     return TeamMember.objects.filter(role__in = ["LEADER" , "CO-LEADER"] , OrganizationId =org , userId = user).exists()
 
@@ -134,12 +135,14 @@ def createOrganization(request):
 def companyProfile(request , slug):
     try:
         # print("called companyProfile")
-        # user = request.session["user"]
-        # org = Organization.objects.get(slug = slug)
+        user = request.session["user"]
+        print("user")
+        print(user)
+        userData = get_object_or_404(Users , _id = user["_id"])
+        org = get_object_or_404(Organization , slug = slug)
         
         # orgSize = getOrgSize(org)
         # print(f"{os.environ.get('FRONTEND')}/media/{org.logo}")
-        # userData = get_object_or_404(Users , _id = user["_id"])
         # isHeOwner = isOwner(org , userData)
         # isHeLeaderOrCoLeaderInAtleastOneTeam = isLeaderOrCoLeaderInAtleastOneTeam(org , userData)
         # navOptions = {
@@ -161,9 +164,21 @@ def companyProfile(request , slug):
         #         "baseUrl" : os.environ.get('FRONTEND')
         #     }
         # )
+
+        userInOrg = Employee.objects.filter(employee = userData, Organization = org).first()
+        userInOrgOwner = OwnerDetails.objects.filter(userId = userData , OrganizationId = org).first()
+        print("================================================")
+        print("company profile")
+        print(userData)
+        print(userInOrg)
+        print(userInOrgOwner)
         return HttpResponseRedirect(f"/organization/leave-request/{slug}")
+    except Employee.DoesNotExist:
+        return HttpResponseNotFound("Organization not found")
+    except Organization.DoesNotExist:
+        return HttpResponseNotFound("Organization not found")
     except Exception as e:
-        return HttpResponseServerError(e)
+        return HttpResponseRedirect(f"/users/")
         # return render(request ,"companyProfile.html")        
 
 def companyRole(request , slug):
@@ -552,6 +567,7 @@ def leaveTypeInsightOfOrg(request , slug , fromDate , toDate):
         if(not isHeOwner):
             teamIds = getTeamIdList(org , userData)
             if len(teamIds) <= 1:
+                teamIds = list(teamIds)
                 teamIds.append(-1)
                 teamIds.append(-1)
             interQuery = f" teamId_id in {tuple(teamIds)} AND"
@@ -712,7 +728,10 @@ def teams(request , slug):
             avgAtt = getTeamAvgAttendance(request , slug , teamId=False , orgId=org._id)
         else:
             teamIds = getTeamIdList(org , userData)
+            print("teamIds")
+            print(teamIds)
             if len(teamIds) <= 1:
+                teamIds = list(teamIds)
                 teamIds.append(-1)
                 teamIds.append(-1)
             co_Leader,leader,member,total = roleCountOfTeamsOrOrg(org_id= org._id , teamIds=tuple(teamIds))
@@ -1519,6 +1538,7 @@ def employees(request , slug):
         else:
             teamIds = getTeamIdList(org , userData)
             if len(teamIds) <= 1:
+                teamIds = list(teamIds)
                 teamIds.append(-1)
                 teamIds.append(-1)
             co_Leader,leader,member,total = roleCountOfTeamsOrOrg(org_id= org._id , teamIds=tuple(teamIds))
@@ -1930,28 +1950,23 @@ def getOrgSize(org):
 
 def leaveRequest(request , slug):
     try:
+        print("===================================")
         user = request.session["user"]
         userData = get_object_or_404(Users , _id = user["_id"])
-
-        org = None
-        if user["currentActiveOrganization"] is None:
-            userInOrg = TeamMember.objects.filter(userId = userData).first()
-            userInOrgOwner = OwnerDetails.objects.filter(userId = userData).first()
-
-            if userInOrg is not None:
-                Users.objects.filter(_id = user["_id"]).update(currentActiveOrganization = userInOrg.OrganizationId)
-                
-            elif userInOrgOwner is not None:
-                Users.objects.filter(_id = user["_id"]).update(currentActiveOrganization = userInOrgOwner.OrganizationId._id)
-            else:
-                return HttpResponseRedirect(f"/users")
-            org = get_object_or_404( Organization, _id = userData.currentActiveOrganization)
-
-        if org is None:
+        print(user)
+        print(user["currentActiveOrganization"])
+        org = None;
+        try:
             org = get_object_or_404( Organization, _id = user["currentActiveOrganization"])
-
+        except Exception as e:
+            return render(request ,"page_404.html" , {"message" : "You don't have a access." , "showUserPageLink" : True , "showOrgPageLink" : False})
+        print("org")
+        print(org)
         isHeOwner = isOwner(org , userData)
         isHeLeaderOrCoLeaderInAtleastOneTeam = isLeaderOrCoLeaderInAtleastOneTeam(org , userData)
+        print("isHeOwner")
+        print(isHeOwner)
+        print(isHeLeaderOrCoLeaderInAtleastOneTeam)
         if( not ( isHeOwner | isHeLeaderOrCoLeaderInAtleastOneTeam)):
             return HttpResponseNotAllowed("You don't an access")
         print("leaveRequest")
@@ -1994,6 +2009,8 @@ def leaveRequest(request , slug):
 
         else:
             teamList = TeamMember.objects.filter( OrganizationId = org,  role__in = ["LEADER" , "CO-LEADER"] , userId = userData).values_list('TeamId',flat=True).distinct()
+            print("team list")
+            print(teamList)
             leaveReq = LeaveRequest.objects.filter(Q(TeamId__id__in =teamList)  &(
                     Q(status__icontains=search) |
                     Q(reason__icontains=search) |
@@ -2369,7 +2386,7 @@ def getAttendanceDetails(request , slug , teamId , takenAt):
         }
         teamInsights = getTeamInsights(request , slug , teamId , org._id)
         
-        att_data = Attendance.objects.filter(Organization = org , takenAt = takenDate)
+        att_data = Attendance.objects.filter(Organization = org , takenAt = takenDate , TeamId = team)
         query = f"""
                         SELECT 
                             count(*) as total,
@@ -2383,7 +2400,7 @@ def getAttendanceDetails(request , slug , teamId , takenAt):
                             TeamId_id = {teamId} AND
                             status = "ACCEPTED" AND
                             '{takenDate}' BETWEEN fromDate AND toDate
-                        GROUP BY status;
+                        GROUP BY leaveType;
                     """
         data = LeaveRequest.objects.raw(query)
 
@@ -2397,14 +2414,18 @@ def getAttendanceDetails(request , slug , teamId , takenAt):
             'Maternity Leave' : 0,
         }
 
+        totalRec = 0
         for d in data:
             leaveStats[f"{d.leaveType}"] = d.count
-            leaveStats["total"] = d.total
+            totalRec+= d.total
+            
+        leaveStats["total"] = totalRec
 
         leaveStats["SickLeavePercentage"] = round(((leaveStats["Sick Leave"] / leaveStats["total"] * 100)) if leaveStats["total"] > 0 else leaveStats["total"])
         leaveStats["CasualLeavePercentage"] = round(((leaveStats["Casual Leave"] / leaveStats["total"] * 100)) if leaveStats["total"] > 0 else leaveStats["total"])
         leaveStats["PrivilegeLeavePercentage"] = round(((leaveStats["Privilege Leave"] / leaveStats["total"] * 100)) if leaveStats["total"] > 0 else leaveStats["total"])
         leaveStats["MaternityLeavePercentage"] = round(((leaveStats["Maternity Leave"] / leaveStats["total"] * 100)) if leaveStats["total"] > 0 else leaveStats["total"])
+
         leaveStats["SickLeave"] = leaveStats["Sick Leave"]
         leaveStats["CasualLeave"] = leaveStats["Casual Leave"]
         leaveStats["PrivilegeLeave"] = leaveStats["Privilege Leave"]
@@ -2569,6 +2590,7 @@ def getEmployeeCountByTeam(request , slug , fromDate , toDate):
         if(not isHeOwner):
             teamIds = getTeamIdList(org , userData)
             if len(teamIds) <= 1:
+                teamIds = list(teamIds)
                 teamIds.append(-1)
                 teamIds.append(-1)
             queryBuilder = f"  t.id in {tuple(teamIds)} AND "

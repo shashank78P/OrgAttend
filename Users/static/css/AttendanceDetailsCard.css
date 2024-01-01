@@ -45,19 +45,20 @@
 
 .attendance_tag {}
 
-.attendance_dot_green {
+/* .attendance_dot_green {
     background-color: var(--green-500);
-}
+} */
 
-.attendance_dot_red {
+/* .attendance_dot_red {
     background-color: var(--red-500);
-}
+} */
 
 .attendance_dot {
     width: 5px;
     height: 5px;
     border-radius: 5px;
     margin-right: 5px;
+    background-color: white;
 }
 
 .todayAttendance{

@@ -31,6 +31,8 @@
 {% include "NavigationOptions.html" %}
 {% endwith %}
 
+<h1 class="title p-10" >Attendance History</h1>
+
 {% with page="attendanceHistory" app="users" data=tableData title=tableTitle action='/users/attendance-history' slug=slug year=year %}
 {% include "AttendanceCalendar.html" %}
 {% endwith %}

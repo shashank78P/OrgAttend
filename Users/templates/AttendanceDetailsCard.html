@@ -40,13 +40,15 @@
                     <li>
                         {% if d.attendance %}
                         <ul class="flex justify-center items-center attendance_tag_card attendance_tag_card_green">
-                            <li class="attendance_dot attendance_dot_green"></li>
-                            {% else %}
-                            <ul class="flex justify-center items-center attendance_tag_card attendance_tag_card_red">
-                                <li class="attendance_dot attendance_dot_red"></li>
-                                {% endif %}
-                                <li class="attendance_tag" style="color: white !important;">On Time </li>
-                            </ul>
+                            <li class="attendance_dot "></li>
+                            <li class="attendance_tag" style="color: white !important; text-align: center;">Absent</li>
+                        </ul>
+                        {% else %}
+                        <ul class="flex justify-center items-center attendance_tag_card attendance_tag_card_red">
+                            <li class="attendance_dot "></li>
+                            <li class="attendance_tag" style="color: white !important; text-align: center;">Present</li>
+                        </ul>
+                        {% endif %}
                     </li>
                 </ul>
             </li>

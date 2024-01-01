@@ -469,6 +469,7 @@ def getCommonTeamIdsOfUsers(request , currUserId , originalUserId , orgId):
             commonTeamIds.append(ids.TeamId_id)
         
         if len(commonTeamIds) == 1:
+            commonTeamIds= list(commonTeamIds)
             commonTeamIds.append(-1)
             commonTeamIds.append(-1)
 
@@ -505,6 +506,7 @@ def getTeamIds(request , userData , slugUser , org):
 def getUsersJobTitle(teamIds , userId ,orgId):
     teamIds = list(teamIds)
     if len(teamIds) <= 1:
+        teamIds = list(teamIds)
         teamIds.append(-1)
         teamIds.append(-1)
 
@@ -640,6 +642,7 @@ def getLeaveTypeInsightOfUser(request  , slug , fromDate , toDate):
         if(len(teamIds) < 0):
             return HttpResponseForbidden("You don't have a access.")
         if(len(teamIds) <= 1):
+            teamIds = list(teamIds)
             teamIds.append(-1)
             teamIds.append(-1)
 
@@ -672,12 +675,13 @@ def getLeaveTypeInsightOfUser(request  , slug , fromDate , toDate):
     except Exception as e:
         return HttpResponseServerError(e)
     
-def getAttendance(request , slug , teamIds , year):
+def getAttendance(request , slug , teamIds ,userData , year):
     try:
         print("getAttendance")
         print(year)
         teamIds = list(teamIds)
         if len(teamIds) <= 1:
+            teamIds = list(teamIds)
             teamIds.append(-1)
             teamIds.append(-1)
         DayInNumber = {
@@ -705,6 +709,7 @@ def getAttendance(request , slug , teamIds , year):
         where 
             id <> -1 and 
             TeamId_id in {tuple(teamIds)} and
+            a.userId_id = {userData._id} AND
             takenAt between '{fromDate}' and '{toDate}'
         GROUP BY 
             takenAt ORDER BY takenAt;
@@ -785,6 +790,7 @@ def getAttendanceByTeamOrg(request , slug , fromDate , toDate):
         
         teamIds = list(teamIds)
         if len(teamIds) <= 1:
+            teamIds = list(teamIds)
             teamIds.append(-1)
             teamIds.append(-1)
 
@@ -851,6 +857,8 @@ def setCurrentActiveOrganization(request):
             print(org)
             print(int(org._id))
             user.currentActiveOrganization =  int(org._id)
+            sessionUser = request.session['user']
+            sessionUser['currentActiveOrganization'] = int(org._id)
             user.save()
             return JsonResponse({ "data" : "" , "message" : "Switched sucessfully" })
         else:
@@ -898,7 +906,7 @@ def attendanceHistory(request , slug) :
             print(request.POST["year"])
             year = int(request.POST["year"])
 
-        attendanceDataOfTeam = getAttendance(request , slug , teamIds=teamIds ,year=year)
+        attendanceDataOfTeam = getAttendance(request , slug , teamIds=teamIds ,userData=slugUser ,year=year)
 
         print(attendanceDataOfTeam)
         return render(request ,
@@ -940,6 +948,7 @@ def getAttendanceInDetailsByDay(request , slug , takenAt):
         
         teamIds = list(teamIds)
         if len(teamIds) <= 1:
+            teamIds = list(teamIds)
             teamIds.append(-1)
             teamIds.append(-1)
 
@@ -958,7 +967,8 @@ def getAttendanceInDetailsByDay(request , slug , takenAt):
             WHERE 
                 t.id IN {tuple(teamIds)} AND
                 a.Organization_id = {org._id} AND 
-                a.takenAt ='{takenDate}';
+                a.takenAt ='{takenDate}' AND
+                a.userId_id = '{userData._id}';
         """
 
         print(query)

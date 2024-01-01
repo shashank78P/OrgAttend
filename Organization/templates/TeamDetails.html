@@ -109,12 +109,14 @@
 {% with page=page app="organization" data=tableData title=tableTitle action='/organization/teams' slug=slug id=teamId afterSlug="attendance" afterSlug1=afterSlug year=year %}
 {% include "AttendanceCalendar.html" %}
 {% endwith %}
+
+
 <div class="title section_title p-10">Employees of Team {{teamName | title}}</div>
 {% with page=page app="organization" detailed=detailed id=jobTitleId data=tableData title=tableTitle action='/organization/teams' slug=slug afterSlug=afterSlug isAutoConstructHref=True columnCount=columnCount  %}
 {% include "table.html" %}
 {% endwith %}
 
-{% with app="organization" total=totalEmployee action="/organization/employees" slug=slug page=pageNo%}
+{% with app="organization" total=totalMemeberTeams action="/organization/employees" slug=slug page=pageNo%}
 {% include "pagination.html" %}
 {% endwith %}
 
