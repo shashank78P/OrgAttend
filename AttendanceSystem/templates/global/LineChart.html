@@ -7,7 +7,7 @@
                     <span>From</span>
                     <input
                     onchange="fromDateChangedLineGraph(event)"
-                    type="date" name="" id="lineGraphFromDate">
+                    type="date" name="" id="lineGraphFromDate" >
                 </li>
                 <li>
                     <span>To</span>
@@ -30,8 +30,10 @@
 
     let fromDate2 = new Date()
     fromDate2.setDate(1)
-    fromDate2 = fromDate2.toISOString()
-    lineGraphFromDate.value = fromDate2.split('T')[0]
+    // fromDate2 = fromDate2.toISOString()
+    fromDate2 = "2023-11-02"
+    // lineGraphFromDate.value = fromDate2.split('T')[0]
+    lineGraphFromDate.value = fromDate2
     
     let toDate2 = new Date();
     toDate2.setMonth(toDate2.getMonth() + 1, 1);

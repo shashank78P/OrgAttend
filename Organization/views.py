@@ -26,36 +26,26 @@ def getTeamIdList(org , user):
     return TeamMember.objects.filter(role__in = ["LEADER" , "CO-LEADER"] , OrganizationId =org , userId = user).values_list('TeamId', flat=True).distinct()
 
 def getAllUserIdListOfOrgForUser(org , user):
-    print("getAllUserIdListOfOrgForUser")
     teamIdList = getTeamIdList(org , user)
-    print(teamIdList)
     userList = TeamMember.objects.filter(TeamId__in = teamIdList).values_list('userId', flat=True).distinct()
-    print(userList)
     return userList
 
 def isLeaderOrCoLeaderInAtleastOneTeam(org , user):
-    print("isLeader in atleast on company")
-    print(org)
-    print(TeamMember.objects.filter(role__in = ["LEADER" , "CO-LEADER"] ))
     return TeamMember.objects.filter(role__in = ["LEADER" , "CO-LEADER"] , OrganizationId =org , userId = user).exists()
 
 def getOrgBySlug(request , slug):
     try:
-        print(slug)
         org = get_object_or_404(Organization , slug = slug)
         return org
     except Exception as e:
-        print(e)
         HttpResponseServerError(e)
 
 # Create your views here.
 def createOrganization(request):
     try:
-        print(request.method)
         if(request.method == "POST"):
             form = createOrganizationForm(request.POST , request.FILES)
             data = request.POST
-            print(request.POST)
 
             if form.is_valid():
                 # owner datails
@@ -65,20 +55,15 @@ def createOrganization(request):
                 for email in temp_owners:
                     owners.append(email)
     
-                print("checking for user existence")
                 for email in owners:
-                    print(email)
                     try:
                         user = Users.objects.get(email = email.strip())
-                        print(user)
                     except Users.DoesNotExist:
                         form.add_error("ownersDetails" ,f"user with this email ({email}) not exist")
                         return render(request ,"CreateOrganization.html", { 'form' : form })
                     
                     address = Address(city = data["city"], state = data["state"], country = data["country"], code = data["code"])
-                    print(address)
                     address.save()
-                    print("address save")
 
                     logo = request.FILES.get('logo' , False)
         
@@ -98,27 +83,17 @@ def createOrganization(request):
                         orgDataToUpdate.logo = logo
                         orgDataToUpdate.save()
 
-                    print("org saved")
-                    print(org )
     
                     for email in owners:
-                        print("owners email")
-                        print(email)
                         user = Users.objects.get(email = email.strip())
-                        print(user)
                         ownersDetails = OwnerDetails(OrganizationId = org , userId = user)
-                        print(ownersDetails)
                         ownersDetails.save()
-                        print("ownersDetails save")
                     return HttpResponseRedirect(f"/organization/leave-request/{org.slug}")
             return render(request ,"CreateOrganization.html", { 'form' : form })
         else:
             form = createOrganizationForm()
             return render(request ,"CreateOrganization.html", { 'form' : form })
     except IntegrityError as e:
-        print(e)
-        print(e.args)  # This will print the error message
-        print(e.args[0])  # This will print the error message
         form = createOrganizationForm(request.POST, request.FILES)
         for arg in e.args:
             if "contactEmail" in arg and "UNIQUE constraint failed" in arg:
@@ -127,22 +102,17 @@ def createOrganization(request):
                 form.add_error("name" , "Organization name is already exist")
         return render(request ,"CreateOrganization.html", { 'form' : form })
     except Exception as e:
-        print(e)
         form = createOrganizationForm()
         return render(request ,"CreateOrganization.html", { 'form' : form })
     
 
 def companyProfile(request , slug):
     try:
-        # print("called companyProfile")
         user = request.session["user"]
-        print("user")
-        print(user)
         userData = get_object_or_404(Users , _id = user["_id"])
         org = get_object_or_404(Organization , slug = slug)
         
         # orgSize = getOrgSize(org)
-        # print(f"{os.environ.get('FRONTEND')}/media/{org.logo}")
         # isHeOwner = isOwner(org , userData)
         # isHeLeaderOrCoLeaderInAtleastOneTeam = isLeaderOrCoLeaderInAtleastOneTeam(org , userData)
         # navOptions = {
@@ -167,11 +137,6 @@ def companyProfile(request , slug):
 
         userInOrg = Employee.objects.filter(employee = userData, Organization = org).first()
         userInOrgOwner = OwnerDetails.objects.filter(userId = userData , OrganizationId = org).first()
-        print("================================================")
-        print("company profile")
-        print(userData)
-        print(userInOrg)
-        print(userInOrgOwner)
         return HttpResponseRedirect(f"/organization/leave-request/{slug}")
     except Employee.DoesNotExist:
         return HttpResponseNotFound("Organization not found")
@@ -189,18 +154,11 @@ def companyRole(request , slug):
 
 def saveTeamMemberData(request,user , form , role , team , orgId, createdBy):
     try:
-        print("save team member user")
-        print(user)
-        print(type(user))
-        print(team)
-        print("teamMem")
 
         isDuplicate = TeamMember.objects.filter(userId_id = user._id , TeamId_id = team.id , OrganizationId_id = orgId._id )
 
-        print(isDuplicate)
 
         if len(isDuplicate) >= 1:
-            print("isDuplicate")
             return
         else:
             teamMem = TeamMember(
@@ -210,26 +168,20 @@ def saveTeamMemberData(request,user , form , role , team , orgId, createdBy):
                 OrganizationId = orgId,
                 createdBy = Users.objects.get(_id = createdBy["_id"])
             )
-            print(teamMem)
             teamMem.save()
             return 
         
     except Exception as e:
-        print(e)
         HttpResponseServerError(e)
     
 def getAllOrganizationList(request) :
     try:
-        print("getAllOrganizationList")
         user = request.session["user"]
-        print(user)
 
         # getting all companies of a user
         data = TeamMember.objects.filter( userId = user["_id"] ).values_list('OrganizationId', flat=True).distinct()
         data2 = OwnerDetails.objects.filter( userId = user["_id"] ).values_list('OrganizationId', flat=True).distinct()
 
-        print(data)
-        print(data2)
         all_org = []
         org_data = Organization.objects.filter(Q(_id__in = data) | Q(_id__in = data2))
 
@@ -242,15 +194,11 @@ def getAllOrganizationList(request) :
 
         return JsonResponse({'data' : all_org})
     except Exception as e:
-        print(e)
         HttpResponseServerError("Internal Server error")
 
 def isUserPermittedToAdd(request):
     try:
-        print("called isUserPermittedToAdd")
         user = request.session['user']
-        print(user)
-        print("getting org details")
         isPermited = OwnerDetails.objects.filter(Q(OrganizationId_id = user['currentActiveOrganization']) & Q(userId_id = user['_id']))  
 
         if(len(isPermited) == 0):
@@ -260,7 +208,6 @@ def isUserPermittedToAdd(request):
         return HttpResponseNotAllowed("U don't have a permission")
 
 def isCorrectTime(checkInTime , checkOutTime):
-    print(checkInTime , checkOutTime)
     checkIn = checkInTime.split(" ")
     checkInTimeParam = checkIn[0].split(":")
     checkOut = checkOutTime.split(" ")
@@ -273,8 +220,6 @@ def isCorrectTime(checkInTime , checkOutTime):
         checkOutHrs += 12
     
     if checkInHrs <= checkOutHrs:
-        print("123")
-        print((int(checkInTimeParam[1]) + 44 ) , int(checkOutTimeParam[1]))
         if checkInHrs == checkOutHrs and (int(checkInTimeParam[1]) + 44 ) < int(checkOutTimeParam[1]):
             return True
         else:
@@ -282,11 +227,7 @@ def isCorrectTime(checkInTime , checkOutTime):
     else:
         return False
 def isEmployeeInTeamAndOrgbyEmail(org, team , email):
-    print("isEmployeeInTeamAndOrgbyEmail")
     user = Users.objects.filter(email = email).first()
-    print(team)
-    print(user)
-    print(TeamMember.objects.filter(userId = user , OrganizationId = org , TeamId = team).exists())
     return TeamMember.objects.filter(userId = user , OrganizationId = org , TeamId = team).exists()
 def isEmployeeInOrgbyEmail(org , email):
     user = Users.objects.filter(email = email).first()
@@ -296,14 +237,9 @@ def isEmployeeInOrgbyEmail(org , email):
 def createOrUpdate(request , user,slug , isEdit, teamId=""):
     try:
         isUserPermittedToAdd(request)
-        print(request.POST)
         form = createTeamForm(request.POST)
         if form.is_valid():
-            print("valid")
             data = request.POST
-            print(data["checkInTime"])
-            print(data["checkOutTime"])
-            print(type(data["checkOutTime"]))
 
             if isCorrectTime(data["checkInTime"] , data["checkOutTime"]):
                 form.add_error("checkOutTime" ,"Invalid CheckInTime and CheckOutTime , time interval between these must be of minimum 45min")
@@ -312,31 +248,17 @@ def createOrUpdate(request , user,slug , isEdit, teamId=""):
                     title = "Edit Team"
                 return render(request ,"CreateTeam.html", { 'form' : form , "slug" :slug , teamId:teamId, 'title' : title})
             
-            print(data)
-            print(type(data))
-            print(user)
-            print('user["_id"]')
-            print(user["_id"])
             createdBy = Users.objects.filter(_id = user["_id"]).first()
-            print(createdBy)
             org_id = Organization.objects.filter(_id = user["currentActiveOrganization"]).first()
-            print(org_id)
 
             #leader emails
             leader = data["leader"].split(",")
-            print(leader)
             for email in leader:
-                print("len(email)")
-                print(len(email))
                 if email != "" or len(email) != 0: 
                     if not isEmployeeInOrgbyEmail(org_id , email):
-                        print("email isEmployeeInOrgbyEmail")
-                        print(email)
                         form.add_error("leader" ,f"The user with this {email} is not exist in employee list")
                         return render(request ,"CreateTeam.html", { 'form' : form , "slug" :slug , teamId:teamId, 'title' : "Create Team" if not isEdit else "Edit Team"})
-                    print("leader isEdit")
                     if(isEdit):
-                        print("isEdit = true")
                         team = Team.objects.filter(id = teamId).first()
                         if(isEmployeeInTeamAndOrgbyEmail(org_id, team,email)):
                             form.add_error("leader" ,f"The user with this {email} is already in team")
@@ -395,8 +317,6 @@ def createOrUpdate(request , user,slug , isEdit, teamId=""):
                 )
 
             # leader
-            print("team leader")
-            print(data["leader"])
             leader = data["leader"].split(",")
             for email in leader:
                 leader_Data = Users.objects.filter(email = email)
@@ -417,7 +337,6 @@ def createOrUpdate(request , user,slug , isEdit, teamId=""):
                 if len(member_Data) ==1:
                     saveTeamMemberData(request,member_Data[0] , form , "MEMBER" , team ,org_id,user)
 
-            print(org_id.slug)
             return HttpResponseRedirect(f"/organization/teams/{slug}")
         
         else:
@@ -431,7 +350,6 @@ def createOrUpdate(request , user,slug , isEdit, teamId=""):
 
 def createTeam(request,slug):
     try:
-        print(request.method)
         user = request.session["user"]
         userData = get_object_or_404(Users , _id = user["_id"])
         org = get_object_or_404( Organization, _id = user["currentActiveOrganization"])
@@ -454,7 +372,6 @@ def formateTime12Hrs(time):
     time = str(time)
     time = time.split(":")
     hrs = int(time[0])
-    print(hrs)
     if(hrs >= 12):
         time = f"{hrs % 12}:{time[1]} PM"
     else:  
@@ -464,12 +381,9 @@ def formateTime12Hrs(time):
 def editTeam(request , slug , teamId):
     try:
         user = request.session["user"]
-        print(user)
         userData = get_object_or_404(Users ,_id = user["_id"])
         org = getOrgBySlug(request , slug)
-        print(org)
         team = get_object_or_404(Team , id = teamId)
-        print(team)
 
         # only allowed to user who is owner or leader or co-leader
         if( not (isOwner(org , userData) | isLeaderOrCoLeader(team , org , userData))):
@@ -497,7 +411,6 @@ def delteTeam(request , slug , teamId):
         org = getOrgBySlug(request , slug)
         team = get_object_or_404(Team , id = teamId , OrganizationId = org)
         user = request.session["user"]
-        print(user)
         userData = get_object_or_404(Users ,_id = user["_id"])
         # only allowed to user who is owner or leader or co-leader
         if( not (isOwner(org , userData) | isLeaderOrCoLeader(team , org , userData))):
@@ -522,11 +435,7 @@ def delteTeam(request , slug , teamId):
 def getOrgSize(org):
     try:
         owner = OwnerDetails.objects.filter(OrganizationId = org).values_list('userId_id', flat=True).distinct()
-        print(owner)
         member = TeamMember.objects.filter(Q(OrganizationId = org) & ~Q(userId_id__in = owner)).values_list('userId_id', flat=True).distinct()
-        print(member)
-        print("org.contactEmail")
-        print(org.webSiteLink)
         orgSize = len(owner) + len(member)
         return orgSize
     except:
@@ -552,7 +461,6 @@ def getTeamsFormatedData(TeamsData):
 
 def leaveTypeInsightOfOrg(request , slug , fromDate , toDate):
     try:
-        print("leaveTypeInsight")
         user = request.session["user"]
         userData = get_object_or_404(Users , _id = user["_id"])
         org = getOrgBySlug( request , slug)
@@ -592,14 +500,11 @@ def leaveTypeInsightOfOrg(request , slug , fromDate , toDate):
         GROUP BY leaveType;
     """
         
-        print(query)
         data = LeaveRequest.objects.raw(query)
-        print(data)
 
         return calculatePercentageForLeaveTye(data)
         
     except Exception as e:
-        print(e)
         return HttpResponseServerError(e)
     
 def calculatePercentageForLeaveTye(data):
@@ -612,9 +517,6 @@ def calculatePercentageForLeaveTye(data):
     if(totalLeaves != 0):
         for i in data:
             resultPercentage[i.leaveType] = round(((i.total / totalLeaves) * 100))
-    print("result")
-    print(result)
-    print(resultPercentage)
     return JsonResponse({
         "result" : result,
         "percentage" : resultPercentage
@@ -652,13 +554,10 @@ def leaveTypeInsight(request , slug , teamId , fromDate , toDate):
         GROUP BY leaveType;
     """
         
-        print(query)
         data = LeaveRequest.objects.raw(query)
-        print(data)
         
         return calculatePercentageForLeaveTye(data)
     except Exception as e:
-        print(e)
         return HttpResponseServerError(e)
 
 def roleCountOfTeamsOrOrg( org_id, teamIds):
@@ -706,13 +605,10 @@ def teams(request , slug):
         rows=10
         page=0
         data = request.POST
-        print("=============== teams ==================")
-        print(data)
 
         # only allowed to user who is owner or leader or co-leader
         isHeOwner = isOwner(org , userData)
         isHeLeaderOrCoLeaderInAtleastOneTeam = isLeaderOrCoLeaderInAtleastOneTeam(org , userData)
-        print(isHeOwner)
         
         if( not ( isHeOwner | isHeLeaderOrCoLeaderInAtleastOneTeam)):
             return HttpResponseNotAllowed("You don't an access")
@@ -728,8 +624,6 @@ def teams(request , slug):
             avgAtt = getTeamAvgAttendance(request , slug , teamId=False , orgId=org._id)
         else:
             teamIds = getTeamIdList(org , userData)
-            print("teamIds")
-            print(teamIds)
             if len(teamIds) <= 1:
                 teamIds = list(teamIds)
                 teamIds.append(-1)
@@ -750,14 +644,10 @@ def teams(request , slug):
             page = int(data["page"][0])
         
 
-        print("data ===>")
-        print(f"search= {search} rows= {rows} page= {page}")
 
-        print(org)
         skip = page*rows
         orgSize = getOrgSize(org)
 
-        print(f"skip {skip}")
 
         query = None
         
@@ -768,8 +658,6 @@ def teams(request , slug):
             query = (Q(OrganizationId = org) & Q(id__in = teamList))
 
 
-        print("===================== query ====================")
-        print(query)
 
         if(query == None) : 
             return HttpResponseNotAllowed()
@@ -793,8 +681,6 @@ def teams(request , slug):
         ).order_by("-createdAt")
         
         tableTitle , tableData = getTeamsFormatedData(teamsData)
-        print(teamsData)
-        print(len(teamsData))
 
         openAction = True
         editAction = True
@@ -840,24 +726,15 @@ def teams(request , slug):
             "search":search
              })
     except Exception as e:
-        print(e)
         return HttpResponseServerError(e)
 
 def getTeamsMemebesFormatedData(TeamsMembersData , teamId , org):
     tableTitle = ["name","role","job-title","createdBy","createdAt"]
     tableData = []
-    print(tableTitle)
-    print("TeamsMembersData")
-    print(TeamsMembersData)
     for i in  range(0,len(TeamsMembersData)):
-        print(i)
         teamMember = TeamsMembersData[i]
-        print("teamMember")
-        print(teamMember)
 
         emp = Employee.objects.filter(employee = teamMember.userId, Organization = org).first()
-        print("emp")
-        print(emp)
 
         tableData.append([ 
             f'{teamMember.userId.firstName} {teamMember.userId.middleName} {teamMember.userId.lastName}',
@@ -871,13 +748,11 @@ def getTeamsMemebesFormatedData(TeamsMembersData , teamId , org):
 
 def teamMembersDetails(request , slug , id):
     try:
-        print("teamMembersDetails")
         user = request.session["user"]
         search=""
         rows=10
         page=0
         data = request.POST
-        print(data)
 
 
         if(data.get("search" , "") not in [None , "" ]):
@@ -892,9 +767,6 @@ def teamMembersDetails(request , slug , id):
             page = int(data["page"])
         
 
-        print("data ===>")
-        print(id)
-        print(search , rows)
 
         org = getOrgBySlug(request , slug)
         skip = page*rows
@@ -909,9 +781,6 @@ def teamMembersDetails(request , slug , id):
         
         avgAtt = getTeamAvgAttendance( request , slug , id , org._id )
         teamInsight = getTeamInsights( request , slug , id , org._id )
-        print("teamInsight")
-        print(teamInsight)
-        print(avgAtt)
 
         teamsMembersDetails = TeamMember.objects.filter(Q(OrganizationId = org) & Q(TeamId = id) &                                 
          (Q(role__icontains=search) |
@@ -940,16 +809,11 @@ def teamMembersDetails(request , slug , id):
             'teams' : isHeLeaderOrCoLeader | isHeOwner,
             'employees' : isHeOwner
         }
-        print(tableTitle )
-        print(tableData)
 
         today = datetime.today()
         year = today.year
-        print("===============year========================")
 
         if (request.method == "POST" and request.POST.get("year" , None) is not None):
-            # print("request.POST['year'']")
-            # print(request.POST["year"])
             year = int(request.POST.get("year" , date.today().year))
 
         attendanceDataOfTeam = getAttendance(request , slug , teamId=id ,year=year)
@@ -995,50 +859,35 @@ def teamMembersDetails(request , slug , id):
             "isOwner" : isHeOwner
              })
     except Exception as e:
-        print(e)
         return HttpResponseServerError(e)
 
 def addTeamMember(request , slug ,teamId):
     try:
-        print("==============================================")
-        print("addTeamMember")
-        print(slug , teamId)
         user = request.session["user"]
 
         userData = get_object_or_404(Users , _id = user["_id"])
         org = Organization.objects.get(_id = user["currentActiveOrganization"])
 
         team = get_object_or_404(Team , id = teamId ,OrganizationId = org )
-        print(team)
-        print(request.method)
 
         isHeOwner = isOwner(org , userData)
         if( not ( isHeOwner | isLeaderOrCoLeader(team , org , userData))):
             return HttpResponseNotAllowed("You don't an access")
 
         if(request.method == "POST"):
-            print("post")
             form = addEmployeeToTeam(request.POST)
             if form.is_valid():
-                print(form.is_valid())
                 data = request.POST
-                print("request data")
-                print(data)
-                print(request.POST["Position"] , )
                 u = getUserByEmail(request.POST["email"])
-                print(u)
                 saveTeamMemberData(request , u,form,request.POST["Position"],team,org,user)
-                print("team")
                 return HttpResponseRedirect(f"/organization/teams/{org.slug}/{teamId}")
             else:
-                print("form invalid")
                 return render(request ,"AddEmployeeToTeam.html", { 'form' : form , 'slug' : slug , 
                      'teamId':teamId,
                      'slug':slug,
                      'title' : f"Add new employee to {team.name}", 
                      })
         else:
-            print("get request")
             form = addEmployeeToTeam()            
             return render(request ,"AddEmployeeToTeam.html", { 'form' : form , 'slug' : slug , 
                      'teamId':teamId,
@@ -1050,15 +899,12 @@ def addTeamMember(request , slug ,teamId):
 
 def editTeamMember(request , slug ,teamId, id , employeeId):
     try:
-        print("==============================================")
-        print(slug , teamId, id , employeeId)
         user = request.session["user"]
 
         org = Organization.objects.get(_id = user["currentActiveOrganization"])
 
         emp = Employee.objects.get( _id = employeeId , Organization = org)
         team = Team.objects.get( id = teamId)
-        print(team)
 
         userData = get_object_or_404(Users , _id = user["_id"])
         isHeOwner = isOwner(org , userData)
@@ -1075,7 +921,6 @@ def editTeamMember(request , slug ,teamId, id , employeeId):
                 position = request.POST["Position"]
                 TeamMember.objects.filter(id = id).update(role = position)
 
-                print(f"/organization/teams/{org.slug}/{teamId}")
                 return HttpResponseRedirect(f"/organization/teams/{org.slug}/{teamId}")
             else:
                 return render(request ,"ChangeEmployeeRoleInTeam.html", { 'form' : form ,'slug' : slug , 
@@ -1086,15 +931,10 @@ def editTeamMember(request , slug ,teamId, id , employeeId):
         else:
             query_dict = QueryDict(mutable=True)
             teamMem = TeamMember.objects.filter(id = id , userId = emp.employee )
-            print("---------")
-            print(id , employeeId)
-            print(teamMem)
             query_dict.appendlist("Position",teamMem[0].role)
             query_dict.appendlist("Name",f"{emp.employee.firstName} {emp.employee.middleName} {emp.employee.lastName}")
             query_dict.appendlist("role",emp.jobTitle.title)
-            print(query_dict)
             form = ChangeEmployeeRoleInTeam( query_dict , organization=org)
-            # print(form)
             
             return render(request ,"ChangeEmployeeRoleInTeam.html", { 'form' : form , 'slug' : slug , 
                      'id' : id ,
@@ -1168,12 +1008,8 @@ def getTeamInsights(request , slug , teamId , orgId):
         memberCount = 0
         totalParticipantsCount = 0
 
-        print("team insight")
-        print(d1)
-        print(len(d1))
 
         for d in d1:
-            print(d)
             checkInTime = d.checkInTime
             checkOutTime = d.checkOutTime
             leaderCount = d.leaderCount
@@ -1190,7 +1026,6 @@ def getTeamInsights(request , slug , teamId , orgId):
             "totalParticipantsCount" : totalParticipantsCount,
         }
     except Exception as e:
-        print(e)
         return HttpResponseServerError(e)
 
 def getTeamAvgAttendance(request , slug , teamId , orgId):
@@ -1206,7 +1041,6 @@ def getTeamAvgAttendance(request , slug , teamId , orgId):
                 teamId.append(-1)
             QueryBuilder = f" AND TeamId_id in {tuple(teamId)} "
             
-        print("getTeamAvgAttendance")
         queryToGetAttendanceOfTeam = f"""
                 SELECT 
                 id,
@@ -1223,14 +1057,10 @@ def getTeamAvgAttendance(request , slug , teamId , orgId):
         d2 = Attendance.objects.raw(queryToGetAttendanceOfTeam)
 
         Attendancedata = 0
-        print(d2)
-        print(f"length of d2 = {len(d2)}")
         for d in d2:
-            print(d.present , d.total)
             if(d.present == 0 or d.total == 0):
                 continue
             Attendancedata += d.present / d.total
-            print(Attendancedata)
 
         if(len(d2) != 0):
             Attendancedata = round((Attendancedata / len(d2) ) * 100)
@@ -1238,7 +1068,6 @@ def getTeamAvgAttendance(request , slug , teamId , orgId):
 
         return Attendancedata
     except Exception as e:
-        print(e)
         return HttpResponseServerError(e)
 
 def getJobTitleFormatedData(jobTitleData):
@@ -1260,7 +1089,6 @@ def jobTitle(request , slug):
         rows=10
         page=0
         data = request.POST
-        print(data)
         user = request.session["user"]
 
 
@@ -1276,8 +1104,6 @@ def jobTitle(request , slug):
             page = int(data["page"])
         
 
-        print("data ===>")
-        print(search , rows)
 
         org = getOrgBySlug(request , slug)
         skip = page*rows
@@ -1290,8 +1116,6 @@ def jobTitle(request , slug):
           )).order_by("-createdAt")
         
         tableTitle , tableData = getJobTitleFormatedData(JobTitleData)
-        print(tableTitle)
-        print(tableData)
 
         userData = get_object_or_404(Users , _id = user["_id"])
         isHeOwner = isOwner(org , userData)
@@ -1337,10 +1161,8 @@ def jobTitle(request , slug):
             "isStatsToShow":True,
             "isOwner" : isHeOwner,
              }
-        print(data)
         return render(request ,"JobTitle.html" , data)
     except Exception as e:
-        print(e)
         return HttpResponseServerError(e)
 
 def jobTitleDetails(request , slug ,jobTitleId):
@@ -1350,9 +1172,6 @@ def jobTitleDetails(request , slug ,jobTitleId):
         rows=10
         page=0
         data = request.POST
-        print("======================================================")
-        print(jobTitleId)
-        print(data)
 
         org = getOrgBySlug(request , slug)
 
@@ -1374,8 +1193,6 @@ def jobTitleDetails(request , slug ,jobTitleId):
             page = int(data["page"])
         
 
-        print("data ===>")
-        print(search , rows)
 
         jobTitle= get_object_or_404(Job_title , id=jobTitleId)
         skip = page*rows
@@ -1403,8 +1220,6 @@ def jobTitleDetails(request , slug ,jobTitleId):
           )).order_by("-createdAt")
         
         tableTitle , tableData = getEmployeeFormatedData(employeeData , jobTitleId=jobTitleId)
-        print(tableTitle)
-        print(tableData)
 
         openAction = False
         editAction = True
@@ -1449,10 +1264,8 @@ def jobTitleDetails(request , slug ,jobTitleId):
             "isOwner" : isHeOwner,
             "id":jobTitleId
              }
-        print(data)
         return render(request ,"JobTitle.html" , data)
     except Exception as e:
-        print(e)
         return HttpResponseServerError()
 
 def getEmployeeFormatedData(employeeData , jobTitleId=""):
@@ -1494,7 +1307,6 @@ def employees(request , slug):
         rows=10
         page=0
         data = request.POST
-        print(data)
 
 
         if(data.get("search" , "") not in [None , "" ]):
@@ -1509,8 +1321,6 @@ def employees(request , slug):
             page = int(data["page"])
         
 
-        print("data ===>")
-        print(search , rows)
 
         org = getOrgBySlug(request , slug)
         skip = page*rows
@@ -1518,7 +1328,6 @@ def employees(request , slug):
         userData = get_object_or_404(Users , _id = user["_id"])
 
         isHeOwner = isOwner(org , userData)
-        print(isHeOwner)
         if( not ( isHeOwner | isLeaderOrCoLeaderInAtleastOneTeam(org , userData))):
             return HttpResponseNotAllowed("You don't an access")
 
@@ -1572,8 +1381,6 @@ def employees(request , slug):
             'teams' : isHeOwner,
             'employees' : isHeOwner
         }
-        print(employeeData )
-        print(len(employeeData))
 
         return render(request ,"Employee.html" , { 
             "slug" : slug , 
@@ -1607,12 +1414,9 @@ def employees(request , slug):
             "isOwner" : isHeOwner
              })
     except Exception as e:
-        print(e)
         return HttpResponseServerError(e)
 
 def saveEmployeeData(request , user, org , redirectUrl,action , isEdit = False):
-    print("post method")
-    print(request.POST)
     form = addEmployeeForm( request.POST, organization=org)
     if form.is_valid():
         userToAdd = Users.objects.filter(email = request.POST["email"])
@@ -1621,8 +1425,6 @@ def saveEmployeeData(request , user, org , redirectUrl,action , isEdit = False):
             form.add_error("email" , "User with this email not found")
             return render(request ,"AddEmployee.html", { 'form' : form , 'action':action})
         
-        print("userToAdd")
-        print(userToAdd)
 
         role = Job_title.objects.get(id = request.POST["role"])
             
@@ -1637,8 +1439,6 @@ def saveEmployeeData(request , user, org , redirectUrl,action , isEdit = False):
                 form.add_error("email" , "Employee already exist")
                 return render(request ,"AddEmployee.html", { 'form' : form , 'action':action})
 
-            print("employeeDetails")
-            print(employeeDetails)
 
         except Employee.DoesNotExist:
             return HttpResponseServerError("Employee not found")
@@ -1660,11 +1460,8 @@ def saveEmployeeData(request , user, org , redirectUrl,action , isEdit = False):
 
 def AddEmployee(request , slug):
     try:
-        print("entered add employee")
         user = request.session["user"]
-        print(user)
         org = Organization.objects.get(_id = user["currentActiveOrganization"])
-        print(org)
         userData = get_object_or_404(Users, _id = user["_id"])
 
         if not isOwner(org , userData):
@@ -1676,14 +1473,11 @@ def AddEmployee(request , slug):
             form = addEmployeeForm(organization=org)
             return render(request ,"AddEmployee.html", { 'form' : form , 'action':f"/organization/employees/{slug}/add"})
     except Exception as e:
-        print(e)
         return HttpResponseServerError(e)
 
 def deleteEmployee(request ,slug , id):
     try:
         user = request.session["user"]
-        print("delete employee")
-        print(user)
         org = getOrgBySlug(request,slug)
         emp = get_object_or_404(Employee , _id = id )
         userNeedToBeDeleted = get_object_or_404(Users , _id = emp.employee._id )
@@ -1718,30 +1512,19 @@ def deleteEmployee(request ,slug , id):
 def editEmployee(request, slug , id):
     try:
         user = request.session["user"]
-        print("edit employee")
-        print(user)
         org = getOrgBySlug(request,slug)
         emp = get_object_or_404(Employee , _id = id )
         userData = get_object_or_404(Users, _id = user["_id"])
 
-        print(userData)
-        print(emp.employee.email)
 
         if( not isOwner(org , userData)):
             return HttpResponseNotAllowed("You don't an access")
 
         if(request.method == "POST"):
-            print("request.POST")
-            print(request.POST)
             form = editEmployeeForm(request.POST["role"] , organization=org)
 
             if form.is_valid:
-                print("valid ")
                 newJob = get_object_or_404(Job_title , id=request.POST["role"])
-                print(type(emp))
-                print(userData)
-                print(org)
-                print(newJob)
                 Employee.objects.filter( 
                     employee = userData,
                     Organization = org
@@ -1763,30 +1546,17 @@ def editEmployee(request, slug , id):
 def editEmployeeViaJobTitle(request, slug , jobTitleId , employeeId):
     try:
         user = request.session["user"]
-        print("edit employee")
-        print(user)
         org = getOrgBySlug(request,slug)
         job = get_object_or_404(Job_title , id=jobTitleId)
-        print(job)
         emp = get_object_or_404(Employee , _id = employeeId ,jobTitle = job )
         userData = get_object_or_404(Users, _id = emp.employee._id)
 
-        print(userData)
-        print(emp.employee.email)
 
         if(request.method == "POST"):
-            print("request.POST")
-            print(request.POST)
             form = editEmployeeForm(request.POST["role"] , organization=org)
 
             if form.is_valid:
-                print("valid ")
                 newJob = get_object_or_404(Job_title , id=request.POST["role"])
-                print(job)
-                print(type(emp))
-                print(userData)
-                print(org)
-                print(newJob)
                 Employee.objects.filter( 
                     employee = userData,
                     Organization = org,
@@ -1809,8 +1579,6 @@ def editEmployeeViaJobTitle(request, slug , jobTitleId , employeeId):
 def addEmployeeViaJobDetails(request , slug , jobTitleId ):
     try:
         user = request.session["user"]
-        print("addEmployeeViaJobDetails")
-        print(user)
         org = getOrgBySlug(request,slug)
         if(request.method == "POST"):
             return saveEmployeeData(request,user,org,f"/organization/job-title/{org.slug}/{jobTitleId}" , f"/organization/job-title/{org.slug}/add/{jobTitleId}")
@@ -1822,15 +1590,10 @@ def addEmployeeViaJobDetails(request , slug , jobTitleId ):
 
 def AddJobTitle(request ,slug):
     try:
-        print("entered add job title")
         user = request.session["user"]
-        print(user)
         org = getOrgBySlug(request , slug)
-        print(org)
         if(request.method == "POST"):
             form = addJobTitleForm( request.POST)
-            print("post method")
-            print(request.POST)
             if form.is_valid():
 
                 isDuplicate = Job_title.objects.filter(title = request.POST["title"] , Organization = org)
@@ -1851,21 +1614,15 @@ def AddJobTitle(request ,slug):
             form = addJobTitleForm()
             return render(request ,"AddJobTitle.html", { 'form' : form , 'slug' : slug })
     except Exception as e:
-        print(e)
         return HttpResponseServerError(e)
 
 def EditJobTitle(request ,slug , id):
     try:
-        print("entered edit job title")
         user = request.session["user"]
-        print(user)
         org = getOrgBySlug(request , slug)
         jobTitle = get_object_or_404(Job_title , id=id)
-        print(org)
         if(request.method == "POST"):
             form = addJobTitleForm( request.POST)
-            print("post method")
-            print(request.POST)
             if form.is_valid():
 
                 isDuplicate = Job_title.objects.filter(title = request.POST["title"] , Organization = org)
@@ -1883,14 +1640,12 @@ def EditJobTitle(request ,slug , id):
             form = addJobTitleForm(q)
             return render(request ,"AddJobTitle.html", { 'form' : form , 'slug' : slug , 'isEdit' : True , 'jobTitleId' : id})
     except Exception as e:
-        print(e)
         return HttpResponseServerError(e)
     
 def DeleteJobTitle(request , slug , id):
     try:
         if request.method == "POST":
             user = request.session["user"]
-            print(user)
             org = getOrgBySlug(request , slug)
             get_object_or_404(Job_title , id=id).delete()
             return HttpResponseRedirect(f"/organization/job-title/{org.slug}")
@@ -1904,9 +1659,7 @@ def AddLeaveRequest(request):
         currentUser = request.session["user"]
         org = get_object_or_404( Organization, _id = currentUser["currentActiveOrganization"])
         createdBy = get_object_or_404(Users ,_id = currentUser["_id"])
-        print("Add leave request")
         if request.method == "POST":
-            print(request.POST)
             form  = LeaveRequestForm(request.POST ,organization = org ,user = createdBy )
             if( request.POST["From"] < date.today().strftime('%Y-%m-%d') or request.POST["From"] > request.POST["To"]):
                 form.add_error("From" , "Invalid from date")
@@ -1941,42 +1694,30 @@ def AddLeaveRequest(request):
 def getOrgSize(org):
     try:
         owner = OwnerDetails.objects.filter(OrganizationId = org).values_list('userId_id', flat=True).distinct()
-        print(owner)
         member = TeamMember.objects.filter(Q(OrganizationId = org) & ~Q(userId_id__in = owner)).values_list('userId_id', flat=True).distinct()
-        print(member)
         return len(owner) + len(member)
     except Exception as e:
         return HttpResponseServerError(e)
 
 def leaveRequest(request , slug):
     try:
-        print("===================================")
         user = request.session["user"]
         userData = get_object_or_404(Users , _id = user["_id"])
-        print(user)
-        print(user["currentActiveOrganization"])
         org = None;
         try:
             org = get_object_or_404( Organization, _id = user["currentActiveOrganization"])
         except Exception as e:
             return render(request ,"page_404.html" , {"message" : "You don't have a access." , "showUserPageLink" : True , "showOrgPageLink" : False})
-        print("org")
-        print(org)
         isHeOwner = isOwner(org , userData)
         isHeLeaderOrCoLeaderInAtleastOneTeam = isLeaderOrCoLeaderInAtleastOneTeam(org , userData)
-        print("isHeOwner")
-        print(isHeOwner)
-        print(isHeLeaderOrCoLeaderInAtleastOneTeam)
         if( not ( isHeOwner | isHeLeaderOrCoLeaderInAtleastOneTeam)):
             return HttpResponseNotAllowed("You don't an access")
-        print("leaveRequest")
 
         # for pagination
         search=""
         rows=10
         page=0
         data = request.POST
-        print(data)
         if(data.get("search" , "") not in [None , "" ]):
             search = data["search"]
         
@@ -1993,7 +1734,6 @@ def leaveRequest(request , slug):
         orgSize = getOrgSize(org)
         ownerOrgData = OwnerDetails.objects.filter(OrganizationId = org , userId = userData).values_list('OrganizationId', flat=True).distinct()        
         leaveReq = None
-        print(ownerOrgData)
         if(len(ownerOrgData) >= 1):
             leaveReq = LeaveRequest.objects.filter(Q(Organization_id__in = ownerOrgData) 
                                                     &(
@@ -2009,8 +1749,6 @@ def leaveRequest(request , slug):
 
         else:
             teamList = TeamMember.objects.filter( OrganizationId = org,  role__in = ["LEADER" , "CO-LEADER"] , userId = userData).values_list('TeamId',flat=True).distinct()
-            print("team list")
-            print(teamList)
             leaveReq = LeaveRequest.objects.filter(Q(TeamId__id__in =teamList)  &(
                     Q(status__icontains=search) |
                     Q(reason__icontains=search) |
@@ -2037,8 +1775,6 @@ def leaveRequest(request , slug):
             'employees' : isHeOwner
         }
 
-        print("leaveReq===>")
-        print(leaveReq)
         tableTitle , tableData  = formateLeaveRequest(leaveReq)
         
         return render(request ,"LeaveRequest.html" , 
@@ -2068,8 +1804,6 @@ def leaveRequest(request , slug):
                     } 
                     )
     except Exception as e:
-        print("-------------------------------")
-        print(e)
         return HttpResponseServerError(e)
 
 def LeaveRequestDetails(request , slug , id):
@@ -2083,11 +1817,7 @@ def LeaveRequestDetails(request , slug , id):
 
         isHeOwner = isOwner(org , userData)
         isHeLeaderOrCoLeader = isLeaderOrCoLeader(leaveReq.TeamId,org , userData)
-        print(isHeOwner)
-        print(isHeLeaderOrCoLeader)
 
-        print("leaveReq.exists()")
-        print(leaveReq)
 
         if( not ( isHeOwner or isHeLeaderOrCoLeader)):
             return HttpResponseNotAllowed("You don't an access")
@@ -2099,7 +1829,6 @@ def LeaveRequestDetails(request , slug , id):
             showChangeStatus = False
         
         if leaveReq.fromDate < date.today():
-            print("from date is smaller")
             showChangeStatus = False
 
         return render(request , "LeaveRequestDetails.html" , {
@@ -2117,9 +1846,7 @@ def editLeaveRequestStatus(request , slug , id):
             status = request.POST["status"]
             currentUser = request.session["user"]
             userData = get_object_or_404(Users , _id = currentUser["_id"])
-            print(userData)
             org = get_object_or_404( Organization, _id = currentUser["currentActiveOrganization"])
-            print(org)
 
             leaveReq = get_object_or_404(LeaveRequest , id = id , Organization = org)
 
@@ -2127,16 +1854,13 @@ def editLeaveRequestStatus(request , slug , id):
                 return HttpResponseNotAllowed()
             
             isHeOwner = isOwner(org , userData)
-            print(isHeOwner)
             if( not ( isHeOwner | isLeaderOrCoLeader(leaveReq.TeamId ,org , userData))):
                 return HttpResponseNotAllowed("You don't an access")
 
             if leaveReq.fromDate < date.today():
-                print("from date is smaller")
                 return Http404()
                 
             else:
-                print("else")
                 LeaveRequest.objects.filter(id = id , Organization = org ).update(status = status , verifiedBy = userData)
                 return HttpResponseRedirect(f"/organization/leave-request/{slug}")
         else:
@@ -2146,8 +1870,6 @@ def editLeaveRequestStatus(request , slug , id):
 
 def getAttendance(request , slug , teamId , year):
     try:
-        print("getAttendance")
-        print(year)
         DayInNumber = {
             'Sun': 0, 'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, 'Sat': 6
         }
@@ -2158,7 +1880,6 @@ def getAttendance(request , slug , teamId , year):
         fromDate = datetime(year, 1, 1).strftime("%Y-%m-%d")
         toDate = datetime(year+1, 1, 1) - timedelta(days=1)
         toDate = toDate.strftime("%Y-%m-%d")
-        print(f"from => {fromDate} to => {toDate}")
         query  = f"""
         SELECT  
             takenAt AS takenAt,
@@ -2176,22 +1897,16 @@ def getAttendance(request , slug , teamId , year):
             takenAt ORDER BY takenAt;
         """
 
-        print(query)
         data = Attendance.objects.raw(query)
 
-        print(data)
-        print("data")
         for d in data:
-            print(d)
             # x = date(d.takenAt)
-            print(f"date => {d.takenAt.day} month => {d.takenAt.month} year => {d.takenAt.year}")
             att_data[d.takenAt.month][d.takenAt.day] = {
                     'percentage' : math.ceil((d.present / d.total )* 100),
                     "validCell" : True , "noAttendance" : False,
                     "takenAt" : d.takenAt
             }
 
-        print(att_data)
         
         finalCalendarData = {"1": {},"2": {},"3": {},"4": {},"5": {},"6": {},"7": {},"8": {},"9": {},"10": {},"11": {},"12": {}}
 
@@ -2211,15 +1926,8 @@ def getAttendance(request , slug , teamId , year):
             number_of_days_in_month = last_date.day
             total_number_of_div = DayInNumber[(start_day)] + number_of_days_in_month + abs(DayInNumber[last_day] - 6)
 
-            print(f"Month: {i + 1}, Year: {year}")
-            print(f"start day=> {start_day}, last Day => {last_day}")
-            print(f"total div => {total_number_of_div}")
 
             defaultAttenance = { 'percentage' : 0 , "validCell" : False , "noAttendance" : False}
-            # print("=============================")
-            # print(DayInNumber[start_day])
-            # print(total_number_of_div -(6 - DayInNumber[last_day]))
-            # print("=============================")
             day = 1;
             for j in range(total_number_of_div):
                 if (j >= DayInNumber[start_day] and j < (total_number_of_div -(6 - DayInNumber[last_day]))):
@@ -2227,13 +1935,8 @@ def getAttendance(request , slug , teamId , year):
                     day = day +1
                 else:
                     finalCalendarData[str(i+1)][str(j)] = defaultAttenance
-        print("finalCalendarData.items()")
-        for i in range(1,13):
-            print("i => ",i)
-            print(len(finalCalendarData[f"{i}"]))
         return finalCalendarData
     except Exception as e:
-        print(e)
         return HttpResponseServerError(e)
 
 def getAttendanceBasicDetails(request , org , team , teamId):
@@ -2266,7 +1969,6 @@ def getAttendanceBasicDetails(request , org , team , teamId):
                 ORDER BY
                     u.firstName, u.middleName, u.lastName;
         """
-        print(query)
         data = Attendance.objects.raw(query)
         att_data = []
         for d in data: 
@@ -2280,7 +1982,6 @@ def getAttendanceBasicDetails(request , org , team , teamId):
                 'percentage' : percentage
             }
             att_data.append(user)
-        print(att_data)
         return att_data , team_data
     except Exception as e:
         return HttpResponseServerError(e)
@@ -2315,8 +2016,6 @@ def saveAttendance(request , slug , teamId):
                 TeamId = team,
                 OrganizationId = org
             )
-            print("=============================================")
-            print("request.POST['date']")
             date = request.POST["date"]
 
             isAttAllreadyTaken = Attendance.objects.filter(
@@ -2363,7 +2062,6 @@ def saveAttendance(request , slug , teamId):
 def getAttendanceDetails(request , slug , teamId , takenAt):
     try:
         takenDate = parser.parse(takenAt).date()
-        print(takenDate)
         # takenDate = datetime.strptime(takenDate, '%Y-%m-%d').date()
         user = request.session["user"]
         userData = get_object_or_404(Users , _id = user["_id"])
@@ -2404,7 +2102,6 @@ def getAttendanceDetails(request , slug , teamId , takenAt):
                     """
         data = LeaveRequest.objects.raw(query)
 
-        print(data)
 
         leaveStats = {
             "total" : 0,
@@ -2516,10 +2213,8 @@ def getEmployeePerJobTitleByTeam(request , slug , teamId, fromDate , toDate):
         team = get_object_or_404(Team , id = teamId)
 
         isHeOwner = isOwner(org , userData)
-        print(isHeOwner)
 
         isHeLeaderOrCoLeader = isLeaderOrCoLeader(org=org , team=team , user=userData)
-        print(isHeLeaderOrCoLeader)
 
         if(not (isHeOwner | isHeLeaderOrCoLeader)):
             return HttpResponseNotAllowed("You don't have an access.")
@@ -2552,7 +2247,6 @@ def getEmployeePerJobTitleByTeam(request , slug , teamId, fromDate , toDate):
 
         label = []
         total = []
-        print(data)
 
         for job in data:
             label.append(job.jobTitle)
@@ -2576,11 +2270,9 @@ def getEmployeeCountByTeam(request , slug , fromDate , toDate):
         org = getOrgBySlug( request , slug)
 
         isHeOwner = isOwner(org , userData)
-        print(isHeOwner)
 
         isHeLeaderOrCoLeaderInAtleastOneTeam = isLeaderOrCoLeaderInAtleastOneTeam(org=org  , user=userData)
         
-        print(isHeLeaderOrCoLeaderInAtleastOneTeam)
 
         if(not (isHeOwner | isHeLeaderOrCoLeaderInAtleastOneTeam)):
             return HttpResponseNotAllowed("You don't have an access.")
@@ -2620,8 +2312,6 @@ def getEmployeeCountByTeam(request , slug , fromDate , toDate):
         label = []
         total = []
 
-        print(queryBuilder)
-        print(data)
 
         for job in data:
             label.append(job.name)
@@ -2640,14 +2330,12 @@ def getEmployeeCountByTeam(request , slug , fromDate , toDate):
 
 def editCompanyProfile(request , slug):
     try:
-        print("editCompanyProfile")
         user = request.session["user"]
         userData = get_object_or_404(Users , _id = user["_id"])
         
         org = getOrgBySlug( request , slug)
 
         isHeOwner = isOwner(org , userData)
-        print(isHeOwner)
 
         if(not isHeOwner):
             return HttpResponseNotAllowed("You don't have an access.")
@@ -2657,10 +2345,7 @@ def editCompanyProfile(request , slug):
         if(request.method == "POST"):
             form = createOrganizationForm(request.POST)
             if form.is_valid():
-                print("valid")
-                print("logo")
                 logo = request.FILES.get('logo' , False)
-                print("f name")
 
                 name = request.POST["name"]
                 webSiteLink = request.POST["webSiteLink"]
@@ -2674,8 +2359,6 @@ def editCompanyProfile(request , slug):
                 country = request.POST["country"]
                 code = request.POST["code"]
 
-                print("org.address_id")
-                print(org.address_id)
 
                 if logo != False:
                     orgDataToUpdate = Organization.objects.get(_id = org._id)    
@@ -2690,19 +2373,14 @@ def editCompanyProfile(request , slug):
                 if len(owners) <= 1:
                     owners.append("")
     
-                print("checking for user existence")
                 for email in owners:
-                    print(email)
                     try:
                         user = Users.objects.get(email = email.strip())
-                        print(user)
                     except Users.DoesNotExist:
                         form.add_error("ownersDetails" ,f"user with this email ({email}) not exist")
                         return render(request ,"CreateOrganization.html", { 'form' : form , 'slug' : slug, 'isEdit' : True })    
 
-                print("updating address")
                 Address.objects.filter(id = org.address_id).update(city= city,state= state,country= country,code= code)
-                print("updating org")
                 Organization.objects.filter(_id = org._id).update(
                     name = name,
                     webSiteLink = webSiteLink,
@@ -2711,17 +2389,12 @@ def editCompanyProfile(request , slug):
                     description     = description,
                 )
 
-                print("updating owners")
-                print(owners)
                 for email in owners:
                         user = Users.objects.get(email = email.strip())
                         isOwnerAlreadyOwner = OwnerDetails.objects.filter(OrganizationId = org , userId = user)
-                        print(len(isOwnerAlreadyOwner))
                         if(len(isOwnerAlreadyOwner) <= 0):
                             own = OwnerDetails(OrganizationId = org , userId = user)
-                            print("saving")
                             own.save()
-                            print("saved")
 
                 # for removing owner not in list
                 query2 = f"""
@@ -2739,14 +2412,11 @@ def editCompanyProfile(request , slug):
 """
                 deletedOwners = OwnerDetails.objects.raw(query2)
 
-                if(deletedOwners != None):
-                    try:
-                        for i in deletedOwners:
-                            print(i)
-                    except Exception as exc:
-                        print(exc)
+                # if(deletedOwners != None):
+                #     try:
+                #         for i in deletedOwners:
+                #     except Exception as exc:
                         
-                print(deletedOwners)
 
                 return HttpResponseRedirect(f"/organization/{slug}")
             else:
@@ -2795,15 +2465,10 @@ def editCompanyProfile(request , slug):
                     ownersEmail = f"{ownersEmail},{owner.email}"
             
             query_dict.appendlist("ownersDetails", ownersEmail)
-            print("query_dict")
-            print(query_dict)
             
             form = createOrganizationForm(query_dict)
             return render(request ,"CreateOrganization.html" , { 'form' : form , "slug" : slug , 'isEdit' : True})
     except IntegrityError as e:
-        print(e)
-        print(e.args)  # This will print the error message
-        print(e.args[0])  # This will print the error message
         form = createOrganizationForm(request.POST, request.FILES)
         for arg in e.args:
             if "contactEmail" in arg and "UNIQUE constraint failed" in arg:
@@ -2812,5 +2477,4 @@ def editCompanyProfile(request , slug):
                 form.add_error("name" , "Organization name is already exist")
         return render(request ,"CreateOrganization.html", { 'form' : form })
     except Exception as e:
-        print(e)
         return HttpResponseServerError(e)

@@ -64,6 +64,8 @@
                                         noAttendanceCardToDisplay
                                     {% elif date_value.noAttendance == True %}
                                         noAttendance
+                                        {% elif date_value.percentage <= 0 %}
+                                        present0
                                         {% elif date_value.percentage <= 25 %}
                                         present25
                                         {% elif date_value.percentage <= 50 %}
@@ -93,20 +95,24 @@
                     <li>No Attendance</li>
                 </ul>
                 <ul class="flex items-center">
+                    <li class="day_box present0 border"></li>
+                    <li>0%</li>
+                </ul>
+                <ul class="flex items-center">
                     <li class="day_box present25 border"></li>
-                    <li>25%</li>
+                    <li>1 - 25%</li>
                 </ul>
                 <ul class="flex items-center">
                     <li class="day_box present50 border"></li>
-                    <li>50%</li>
+                    <li>26 - 50%</li>
                 </ul>
                 <ul class="flex items-center">
                     <li class="day_box present75 border"></li>
-                    <li>75%</li>
+                    <li>51 - 75%</li>
                 </ul>
                 <ul class="flex items-center">
                     <li class="day_box present100 border"></li>
-                    <li>100%</li>
+                    <li>76 - 100%</li>
                 </ul>
             </li>
             <li>

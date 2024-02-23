@@ -2,7 +2,7 @@
 {% csrf_token %}
 {% load static %}
 {% block page_title %}
-{{ text | title }}
+{{ "Employees" | title }}
 {% endblock %}
 
 {% block css_block %}
@@ -25,6 +25,7 @@
 
 
 {% endblock %}
+
 {% block content %}
 {% include "Nav.html" %}
 {% include "Profile/profile.html" %}

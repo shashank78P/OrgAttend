@@ -21,51 +21,30 @@ from django.template.loader import render_to_string
 
 def sendmail(toEmail , subject , htmlContent ):
     try:
-        print("send mail")
         message = Mail(
         from_email='dailydash155@gmail.com',
         to_emails=toEmail,
         subject=subject,
         html_content=htmlContent)
-        print(os.environ.get('SENDGRID_API_KEY'))
-        print("SENDGRID_API_KEY")
         sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
-        print(sg)
-        print(message)
         response = sg.send(message)
-        print(response.status_code)
-        print(response.body)
-        print(response.headers)
     except Exception as e:
-        print(e)
         raise Exception(e)
 
 def editUserData(request , slug) :
     try:
         user = request.session["user"]
-        print(user)
         slugUser = get_object_or_404(Users , slug = slug)
-        print(slugUser)
         userData = get_object_or_404(Users , slug = user["slug"])
-        print(userData)
-        print("slugUser._id")
-        print(slugUser._id)
-        print("userData._id")
-        print(userData._id)
 
         if(slugUser._id != userData._id):
             return HttpResponseForbidden("You dont have a access.")
         
-        print(request.method)
 
         if(request.method == "POST"):
-            print("post")
             form = UserProfileEdit(request.POST)
             if form.is_valid():
-                print("valid")
-                print("logo")
                 logo = request.FILES.get('logo' , False)
-                print("f name")
                 firstName = request.POST["firstName"]
                 middleName = request.POST["middleName"]
                 lastName = request.POST["lastName"]
@@ -76,8 +55,6 @@ def editUserData(request , slug) :
                 country = request.POST["country"]
                 code = request.POST["code"]
 
-                print("userData.address_id")
-                print(userData.address_id)
 
                 if logo != False:
                     userDataToUpdate = Users.objects.get(_id = userData._id)    
@@ -85,8 +62,6 @@ def editUserData(request , slug) :
                     userDataToUpdate.save()
 
                 try:
-                    print("userData.address_id")
-                    print(userData.address_id)
                     if userData.address_id is None:
                         add = Address(city= city,state= state,country= country,code= code)
                         add.save()
@@ -104,7 +79,6 @@ def editUserData(request , slug) :
                     )
                     return HttpResponseRedirect(f"/users/{slug}")
                 except Exception as e:
-                    print(e)
                     if 'UNIQUE constraint failed' in str(e):
                         form.add_error("phoneNumber" , "Phone number already exists.")
                     return render(request ,"EditUserProfile.html" , { 
@@ -112,7 +86,6 @@ def editUserData(request , slug) :
                         'slug' : slug
                     })
             else:
-                print("GET")
                 return render(request ,"EditUserProfile.html" , { 
                     'form' : form , 
                     'slug' : slug
@@ -134,13 +107,9 @@ def editUserData(request , slug) :
             query_dict.appendlist("DOB" , userData.DOB)
             query_dict.appendlist("phoneNumber" , userData.phoneNumber)
             
-            print("query_dict")
-            print(query_dict)
             form = UserProfileEdit(query_dict)
             return render(request ,"EditUserProfile.html" , { 'form' : form , "slug" : slug })
     except Exception as e:
-            print("error")
-            print(e)
             HttpResponseServerError(e)
 
 def signUp(request) :
@@ -148,7 +117,6 @@ def signUp(request) :
         if(request.method == "POST"):
             form = signUpForm(request.POST)
             if form.is_valid():
-                print("valid")
                 email = request.POST["email"]
 
                 user = Users.objects.filter(email=email, password__isnull=False).first()
@@ -158,8 +126,6 @@ def signUp(request) :
                     return render(request ,"RequestForOtp.html" , { 'form' : form })
                 
                 otp = random.randint(1000 , 9999)
-                print("otp")
-                print(otp)
                 subject = "Response to the request of OTP"
                 htmlContent = f"""
                     <h1>Stay In Time Tracker</h1>
@@ -170,7 +136,6 @@ def signUp(request) :
                     <p style="color : red">This otp is only valid for 15min.</p>
                 """
                 sendmail(email , subject , htmlContent)
-                print(email)
 
                 Users.objects.update_or_create(email=email, defaults={'otp': otp ,'lastOtpSentAt' :datetime.now(timezone.utc)})
                 return HttpResponseRedirect("/users/sign-up-2")
@@ -181,8 +146,6 @@ def signUp(request) :
             form = signUpForm()
             return render(request ,"RequestForOtp.html" , { 'form' : form })
     except Exception as e:
-            print("error")
-            print(e)
             HttpResponseServerError(e)
 
 def signUp2(request) :
@@ -190,8 +153,6 @@ def signUp2(request) :
         if(request.method == "POST"):
             form = signUpForm2(request.POST)
             # data = request.POST
-            # print(form.cleaned_data)
-            print(request.POST)
             email=request.POST["email"]
             otp=request.POST["otp"]
 
@@ -205,7 +166,6 @@ def signUp2(request) :
             time_difference = now - otpSentAt
             
             if time_difference.total_seconds() > 15 * 60:
-                print("less than fifteen_minutes")
                 form.add_error("otp" ,"Invalid otp (try to generate new OTP)")
                 return render(request ,"SignUp.html" , { 'form' : form })
 
@@ -236,23 +196,24 @@ def signUp2(request) :
             form = signUpForm2()
             return render(request ,"SignUp.html" , { 'form' : form })
     except Exception as e:
-            print(e)
             return HttpResponseServerError(e)
 
 def login(request) :
     try:
         if(request.method == "POST"):
             form = logInForm(request.POST)
-            print(request.POST)
             password=request.POST["password"]
             email=request.POST["email"]
 
-            user = Users.objects.get(email = email)
-            print(user)
+            user = Users.objects.filter(email = email)
+
+            if(len(user) == 0):
+                form.add_error("password" ,"User with this mail not exists!")
+                return render(request ,"LogIn.html" , { 'form' : form })
+            
+            user = user[0]
 
             if(check_password(password , user.password)):
-                print("correct pswrd")
-                print(user.slug)
                 response = HttpResponseRedirect(f"/users/{user.slug}")
                 # render(request ,"Profile.html" , { "slug" : "" })
                 token = jwt.encode( {
@@ -274,7 +235,6 @@ def login(request) :
             form = logInForm()
             return render(request ,"LogIn.html", { 'form' : form })
     except Exception as e:
-        print(e)
         return render(request ,"LogIn.html", { 'form' : form })
         # HttpResponseServerError("Internal Server error")
 
@@ -290,17 +250,12 @@ def getOrgById(request , id , userId):
         org = get_object_or_404(Organization , _id = id)
         return org
     except Exception as e:
-        print(e)
         HttpResponseServerError(e)
 
 def ChangePassword1(request):
     try:
-        print("change-password-pre1")
         if(request.method == "POST"):
-            print("post")
             email = request.POST.get("email" , False)
-            print("email")
-            print(email)
             if(not email):
                 form = signUpForm()
                 return render(request ,"ChangePassword.html" , { 
@@ -310,8 +265,6 @@ def ChangePassword1(request):
             userData = getUserByEmail(email)
 
             otp = random.randint(1000 , 9999)
-            print("otp")
-            print(otp)
             email = userData.email
             subject = "Here is the OTP for password change"
             htmlContent = f"""
@@ -321,32 +274,26 @@ def ChangePassword1(request):
                 <p>Thank you, for your interest.</p>
                 <p style="color : red">This otp is only valid for 15min.</p>
             """
-            sendmail(email , subject , htmlContent)
-            print(email)
+            # sendmail(email , subject , htmlContent)
             
             userData.otp = otp
             userData.lastOtpSentAt = datetime.now(timezone.utc) 
             userData.save()
             return HttpResponseRedirect(f"/users/change-password")
         else:
-            print("else")
             form = signUpForm()
             return render(request ,"ChangePassword.html" , { 
                 'form' : form ,
                 'action' : "/users/change-password-pre"
             })
     except Exception as e:
-        print(e)
         return HttpResponseForbidden(e)
 
 def ChangePassword(request):
     try:
-        print("ChangePassword")
         if(request.method == "POST"):
-            print("post")
             form = changePasswordForm(request.POST)
             if form.is_valid():
-                print("valid")
                 otp = request.POST.get("otp" , False)
                 email = request.POST.get("email" , False)
                 password = request.POST.get("password" , False)
@@ -366,11 +313,6 @@ def ChangePassword(request):
                 })
 
                 userData = Users.objects.get(email = email)
-                print(email)
-                print(userData)
-                print("userData.otp")
-                print(userData.otp)
-                print(otp)
                 if(otp != userData.otp):
                     form.add_error("otp" , "Invalid otp")
                     return render(request ,"ChangePassword.html" , { 
@@ -378,14 +320,9 @@ def ChangePassword(request):
                     'action' :"/users/change-password"
                 })
 
-                print(userData.lastOtpSentAt)
                 currentDateTime = datetime.now(timezone.utc)
-                print(currentDateTime)
 
                 diff = currentDateTime - userData.lastOtpSentAt
-                print(diff)
-                print("diff.total_seconds")
-                print(diff.total_seconds())
 
                 if(diff.total_seconds() > 15*60):
                     form.add_error("otp" , "Invalid OTP")
@@ -400,7 +337,6 @@ def ChangePassword(request):
                 userData.save()
                 return HttpResponseRedirect(f"/users/{userData.slug}")
             else:
-                print("else")
                 form = changePasswordForm(request.POST)
                 return render(request ,"ChangePassword.html" , { 
                     'form' : form ,
@@ -460,7 +396,6 @@ def getCommonTeamIdsOfUsers(request , currUserId , originalUserId , orgId):
                 );
         """
         commonTeams = TeamMember.objects.raw(query2)
-        print(commonTeams)
 
         if(len(commonTeams) <= 1):
             return HttpResponseForbidden("You don't have a access.")
@@ -475,18 +410,13 @@ def getCommonTeamIdsOfUsers(request , currUserId , originalUserId , orgId):
 
         return tuple(commonTeamIds)
     except Exception as e:
-        print(e)
         return HttpResponseForbidden(e)
 
 def getTeamIds(request , userData , slugUser , org):
     teamIds=[]
     if(slugUser._id != userData._id):
-        print("if")
         teamIds = getCommonTeamIdsOfUsers(request , userData._id , slugUser._id , org._id)
-        print("teamIds")
-        print(teamIds)
     else:
-        print("else")
         # query1 = f"""
         #         SELECT 
         #             * 
@@ -497,7 +427,6 @@ def getTeamIds(request , userData , slugUser , org):
         #             OrganizationId_id = {org._id};
         # """
         teamIds = TeamMember.objects.filter(OrganizationId = org, userId = userData).values_list('TeamId', flat=True).distinct()
-        print(teamIds)
         # ids = TeamMember.objects.raw(query1)
         # for i in ids:
         #     teamIds.append(i.TeamId_id)
@@ -537,14 +466,9 @@ def getUsersJobTitle(teamIds , userId ,orgId):
 def home(request , slug) :
     try:    
         user = request.session["user"]
-        print(user)
         slugUser = get_object_or_404(Users , slug = slug)
-        print(slugUser)
         userData = get_object_or_404(Users , slug = user["slug"])
-        print(userData)
         org = getOrgById(request , user["currentActiveOrganization"] , slugUser)
-        print("org home")
-        print(org)
         userImg = f"{os.environ.get('FRONTEND')}/media/{slugUser.logo}"
 
         if(org == None):
@@ -557,34 +481,20 @@ def home(request , slug) :
             "baseUrl" : os.environ.get('FRONTEND')
             })
         if(not (bool(org)  and bool(userData) and bool(slugUser)) ):
-            print("You dont a access")
             return HttpResponseForbidden("You dont have a access")
-        print("slugUser['_id']")
-        print(slugUser._id)
-        print("userData._id")
-        print(userData._id)
 
         teamIds = getTeamIds(request , userData , slugUser , org)
         
-        print(teamIds)
 
         isowner = isUserOwner(slugUser._id , org._id)
-        print("isowner")
-        print(isowner)
-
-        for i in isowner:
-            print(i)
-
         # if(len(teamIds) == 0):
         #     return HttpResponseForbidden("You don't have a access")
         
         userJobTitleData = getUsersJobTitle(teamIds , slugUser._id , org._id)
         userJobTitle = ""
 
-        print(userJobTitleData)
 
         for job in userJobTitleData:
-            print(job.title)
             if( userJobTitle == ""):
                 userJobTitle = job.title
             else: 
@@ -594,8 +504,6 @@ def home(request , slug) :
             "leave_request" : True,
             "attendance" : True
         }
-        print("slugUser.logo")
-        print(slugUser.logo)
         return render(request ,"Home.html" , {
             "navOptions" : navOptions,
             'slug' : slug ,
@@ -608,8 +516,6 @@ def home(request , slug) :
             "baseUrl" : os.environ.get('FRONTEND')
         })
     except Exception as e:
-        print('Internal Server error')
-        print(e)
         return HttpResponseServerError(e)
     
 def calculatePercentageForLeaveTye(data):
@@ -622,9 +528,6 @@ def calculatePercentageForLeaveTye(data):
     if(totalLeaves != 0):
         for i in data:
             resultPercentage[i.leaveType] = round(((i.total / totalLeaves) * 100))
-    print("result")
-    print(result)
-    print(resultPercentage)
     return JsonResponse({
         "result" : result,
         "percentage" : resultPercentage
@@ -666,9 +569,7 @@ def getLeaveTypeInsightOfUser(request  , slug , fromDate , toDate):
         GROUP BY leaveType;
     """
         
-        print(query)
         data = LeaveRequest.objects.raw(query)
-        print(data)
 
         return calculatePercentageForLeaveTye(data)        
 
@@ -677,8 +578,6 @@ def getLeaveTypeInsightOfUser(request  , slug , fromDate , toDate):
     
 def getAttendance(request , slug , teamIds ,userData , year):
     try:
-        print("getAttendance")
-        print(year)
         teamIds = list(teamIds)
         if len(teamIds) <= 1:
             teamIds = list(teamIds)
@@ -696,7 +595,6 @@ def getAttendance(request , slug , teamIds ,userData , year):
         fromDate = datetime(year, 1, 1).strftime("%Y-%m-%d")
         toDate = datetime(year+1, 1, 1) - timedelta(days=1)
         toDate = toDate.strftime("%Y-%m-%d")
-        print(f"from => {fromDate} to => {toDate}")
         query  = f"""
         SELECT  
             takenAt AS takenAt,
@@ -715,22 +613,16 @@ def getAttendance(request , slug , teamIds ,userData , year):
             takenAt ORDER BY takenAt;
         """
 
-        print(query)
         data = Attendance.objects.raw(query)
 
-        print(data)
-        print("data")
         for d in data:
-            print(d)
             # x = date(d.takenAt)
-            print(f"date => {d.takenAt.day} month => {d.takenAt.month} year => {d.takenAt.year}")
             att_data[d.takenAt.month][d.takenAt.day] = {
                     'percentage' : math.ceil(d.present / d.total) * 100,
                     "validCell" : True , "noAttendance" : False,
                     "takenAt" : d.takenAt
             }
 
-        print(att_data)
         
         finalCalendarData = {"1": {},"2": {},"3": {},"4": {},"5": {},"6": {},"7": {},"8": {},"9": {},"10": {},"11": {},"12": {}}
 
@@ -750,15 +642,8 @@ def getAttendance(request , slug , teamIds ,userData , year):
             number_of_days_in_month = last_date.day
             total_number_of_div = DayInNumber[(start_day)] + number_of_days_in_month + abs(DayInNumber[last_day] - 6)
 
-            print(f"Month: {i + 1}, Year: {year}")
-            print(f"start day=> {start_day}, last Day => {last_day}")
-            print(f"total div => {total_number_of_div}")
 
             defaultAttenance = { 'percentage' : 0 , "validCell" : False , "noAttendance" : False}
-            # print("=============================")
-            # print(DayInNumber[start_day])
-            # print(total_number_of_div -(6 - DayInNumber[last_day]))
-            # print("=============================")
             day = 1;
             for j in range(total_number_of_div):
                 if (j >= DayInNumber[start_day] and j < (total_number_of_div -(6 - DayInNumber[last_day]))):
@@ -766,13 +651,8 @@ def getAttendance(request , slug , teamIds ,userData , year):
                     day = day +1
                 else:
                     finalCalendarData[str(i+1)][str(j)] = defaultAttenance
-        print("finalCalendarData.items()")
-        for i in range(1,13):
-            print("i => ",i)
-            print(len(finalCalendarData[f"{i}"]))
         return finalCalendarData
     except Exception as e:
-        print(e)
         return HttpResponseServerError(e)
 
 
@@ -819,7 +699,6 @@ def getAttendanceByTeamOrg(request , slug , fromDate , toDate):
 
         label = []
         total = []
-        print(data)
 
         for d in data:
             label.append(d.teamName)
@@ -846,16 +725,12 @@ def homePage(request):
 
 def setCurrentActiveOrganization(request):
     try:
-        print("called set current org.....")
         if(request.method == "POST"):
             userData = request.session["user"]
             data = json.loads(request.body.decode('utf-8'))
             user = Users.objects.get(_id = userData["_id"])
 
-            print(user)
             org = get_object_or_404(Organization , slug = data["slug"])
-            print(org)
-            print(int(org._id))
             user.currentActiveOrganization =  int(org._id)
             sessionUser = request.session['user']
             sessionUser['currentActiveOrganization'] = int(org._id)
@@ -864,7 +739,6 @@ def setCurrentActiveOrganization(request):
         else:
             return Http404()
     except Exception as e:
-        print(e)
         return HttpResponseServerError(e)
 
 def attendanceHistory(request , slug) :
@@ -882,10 +756,8 @@ def attendanceHistory(request , slug) :
         userJobTitleData = getUsersJobTitle(teamIds , slugUser._id , org._id)
         userJobTitle = ""
 
-        print(userJobTitleData)
 
         for job in userJobTitleData:
-            print(job.title)
             if( userJobTitle == ""):
                 userJobTitle = job.title
             else: 
@@ -899,16 +771,12 @@ def attendanceHistory(request , slug) :
 
         today = datetime.today()
         year = today.year
-        print("===============year========================")
 
         if (request.method == "POST" and request.POST["year"] is not None):
-            print("request.POST['year'']")
-            print(request.POST["year"])
             year = int(request.POST["year"])
 
         attendanceDataOfTeam = getAttendance(request , slug , teamIds=teamIds ,userData=slugUser ,year=year)
 
-        print(attendanceDataOfTeam)
         return render(request ,
                     "AttendanceHistory.html" , 
                     {
@@ -925,15 +793,11 @@ def attendanceHistory(request , slug) :
                          "isOriginalUser" : "true" if slugUser._id == userData._id else "false"
                       })
     except Exception as e:
-            print(e)
             HttpResponseServerError(e)
 
 def getAttendanceInDetailsByDay(request , slug , takenAt):
     try:
-        print("getAttendanceInDetailsByDay")
-        print(takenAt)
         takenDate = parser.parse(takenAt).date()
-        print(takenDate)
 
         user = request.session["user"]
         slugUser = get_object_or_404(Users , slug = slug)
@@ -941,7 +805,6 @@ def getAttendanceInDetailsByDay(request , slug , takenAt):
         org = getOrgById(request , user["currentActiveOrganization"] , slugUser)
         
         teamIds = getTeamIds(request , userData , slugUser , org)
-        print(teamIds)
 
         if(len(teamIds) < 0):
             return HttpResponseForbidden("You don't have a access.")
@@ -971,7 +834,6 @@ def getAttendanceInDetailsByDay(request , slug , takenAt):
                 a.userId_id = '{userData._id}';
         """
 
-        print(query)
 
         data = Team.objects.raw(query)
 
@@ -979,10 +841,8 @@ def getAttendanceInDetailsByDay(request , slug , takenAt):
         userJobTitleData = getUsersJobTitle(teamIds , slugUser._id , org._id)
         userJobTitle = ""
 
-        print(userJobTitleData)
 
         for job in userJobTitleData:
-            print(job.title)
             if( userJobTitle == ""):
                 userJobTitle = job.title
             else: 
@@ -992,7 +852,6 @@ def getAttendanceInDetailsByDay(request , slug , takenAt):
         # att_data = []
 
         # for d in data:
-        #     print(d)
         #     att_data.append(d)
         
         return render(request ,"AttendanceDetailsCard.html" , {
@@ -1013,21 +872,18 @@ def add(request) :
     try:
         return render(request ,"SignUp.html")
     except Exception as e:
-            print(e)
             HttpResponseServerError(e)
 
 def edit(request , slug) :
     try:
         return render(request ,"Edit.html" , { 'slug' : slug })
     except Exception as e:
-            print(e)
             HttpResponseServerError(e)
 
 def delete(request , slug) :
     try:
         return render(request ,"delete.html" , { 'slug' : slug })
     except Exception as e:
-            print(e)
             HttpResponseServerError(e)
 
 def getUserByEmail(email):
@@ -1055,10 +911,8 @@ def formateLeaveRequest(leaveRequestData):
     try:
         tableTitle = ["name","status","leaveType","fromDate","toDate","reason"]
         tableData = []
-        print(tableTitle)
         for i in  range(0,len(leaveRequestData)):
             data = leaveRequestData[i]
-            print(data)
 
             tableData.append([ 
                 f'{data.createdBy.firstName} {data.createdBy.middleName} {data.createdBy.lastName}',
@@ -1085,12 +939,10 @@ def leaveRequest(request , slug):
         if(len(teamIds) < 0):
             return HttpResponseForbidden("You don't have a access.")
 
-        print("leaveRequest")
         search=""
         rows=10
         page=0
         data = request.POST
-        print(data)
 
 
         if(data.get("search" , "") not in [None , "" ]):
@@ -1105,11 +957,8 @@ def leaveRequest(request , slug):
             page = int(data["page"])
         
 
-        print(search , rows)
 
         skip = page*rows
-        print(userData)
-        print(org)
 
         leaveReq = LeaveRequest.objects.filter(
             Q(createdBy = userData) & Q(Organization = org) &
@@ -1128,18 +977,14 @@ def leaveRequest(request , slug):
             "leave_request" : True,
         }
 
-        print("leaveReq===>")
-        print(leaveReq)
 
         tableTitle , tableData  = formateLeaveRequest(leaveReq)
 
         userJobTitleData = getUsersJobTitle(teamIds , slugUser._id , org._id)
         userJobTitle = ""
 
-        print(userJobTitleData)
 
         for job in userJobTitleData:
-            print(job.title)
             if( userJobTitle == ""):
                 userJobTitle = job.title
             else: 

@@ -1,4 +1,4 @@
-# StayInTimeTracker (Attendance Tracking System) - Work Ongoing
+# StayInTimeTracker (Attendance Tracking System)
 
 StayInTimeTracker is an ongoing project focused on attendance tracking. It empowers users to efficiently manage organizations, employees, jobs, teams, and attendance. The system follows a hierarchical structure, where users are organized into teams with leader, co-leader, and member relationships. 
 Here are some key features:

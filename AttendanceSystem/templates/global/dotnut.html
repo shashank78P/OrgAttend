@@ -74,8 +74,10 @@
 
     let fromDate = new Date()
     fromDate.setDate(1)
-    fromDate = fromDate.toISOString()
-    dotnutFromDate.value = fromDate.split('T')[0]
+    // fromDate = fromDate.toISOString()
+    // dotnutFromDate.value = fromDate.split('T')[0]
+    fromDate = "2023-11-02"
+    dotnutFromDate.value = fromDate
     
     let toDate = new Date();
     toDate.setMonth(toDate.getMonth() + 1, 1);

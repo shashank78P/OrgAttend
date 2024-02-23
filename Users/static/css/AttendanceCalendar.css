@@ -47,6 +47,9 @@
     background-color: var(--slate-100);
 }
 
+.present0 {
+    background-color: var(--red-200) !important;
+}
 .present25 {
     background-color: var(--green-200) !important;
 }
